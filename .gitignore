@@ -26,6 +26,7 @@ yarn-error.log*
 .cache/
 .tanstack/
 vite.config.ts.timestamp-*
+**/.cta.json
 
 # Local data and generated runtime state
 docker/postgres-data/
