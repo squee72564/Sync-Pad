@@ -1,10 +1,5 @@
-import { TanStackDevtools } from '@tanstack/react-devtools';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { createRootRoute, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
-import { ThemeProvider } from '#/components/theme-provider';
-import { Toaster } from '#/components/ui/sonner';
-import { queryClient } from '#/lib/query';
+import { AppProviders } from '#/components/app-providers';
 
 import '../styles.css';
 
@@ -14,27 +9,8 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute={'class'}
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <Outlet />
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'TanStack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
-        <Toaster />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <AppProviders>
+      <Outlet />
+    </AppProviders>
   );
 }

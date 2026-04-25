@@ -43,6 +43,24 @@
       }
     },
     {
+      "includes": ["**/web/src/components/ui/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useSemanticElements": "off"
+          },
+          "correctness": {
+            "useExhaustiveDependencies": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off",
+            "noDocumentCookie": "off",
+            "noDoubleEquals": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["**/web/src/routeTree.gen.ts"],
       "assist": {
         "enabled": false
