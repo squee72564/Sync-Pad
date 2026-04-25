@@ -44,12 +44,14 @@
     },
     {
       "includes": ["**/web/src/routeTree.gen.ts"],
+      "assist": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      },
       "linter": {
-        "rules": {
-          "suspicious": {
-            "noExplicitAny": "off"
-          }
-        }
+        "enabled": false
       }
     }
   ]
