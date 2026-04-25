@@ -33,6 +33,24 @@
       "javascript": {
         "globals": ["document", "window", "navigator"]
       }
+    },
+    {
+      "includes": ["**/web/src/**/*.css"],
+      "css": {
+        "parser": {
+          "tailwindDirectives": true
+        }
+      }
+    },
+    {
+      "includes": ["**/web/src/routeTree.gen.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
     }
   ]
 }
