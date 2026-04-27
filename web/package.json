@@ -9,13 +9,15 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "test:coverage": "vitest run --config vitest.config.ts --coverage",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint:check": "biome check .",
     "lint": "biome check . --write",
     "format:check": "biome format .",
     "format": "biome format . --write",
-    "check": "pnpm lint:check && pnpm format:check && pnpm typecheck",
-    "test": "vitest run"
+    "check": "pnpm lint:check && pnpm format:check && pnpm typecheck"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
@@ -52,9 +54,10 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.5",
     "jsdom": "^28.1.0",
     "typescript": "^5.7.2",
     "vite": "^8.0.0",
-    "vitest": "^3.0.5"
+    "vitest": "^4.1.5"
   }
 }

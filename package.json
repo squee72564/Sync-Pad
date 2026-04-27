@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "test": "turbo test",
+    "test:watch": "turbo test -- --watch",
+    "test:coverage": "turbo test:coverage",
     "typecheck": "turbo typecheck",
     "lint:check": "turbo lint:check",
     "lint": "turbo lint",
