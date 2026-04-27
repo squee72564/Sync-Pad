@@ -15,6 +15,7 @@ describe('app error handling', () => {
       code: 'ROUTE_NOT_FOUND',
       detail: 'The requested resource was not found.',
       instance: '/missing-route',
+      requestId: expect.any(String),
       status: StatusCodes.NOT_FOUND,
       title: 'Not Found',
       type: 'urn:syncpad:error:route-not-found',
@@ -41,6 +42,7 @@ describe('app error handling', () => {
       code: 'TEST_ERROR',
       detail: 'Intentional test failure.',
       instance: '/__test/app-error',
+      requestId: expect.any(String),
       status: StatusCodes.IM_A_TEAPOT,
       title: "I'm a teapot",
       type: 'urn:syncpad:error:test-error',
@@ -61,9 +63,23 @@ describe('app error handling', () => {
       code: 'INTERNAL_ERROR',
       detail: 'boom',
       instance: '/__test/native-error',
+      requestId: expect.any(String),
       status: StatusCodes.INTERNAL_SERVER_ERROR,
       title: 'Internal Server Error',
       type: 'urn:syncpad:error:internal-error',
     });
+  });
+
+  it('preserves incoming request ids on responses', async () => {
+    const app = createApp();
+    const response = await app.request('/missing-route', {
+      headers: {
+        'x-request-id': 'req_from_client',
+      },
+    });
+    const body = await response.json();
+
+    expect(response.headers.get('x-request-id')).toBe('req_from_client');
+    expect(body.requestId).toBe('req_from_client');
   });
 });

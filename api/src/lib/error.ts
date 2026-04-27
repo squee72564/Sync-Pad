@@ -27,6 +27,7 @@ export type ProblemDetails = {
   detail?: string;
   details?: AppErrorDetails;
   instance?: string;
+  requestId?: string;
   status: ContentfulStatusCode;
   title: string;
   type: string;
@@ -113,7 +114,10 @@ export class AppError extends Error {
     return env !== 'production';
   }
 
-  toProblem(env: AppEnv, options?: { instance?: string }): ProblemDetails {
+  toProblem(
+    env: AppEnv,
+    options?: { instance?: string; requestId?: string },
+  ): ProblemDetails {
     const shouldExpose = this.shouldExpose(env);
     const detail = shouldExpose
       ? (this.userMessage ?? this.message)
@@ -127,6 +131,7 @@ export class AppError extends Error {
       code: this.code,
       details: shouldExpose ? this.details : undefined,
       instance: options?.instance ?? this.requestId,
+      requestId: options?.requestId ?? this.requestId,
     };
   }
 
