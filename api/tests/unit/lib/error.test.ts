@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes';
 import { describe, expect, it } from 'vitest';
 
 import { AppError, isAppError, toAppError } from '../../../src/lib/error.js';
@@ -12,13 +13,13 @@ describe('AppError', () => {
       message: 'Failed to load organization record',
       metadata: { queryName: 'findOrganizationById' },
       requestId: 'req_123',
-      status: 503,
+      status: StatusCodes.SERVICE_UNAVAILABLE,
       tags: ['org', 'db'],
       userMessage: 'Unable to load organization.',
     });
 
     expect(error.code).toBe('ORG_LOOKUP_FAILED');
-    expect(error.status).toBe(503);
+    expect(error.status).toBe(StatusCodes.SERVICE_UNAVAILABLE);
     expect(error.message).toBe('Failed to load organization record');
     expect(error.cause).toBe(cause);
     expect(error.tags).toEqual(['org', 'db']);
@@ -32,7 +33,7 @@ describe('AppError', () => {
       code: 'TASK_CREATE_FAILED',
       details: { field: 'title' },
       message: 'Task title exceeded column width',
-      status: 422,
+      status: StatusCodes.UNPROCESSABLE_ENTITY,
     });
 
     expect(error.toProblem('development')).toEqual({
@@ -40,7 +41,7 @@ describe('AppError', () => {
       detail: 'Task title exceeded column width',
       details: { field: 'title' },
       instance: undefined,
-      status: 422,
+      status: StatusCodes.UNPROCESSABLE_ENTITY,
       title: 'Unprocessable Entity',
       type: 'urn:syncpad:error:task-create-failed',
     });
@@ -52,7 +53,7 @@ describe('AppError', () => {
       details: { queryName: 'insertDocument' },
       message: 'violated unique constraint documents_slug_key',
       metadata: { table: 'documents' },
-      status: 500,
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
     });
 
     expect(error.toProblem('production')).toEqual({
@@ -60,7 +61,7 @@ describe('AppError', () => {
       detail: 'An unexpected error occurred.',
       details: undefined,
       instance: undefined,
-      status: 500,
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
       title: 'Internal Server Error',
       type: 'urn:syncpad:error:internal-error',
     });
@@ -72,7 +73,7 @@ describe('AppError', () => {
       details: { reason: 'invalid_credentials' },
       expose: true,
       message: 'Password mismatch for user',
-      status: 401,
+      status: StatusCodes.UNAUTHORIZED,
       userMessage: 'Invalid email or password.',
     });
 
@@ -81,7 +82,7 @@ describe('AppError', () => {
       detail: 'Invalid email or password.',
       details: { reason: 'invalid_credentials' },
       instance: undefined,
-      status: 401,
+      status: StatusCodes.UNAUTHORIZED,
       title: 'Unauthorized',
       type: 'urn:syncpad:error:auth-invalid-credentials',
     });
@@ -93,7 +94,7 @@ describe('toAppError', () => {
     const error = new AppError({
       code: 'NOT_FOUND',
       message: 'Document not found',
-      status: 404,
+      status: StatusCodes.NOT_FOUND,
     });
 
     expect(toAppError(error)).toBe(error);
@@ -105,7 +106,7 @@ describe('toAppError', () => {
     const error = toAppError(source);
 
     expect(error.code).toBe('INTERNAL_ERROR');
-    expect(error.status).toBe(500);
+    expect(error.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(error.message).toBe('socket hang up');
     expect(error.cause).toBe(source);
     expect(error.toProblem('production').detail).toBe(
@@ -117,7 +118,7 @@ describe('toAppError', () => {
     const error = toAppError('boom');
 
     expect(error.code).toBe('INTERNAL_ERROR');
-    expect(error.status).toBe(500);
+    expect(error.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(error.message).toBe('Non-error value thrown');
     expect(error.metadata).toEqual({ thrownValue: 'boom' });
     expect(error.toProblem('production').detail).toBe(

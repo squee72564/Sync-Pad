@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { StatusCodes } from 'http-status-codes';
 
 import { auth } from './lib/auth.js';
 import { env } from './lib/env.js';
@@ -45,7 +46,7 @@ export const createApp = () => {
       code: 'ROUTE_NOT_FOUND',
       expose: true,
       message: `No route matched ${context.req.method} ${context.req.path}`,
-      status: 404,
+      status: StatusCodes.NOT_FOUND,
       userMessage: 'The requested resource was not found.',
     });
 

@@ -1,3 +1,6 @@
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { getReasonPhrase, StatusCodes } from 'http-status-codes';
+
 export type AppEnv = 'development' | 'test' | 'production';
 
 export type AppErrorDetails = Record<string, unknown>;
@@ -11,7 +14,7 @@ export type AppErrorOptions = {
   metadata?: AppErrorMetadata;
   message: string;
   requestId?: string;
-  status: number;
+  status: ContentfulStatusCode;
   tags?: string[];
   timestamp?: string;
   title?: string;
@@ -24,23 +27,9 @@ export type ProblemDetails = {
   detail?: string;
   details?: AppErrorDetails;
   instance?: string;
-  status: number;
+  status: ContentfulStatusCode;
   title: string;
   type: string;
-};
-
-const DEFAULT_STATUS_TITLES: Record<number, string> = {
-  400: 'Bad Request',
-  401: 'Unauthorized',
-  403: 'Forbidden',
-  404: 'Not Found',
-  409: 'Conflict',
-  422: 'Unprocessable Entity',
-  429: 'Too Many Requests',
-  500: 'Internal Server Error',
-  502: 'Bad Gateway',
-  503: 'Service Unavailable',
-  504: 'Gateway Timeout',
 };
 
 const normalizeCodeForType = (code: string) =>
@@ -49,14 +38,19 @@ const normalizeCodeForType = (code: string) =>
     .toLowerCase()
     .replaceAll(/[^a-z0-9]+/g, '-');
 
-const getDefaultTitle = (status: number, code: string) =>
-  DEFAULT_STATUS_TITLES[status] ?? code.replaceAll('_', ' ');
+const getDefaultTitle = (status: ContentfulStatusCode) => {
+  try {
+    return getReasonPhrase(status);
+  } catch {
+    return 'Unknown Error';
+  }
+};
 
 const getDefaultType = (code: string) =>
   `urn:syncpad:error:${normalizeCodeForType(code)}`;
 
-const getDefaultPublicDetail = (status: number) => {
-  if (status >= 500) {
+const getDefaultPublicDetail = (status: ContentfulStatusCode) => {
+  if (status >= StatusCodes.INTERNAL_SERVER_ERROR) {
     return 'An unexpected error occurred.';
   }
 
@@ -69,7 +63,7 @@ export class AppError extends Error {
   readonly expose?: boolean;
   readonly metadata?: AppErrorMetadata;
   readonly requestId?: string;
-  readonly status: number;
+  readonly status: ContentfulStatusCode;
   readonly tags: string[];
   readonly timestamp: string;
   readonly title: string;
@@ -104,7 +98,7 @@ export class AppError extends Error {
     this.requestId = requestId;
     this.tags = tags ?? [];
     this.timestamp = timestamp ?? new Date().toISOString();
-    this.title = title ?? getDefaultTitle(status, code);
+    this.title = title ?? getDefaultTitle(status);
     this.type = type ?? getDefaultType(code);
     this.userMessage = userMessage;
 
@@ -167,7 +161,7 @@ export const toAppError = (
     return value;
   }
 
-  const fallbackStatus = fallback?.status ?? 500;
+  const fallbackStatus = fallback?.status ?? StatusCodes.INTERNAL_SERVER_ERROR;
   const fallbackCode = fallback?.code ?? 'INTERNAL_ERROR';
 
   if (value instanceof Error) {
