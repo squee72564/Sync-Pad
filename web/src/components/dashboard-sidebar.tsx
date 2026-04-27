@@ -4,11 +4,14 @@ import {
   BotIcon,
   FolderKanbanIcon,
   HomeIcon,
+  LogOutIcon,
   SearchIcon,
   Settings2Icon,
   SparklesIcon,
   UsersIcon,
 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '#/components/ui/badge';
 import {
   Sidebar,
@@ -25,6 +28,7 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from '#/components/ui/sidebar';
+import { authClient } from '#/lib/auth-client';
 
 type PrimaryNavItem = {
   title: string;
@@ -79,6 +83,27 @@ const administrationAreas: SecondaryNavItem[] = [
 ];
 
 export function DashboardSidebar() {
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    await authClient.signOut({
+      fetchOptions: {
+        onRequest: () => {
+          setIsSigningOut(true);
+        },
+        onSuccess: () => {
+          setIsSigningOut(false);
+          toast.success('Signed out');
+          window.location.assign('/signin');
+        },
+        onError: (ctx) => {
+          setIsSigningOut(false);
+          toast.error(ctx.error.message || 'Unable to sign out.');
+        },
+      },
+    });
+  }
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="gap-3 px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
@@ -160,15 +185,23 @@ export function DashboardSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <div className="rounded-xl border border-sidebar-border/70 bg-sidebar-accent/30 px-3 py-3 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
-          <BotIcon className="hidden size-4 group-data-[collapsible=icon]:block group-data-[collapsible=icon]:size-3.5" />
-          <div className="group-data-[collapsible=icon]:hidden">
-            <p className="text-sm font-medium">Connected workspace</p>
-            <p className="mt-1 text-xs leading-5 text-sidebar-foreground/70">
-              Shared navigation for projects, documents, knowledge, and AI.
-            </p>
-          </div>
-        </div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip={isSigningOut ? 'Signing out...' : 'Sign out'}
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+              className="border border-sidebar-border/70 bg-sidebar-accent/30 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center"
+            >
+              {isSigningOut ? (
+                <BotIcon className="size-4 animate-pulse group-data-[collapsible=icon]:size-3.5" />
+              ) : (
+                <LogOutIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
+              )}
+              <span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
 
       <SidebarRail />
