@@ -14,8 +14,8 @@
     "format:check": "turbo format:check",
     "lint-staged": "lint-staged",
     "prepare": "husky",
-    "db:generate": "pnpm --filter api db:generate",
-    "db:migrate": "pnpm --filter api db:migrate"
+    "db:generate:dev": "pnpm --filter api db:generate:dev",
+    "db:migrate:dev": "pnpm --filter api db:migrate:dev"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
