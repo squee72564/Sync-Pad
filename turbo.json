@@ -9,6 +9,12 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "test": {
+      "outputs": []
+    },
+    "test:coverage": {
+      "outputs": ["coverage/**"]
+    },
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "outputs": []
