@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "test": "turbo test",
-    "test:watch": "turbo test -- --watch",
+    "test": "turbo test --output-logs=errors-only",
+    "test:verbose": "turbo test:verbose --output-logs=full",
+    "test:watch": "turbo test:watch",
     "test:coverage": "turbo test:coverage",
     "typecheck": "turbo typecheck",
     "lint:check": "turbo lint:check",
