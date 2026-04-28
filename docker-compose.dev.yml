@@ -20,7 +20,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   permify:
-    image: ghcr.io/permify/permify:v1.5.3
+    image: ghcr.io/permify/permify:v1.6.9
     container_name: syncpad-permify
     restart: unless-stopped
     depends_on:
