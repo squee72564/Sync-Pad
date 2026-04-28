@@ -1,9 +1,10 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { StatusCodes } from 'http-status-codes';
 import { Pool } from 'pg';
-
 import { env } from '../lib/env.js';
 import { AppError } from '../lib/error.js';
+import * as authSchema from './schema/auth-schema.js';
+import * as coreSchema from './schema/core.js';
 
 const pool = new Pool({
   connectionString: env.DATABASE_URL,
@@ -24,5 +25,10 @@ export const checkDatabaseReadiness = async () => {
   }
 };
 
-export const db = drizzle(pool);
+export const db = drizzle(pool, {
+  schema: {
+    ...authSchema,
+    ...coreSchema,
+  },
+});
 export { pool };

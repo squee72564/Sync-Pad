@@ -12,6 +12,8 @@ import {
   securityHeaders,
 } from './middleware/security.js';
 import { healthRoute } from './routes/health.js';
+import { organizationsRoute } from './routes/organizations.js';
+import { workspacesRoute } from './routes/workspaces.js';
 
 export const createApp = () => {
   const app = new Hono<{ Variables: AppVariables }>();
@@ -34,6 +36,9 @@ export const createApp = () => {
   app.on(['POST', 'GET'], '/api/auth/*', async (context) => {
     return auth.handler(context.req.raw);
   });
+
+  app.route('/api/organizations', organizationsRoute);
+  app.route('/api/workspaces', workspacesRoute);
 
   app.notFound(notFoundHandler);
   app.onError(errorHandler);
