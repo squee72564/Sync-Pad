@@ -10,21 +10,23 @@ entity organization {
     permission manage = owner or admin
     permission read = manage or member or guest or bot
     permission invite = manage
-    permission create_workspace = manage or member
+    permission create_workspace = manage
     permission run_ai = manage or member or bot
 }
 
 entity workspace {
     relation parent @organization
-    relation owner @user
-    relation admin @user
-    relation member @user
-    relation guest @user
+    relation manager @user
+    relation editor @user
+    relation commenter @user
+    relation viewer @user
     relation bot @user
 
-    permission manage = owner or admin or parent.manage
-    permission read = manage or member or guest or bot or parent.read
-    permission write = manage or member
+    permission govern = parent.manage
+    permission manage = manager or govern
+    permission read = manage or editor or commenter or viewer or bot
+    permission comment = manage or editor or commenter
+    permission write = manage or editor
     permission invite = manage
-    permission run_ai = manage or member or bot or parent.run_ai
+    permission run_ai = manage or editor or bot or parent.run_ai
 }
