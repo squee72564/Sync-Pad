@@ -17,6 +17,7 @@ import type { WorkspaceMembershipRecord } from '../types/api.js';
 
 type WorkspaceRepository = typeof workspaceRepository;
 type OrganizationRepository = typeof organizationRepository;
+type WorkspaceMembershipCleanupRecord = WorkspaceMembershipRecord;
 
 const syncOrThrow = async (
   accessGraphSync: AccessGraphSync,
@@ -46,6 +47,38 @@ export const createWorkspaceService = (dependencies?: {
     dependencies?.organizationRepo ?? organizationRepository;
   const workspaceRepo = dependencies?.workspaceRepo ?? workspaceRepository;
 
+  const ensureActiveOrganizationMembership = async (
+    organizationId: string,
+    userId: string,
+    tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  ) => {
+    const membership = await organizationRepo.findMembership(
+      organizationId,
+      userId,
+      tx,
+    );
+
+    if (!membership || membership.status !== 'active') {
+      throw new AppError({
+        code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
+        expose: true,
+        message: `No active organization membership for ${userId} in ${organizationId}`,
+        status: StatusCodes.NOT_FOUND,
+        userMessage: 'Organization membership not found.',
+      });
+    }
+
+    return membership;
+  };
+
+  const deleteWorkspaceMembershipTuples = (
+    memberships: WorkspaceMembershipCleanupRecord[],
+  ): AccessGraphOperation[] =>
+    memberships.map((membership) => ({
+      type: 'delete',
+      tuples: toWorkspaceMembershipTuple(membership),
+    }));
+
   return {
     async listByOrganizationReadableToUser(input: {
       actorUserId: string;
@@ -72,21 +105,11 @@ export const createWorkspaceService = (dependencies?: {
       };
     }) {
       return db.transaction(async (tx) => {
-        const membership = await organizationRepo.findMembership(
+        await ensureActiveOrganizationMembership(
           input.organizationId,
           input.actorUserId,
           tx,
         );
-
-        if (!membership || membership.status !== 'active') {
-          throw new AppError({
-            code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
-            expose: true,
-            message: `No active organization membership for ${input.actorUserId} in ${input.organizationId}`,
-            status: StatusCodes.NOT_FOUND,
-            userMessage: 'Organization membership not found.',
-          });
-        }
 
         const createdWorkspace = await workspaceRepo.insertWorkspace(
           {
@@ -134,6 +157,10 @@ export const createWorkspaceService = (dependencies?: {
     async deleteWorkspace(workspaceId: string) {
       return db.transaction(async (tx) => {
         const existing = await workspaceRepo.findById(workspaceId, tx);
+        const existingMemberships = await workspaceRepo.listMemberships(
+          workspaceId,
+          tx,
+        );
         const deleted = await workspaceRepo.deleteWorkspace(workspaceId, tx);
 
         if (existing && !deleted) {
@@ -147,10 +174,13 @@ export const createWorkspaceService = (dependencies?: {
         }
 
         if (existing) {
-          await syncOrThrow(accessGraphSync, {
-            type: 'delete',
-            tuples: toWorkspaceParentTuple(existing),
-          });
+          await syncOrThrow(accessGraphSync, [
+            {
+              type: 'delete',
+              tuples: toWorkspaceParentTuple(existing),
+            },
+            ...deleteWorkspaceMembershipTuples(existingMemberships),
+          ]);
         }
 
         return deleted;
@@ -164,6 +194,12 @@ export const createWorkspaceService = (dependencies?: {
       role: 'manager' | 'editor' | 'commenter' | 'viewer';
     }) {
       return db.transaction(async (tx) => {
+        await ensureActiveOrganizationMembership(
+          input.organizationId,
+          input.userId,
+          tx,
+        );
+
         const membership = await workspaceRepo.insertMembership(
           {
             organizationId: input.organizationId,
@@ -189,14 +225,11 @@ export const createWorkspaceService = (dependencies?: {
       role: 'manager' | 'editor' | 'commenter' | 'viewer';
     }) {
       return db.transaction(async (tx) => {
-        const existing = await workspaceRepo
-          .listMemberships(input.workspaceId, tx)
-          .then(
-            (memberships: WorkspaceMembershipRecord[]) =>
-              memberships.find(
-                (membership) => membership.userId === input.userId,
-              ) ?? null,
-          );
+        const existing = await workspaceRepo.findMembership(
+          input.workspaceId,
+          input.userId,
+          tx,
+        );
 
         if (!existing) {
           throw new AppError({
@@ -244,13 +277,11 @@ export const createWorkspaceService = (dependencies?: {
 
     deleteMember(workspaceId: string, userId: string) {
       return db.transaction(async (tx) => {
-        const existing = await workspaceRepo
-          .listMemberships(workspaceId, tx)
-          .then(
-            (memberships: WorkspaceMembershipRecord[]) =>
-              memberships.find((membership) => membership.userId === userId) ??
-              null,
-          );
+        const existing = await workspaceRepo.findMembership(
+          workspaceId,
+          userId,
+          tx,
+        );
         const deleted = await workspaceRepo.deleteMembership(
           workspaceId,
           userId,

@@ -256,6 +256,53 @@ describe.sequential('workspace service consistency', () => {
     ).toBeUndefined();
   });
 
+  it('rejects workspace member inserts when the target lacks an active organization membership', async () => {
+    await seedUser({ id: 'user_owner' });
+    await seedUser({ id: 'user_target' });
+    await seedOrganization({ id: 'org_1' });
+    await seedOrganizationMembership({
+      userId: 'user_owner',
+      organizationId: 'org_1',
+      organizationRole: 'owner',
+      status: 'active',
+    });
+    await seedOrganizationMembership({
+      userId: 'user_target',
+      organizationId: 'org_1',
+      organizationRole: 'member',
+      status: 'invited',
+      joinedAt: null,
+    });
+    await seedWorkspace({ id: 'ws_1', organizationId: 'org_1', name: 'Docs' });
+
+    const service = createWorkspaceService({
+      accessGraphSync: {
+        apply: vi.fn(),
+      },
+    });
+
+    await expect(
+      service.addMember({
+        organizationId: 'org_1',
+        workspaceId: 'ws_1',
+        userId: 'user_target',
+        role: 'editor',
+      }),
+    ).rejects.toMatchObject({
+      code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
+      status: StatusCodes.NOT_FOUND,
+    });
+
+    expect(
+      await db.query.workspaceMembership.findFirst({
+        where: and(
+          eq(workspaceMembership.workspaceId, 'ws_1'),
+          eq(workspaceMembership.userId, 'user_target'),
+        ),
+      }),
+    ).toBeUndefined();
+  });
+
   it('throws membership-not-found when a preloaded workspace membership disappears during update', async () => {
     const service = createWorkspaceService({
       accessGraphSync: {
@@ -266,22 +313,21 @@ describe.sequential('workspace service consistency', () => {
       } as never,
       workspaceRepo: {
         findById: vi.fn(),
+        findMembership: vi.fn().mockResolvedValue({
+          userId: 'user_target',
+          workspaceId: 'ws_1',
+          organizationId: 'org_1',
+          workspaceRole: 'viewer',
+          createdAt: new Date('2024-01-02T03:04:05.000Z'),
+          updatedAt: new Date('2024-01-02T03:04:05.000Z'),
+        }),
         listByOrganizationReadableToUser: vi.fn(),
         insertWorkspace: vi.fn(),
         updateWorkspace: vi.fn(),
         deleteWorkspace: vi.fn(),
         insertMembership: vi.fn(),
         deleteMembership: vi.fn(),
-        listMemberships: vi.fn().mockResolvedValue([
-          {
-            userId: 'user_target',
-            workspaceId: 'ws_1',
-            organizationId: 'org_1',
-            workspaceRole: 'viewer',
-            createdAt: new Date('2024-01-02T03:04:05.000Z'),
-            updatedAt: new Date('2024-01-02T03:04:05.000Z'),
-          },
-        ]),
+        listMemberships: vi.fn(),
         updateMembership: vi.fn().mockResolvedValue(null),
       } as never,
     });
@@ -314,6 +360,7 @@ describe.sequential('workspace service consistency', () => {
           createdAt: new Date('2024-01-02T03:04:05.000Z'),
           updatedAt: new Date('2024-01-02T03:04:05.000Z'),
         }),
+        findMembership: vi.fn(),
         listByOrganizationReadableToUser: vi.fn(),
         insertWorkspace: vi.fn(),
         updateWorkspace: vi.fn(),

@@ -5,12 +5,15 @@ import {
   type AccessGraphSync,
   permifyAccessGraphSync,
   toOrganizationMembershipTuple,
+  toWorkspaceMembershipTuple,
 } from '../authz/tuple-sync.js';
 import { db } from '../db/client.js';
 import { AppError } from '../lib/error.js';
 import { organizationRepository } from '../repositories/organization-repository.js';
+import { workspaceRepository } from '../repositories/workspace-repository.js';
 
 type OrganizationRepository = typeof organizationRepository;
+type WorkspaceRepository = typeof workspaceRepository;
 
 type CreateOrganizationInput = {
   actorUserId: string;
@@ -56,11 +59,23 @@ const syncOrThrow = async (
 export const createOrganizationService = (dependencies?: {
   accessGraphSync?: AccessGraphSync;
   organizationRepo?: OrganizationRepository;
+  workspaceRepo?: WorkspaceRepository;
 }) => {
   const accessGraphSync =
     dependencies?.accessGraphSync ?? permifyAccessGraphSync;
   const organizationRepo =
     dependencies?.organizationRepo ?? organizationRepository;
+  const workspaceRepo = dependencies?.workspaceRepo ?? workspaceRepository;
+
+  const buildWorkspaceMembershipDeleteOperations = (
+    memberships: Awaited<
+      ReturnType<WorkspaceRepository['listMembershipsByOrganizationAndUser']>
+    >,
+  ): AccessGraphOperation[] =>
+    memberships.map((membership) => ({
+      type: 'delete',
+      tuples: toWorkspaceMembershipTuple(membership),
+    }));
 
   return {
     listOrganizationsForUser(userId: string) {
@@ -178,6 +193,15 @@ export const createOrganizationService = (dependencies?: {
           });
         }
 
+        const shouldRevokeWorkspaceMemberships = updated.status !== 'active';
+        const existingWorkspaceMemberships = shouldRevokeWorkspaceMemberships
+          ? await workspaceRepo.listMembershipsByOrganizationAndUser(
+              organizationId,
+              userId,
+              tx,
+            )
+          : [];
+
         const operations: AccessGraphOperation[] = [];
 
         if (existing.status === 'active') {
@@ -194,6 +218,19 @@ export const createOrganizationService = (dependencies?: {
           });
         }
 
+        if (shouldRevokeWorkspaceMemberships) {
+          await workspaceRepo.deleteMembershipsByOrganizationAndUser(
+            organizationId,
+            userId,
+            tx,
+          );
+          operations.push(
+            ...buildWorkspaceMembershipDeleteOperations(
+              existingWorkspaceMemberships,
+            ),
+          );
+        }
+
         if (operations.length > 0) {
           await syncOrThrow(accessGraphSync, operations);
         }
@@ -204,17 +241,35 @@ export const createOrganizationService = (dependencies?: {
 
     deleteMember(organizationId: string, userId: string) {
       return db.transaction(async (tx) => {
+        const existingWorkspaceMemberships =
+          await workspaceRepo.listMembershipsByOrganizationAndUser(
+            organizationId,
+            userId,
+            tx,
+          );
         const deleted = await organizationRepo.deleteMembership(
           organizationId,
           userId,
           tx,
         );
 
+        const operations: AccessGraphOperation[] = [];
+
         if (deleted?.status === 'active') {
-          await syncOrThrow(accessGraphSync, {
+          operations.push({
             type: 'delete',
             tuples: toOrganizationMembershipTuple(deleted),
           });
+        }
+
+        operations.push(
+          ...buildWorkspaceMembershipDeleteOperations(
+            existingWorkspaceMemberships,
+          ),
+        );
+
+        if (operations.length > 0) {
+          await syncOrThrow(accessGraphSync, operations);
         }
 
         return deleted;

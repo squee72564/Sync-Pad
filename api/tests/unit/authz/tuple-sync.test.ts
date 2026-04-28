@@ -9,7 +9,13 @@ import {
   deleteTuples,
   writeTuples,
 } from '../../../src/authz/permify-client.js';
-import { permifyAccessGraphSync } from '../../../src/authz/tuple-sync.js';
+import {
+  PERMIFY_RELATIONS,
+  permifyAccessGraphSync,
+  toOrganizationMembershipTuple,
+  toWorkspaceMembershipTuple,
+  toWorkspaceParentTuple,
+} from '../../../src/authz/tuple-sync.js';
 
 describe('tuple sync', () => {
   beforeEach(() => {
@@ -119,6 +125,54 @@ describe('tuple sync', () => {
     ).rejects.toMatchObject({
       name: 'PermifySyncError',
       message: 'Permify sync failed',
+    });
+  });
+
+  it('builds relation tuples from current schema-owned relation names', () => {
+    expect(
+      toOrganizationMembershipTuple({
+        userId: 'user_1',
+        organizationId: 'org_1',
+        organizationRole: 'admin',
+        status: 'active',
+        invitedBy: 'user_owner',
+        joinedAt: new Date('2024-01-02T03:04:05.000Z'),
+        createdAt: new Date('2024-01-02T03:04:05.000Z'),
+        updatedAt: new Date('2024-01-02T03:04:05.000Z'),
+      }),
+    ).toMatchObject({
+      entity: { type: 'organization', id: 'org_1' },
+      relation: 'admin',
+      subject: { type: 'user', id: 'user_1' },
+    });
+
+    expect(
+      toWorkspaceMembershipTuple({
+        userId: 'user_1',
+        workspaceId: 'ws_1',
+        organizationId: 'org_1',
+        workspaceRole: 'editor',
+        createdAt: new Date('2024-01-02T03:04:05.000Z'),
+        updatedAt: new Date('2024-01-02T03:04:05.000Z'),
+      }),
+    ).toMatchObject({
+      entity: { type: 'workspace', id: 'ws_1' },
+      relation: 'editor',
+      subject: { type: 'user', id: 'user_1' },
+    });
+
+    expect(
+      toWorkspaceParentTuple({
+        id: 'ws_1',
+        organizationId: 'org_1',
+        name: 'Docs',
+        createdAt: new Date('2024-01-02T03:04:05.000Z'),
+        updatedAt: new Date('2024-01-02T03:04:05.000Z'),
+      }),
+    ).toMatchObject({
+      entity: { type: 'workspace', id: 'ws_1' },
+      relation: PERMIFY_RELATIONS.workspaceParent,
+      subject: { type: 'organization', id: 'org_1' },
     });
   });
 });

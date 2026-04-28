@@ -7,6 +7,10 @@ import { deleteTuples, writeTuples } from './permify-client.js';
 
 type TupleInput = Parameters<typeof writeTuples>[0] extends infer T ? T : never;
 
+export const PERMIFY_RELATIONS = {
+  workspaceParent: 'parent',
+} as const;
+
 export type AccessGraphOperation =
   | { type: 'write'; tuples: TupleInput }
   | { type: 'delete'; tuples: TupleInput };
@@ -49,7 +53,7 @@ export const toWorkspaceParentTuple = (record: WorkspaceRecord) => ({
     type: 'workspace',
     id: record.id,
   },
-  relation: 'organization',
+  relation: PERMIFY_RELATIONS.workspaceParent,
   subject: {
     type: 'organization',
     id: record.organizationId,

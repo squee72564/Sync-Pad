@@ -26,6 +26,10 @@ describe('organization service', () => {
         updateMembership: vi.fn(),
         insertMembership: vi.fn().mockRejectedValue(repoError),
       } as never,
+      workspaceRepo: {
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
     });
 
     await expect(
@@ -61,6 +65,10 @@ describe('organization service', () => {
           createdAt: fixtureDate,
           updatedAt: fixtureDate,
         }),
+      } as never,
+      workspaceRepo: {
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
       } as never,
     });
 
@@ -114,6 +122,10 @@ describe('organization service', () => {
     const service = createOrganizationService({
       accessGraphSync: { apply: syncApply },
       organizationRepo: organizationRepo as never,
+      workspaceRepo: {
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
     });
 
     await service.addMember({
@@ -176,6 +188,10 @@ describe('organization service', () => {
           createdAt: fixtureDate,
           updatedAt: fixtureDate,
         }),
+      } as never,
+      workspaceRepo: {
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
       } as never,
     });
 
@@ -240,17 +256,170 @@ describe('organization service', () => {
         updateMembership: vi.fn(),
         deleteMembership,
       } as never,
+      workspaceRepo: {
+        listMembershipsByOrganizationAndUser: vi.fn().mockResolvedValue([]),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
     });
 
     await service.deleteMember('org_1', 'user_active');
     await service.deleteMember('org_1', 'user_invited');
 
     expect(syncApply).toHaveBeenCalledTimes(1);
-    expect(syncApply).toHaveBeenCalledWith({
-      type: 'delete',
-      tuples: expect.objectContaining({
-        relation: 'member',
-      }),
+    expect(syncApply).toHaveBeenCalledWith([
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          relation: 'member',
+        }),
+      },
+    ]);
+  });
+
+  it('revokes workspace memberships when an org membership becomes non-active', async () => {
+    const syncApply = vi.fn().mockResolvedValue(undefined);
+    const deleteMembershipsByOrganizationAndUser = vi.fn();
+    const service = createOrganizationService({
+      accessGraphSync: { apply: syncApply },
+      organizationRepo: {
+        listOrganizationsForUser: vi.fn(),
+        insertOrganization: vi.fn(),
+        updateOrganization: vi.fn(),
+        insertMembership: vi.fn(),
+        listMemberships: vi.fn(),
+        deleteMembership: vi.fn(),
+        findMembership: vi.fn().mockResolvedValue({
+          userId: 'user_2',
+          organizationId: 'org_1',
+          organizationRole: 'member',
+          status: 'active',
+          invitedBy: 'owner_1',
+          joinedAt: fixtureDate,
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+        updateMembership: vi.fn().mockResolvedValue({
+          userId: 'user_2',
+          organizationId: 'org_1',
+          organizationRole: 'member',
+          status: 'suspended',
+          invitedBy: 'owner_1',
+          joinedAt: fixtureDate,
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+      } as never,
+      workspaceRepo: {
+        listMembershipsByOrganizationAndUser: vi.fn().mockResolvedValue([
+          {
+            userId: 'user_2',
+            workspaceId: 'ws_1',
+            organizationId: 'org_1',
+            workspaceRole: 'editor',
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+          {
+            userId: 'user_2',
+            workspaceId: 'ws_2',
+            organizationId: 'org_1',
+            workspaceRole: 'viewer',
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+        ]),
+        deleteMembershipsByOrganizationAndUser,
+      } as never,
     });
+
+    await service.updateMember({
+      organizationId: 'org_1',
+      userId: 'user_2',
+      input: {
+        status: 'suspended',
+      },
+    });
+
+    expect(deleteMembershipsByOrganizationAndUser).toHaveBeenCalledWith(
+      'org_1',
+      'user_2',
+      expect.anything(),
+    );
+    expect(syncApply).toHaveBeenCalledWith([
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          relation: 'member',
+        }),
+      },
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          relation: 'editor',
+        }),
+      },
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          relation: 'viewer',
+        }),
+      },
+    ]);
+  });
+
+  it('removes workspace tuples when deleting an org membership', async () => {
+    const syncApply = vi.fn().mockResolvedValue(undefined);
+    const service = createOrganizationService({
+      accessGraphSync: { apply: syncApply },
+      organizationRepo: {
+        listOrganizationsForUser: vi.fn(),
+        insertOrganization: vi.fn(),
+        updateOrganization: vi.fn(),
+        insertMembership: vi.fn(),
+        findMembership: vi.fn(),
+        listMemberships: vi.fn(),
+        updateMembership: vi.fn(),
+        deleteMembership: vi.fn().mockResolvedValue({
+          userId: 'user_active',
+          organizationId: 'org_1',
+          organizationRole: 'member',
+          status: 'active',
+          invitedBy: 'owner_1',
+          joinedAt: fixtureDate,
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+      } as never,
+      workspaceRepo: {
+        listMembershipsByOrganizationAndUser: vi.fn().mockResolvedValue([
+          {
+            userId: 'user_active',
+            workspaceId: 'ws_1',
+            organizationId: 'org_1',
+            workspaceRole: 'commenter',
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+        ]),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
+    });
+
+    await service.deleteMember('org_1', 'user_active');
+
+    expect(syncApply).toHaveBeenCalledWith([
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          relation: 'member',
+        }),
+      },
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          relation: 'commenter',
+        }),
+      },
+    ]);
   });
 });

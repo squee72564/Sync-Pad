@@ -26,17 +26,29 @@ describe('workspace service', () => {
     const service = createWorkspaceService({
       accessGraphSync: { apply: vi.fn() },
       organizationRepo: {
-        findMembership: vi.fn(),
+        findMembership: vi.fn().mockResolvedValue({
+          userId: 'user_2',
+          organizationId: 'org_1',
+          organizationRole: 'member',
+          status: 'active',
+          invitedBy: 'owner_1',
+          joinedAt: fixtureDate,
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
       } as never,
       workspaceRepo: {
         findById: vi.fn(),
+        findMembership: vi.fn(),
         listByOrganizationReadableToUser: vi.fn(),
         insertWorkspace: vi.fn(),
         updateWorkspace: vi.fn(),
         deleteWorkspace: vi.fn(),
         listMemberships: vi.fn(),
+        listMembershipsByOrganizationAndUser: vi.fn(),
         updateMembership: vi.fn(),
         deleteMembership: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
         insertMembership: vi.fn().mockRejectedValue(repoError),
       } as never,
     });
@@ -57,17 +69,29 @@ describe('workspace service', () => {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
       organizationRepo: {
-        findMembership: vi.fn(),
+        findMembership: vi.fn().mockResolvedValue({
+          userId: 'user_2',
+          organizationId: 'org_1',
+          organizationRole: 'member',
+          status: 'active',
+          invitedBy: 'owner_1',
+          joinedAt: fixtureDate,
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
       } as never,
       workspaceRepo: {
         findById: vi.fn(),
+        findMembership: vi.fn(),
         listByOrganizationReadableToUser: vi.fn(),
         insertWorkspace: vi.fn(),
         updateWorkspace: vi.fn(),
         deleteWorkspace: vi.fn(),
         listMemberships: vi.fn(),
+        listMembershipsByOrganizationAndUser: vi.fn(),
         updateMembership: vi.fn(),
         deleteMembership: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
         insertMembership: vi.fn().mockResolvedValue({
           userId: 'user_2',
           workspaceId: 'ws_1',
@@ -96,21 +120,21 @@ describe('workspace service', () => {
     const syncApply = vi.fn().mockResolvedValue(undefined);
     const workspaceRepo = {
       findById: vi.fn(),
+      findMembership: vi.fn().mockResolvedValue({
+        userId: 'user_1',
+        workspaceId: 'ws_1',
+        organizationId: 'org_1',
+        workspaceRole: 'viewer',
+        createdAt: fixtureDate,
+        updatedAt: fixtureDate,
+      }),
       listByOrganizationReadableToUser: vi.fn(),
       insertWorkspace: vi.fn(),
       updateWorkspace: vi.fn(),
       deleteWorkspace: vi.fn(),
       insertMembership: vi.fn(),
-      listMemberships: vi.fn().mockResolvedValue([
-        {
-          userId: 'user_1',
-          workspaceId: 'ws_1',
-          organizationId: 'org_1',
-          workspaceRole: 'viewer',
-          createdAt: fixtureDate,
-          updatedAt: fixtureDate,
-        },
-      ]),
+      listMemberships: vi.fn(),
+      listMembershipsByOrganizationAndUser: vi.fn(),
       updateMembership: vi.fn().mockResolvedValue({
         userId: 'user_1',
         workspaceId: 'ws_1',
@@ -120,6 +144,7 @@ describe('workspace service', () => {
         updatedAt: fixtureDate,
       }),
       deleteMembership: vi.fn(),
+      deleteMembershipsByOrganizationAndUser: vi.fn(),
     };
 
     const service = createWorkspaceService({
@@ -156,13 +181,16 @@ describe('workspace service', () => {
   it('uses includeAll only when the actor can manage the organization', async () => {
     const workspaceRepo = {
       findById: vi.fn(),
+      findMembership: vi.fn(),
       insertWorkspace: vi.fn(),
       updateWorkspace: vi.fn(),
       deleteWorkspace: vi.fn(),
       insertMembership: vi.fn(),
       listMemberships: vi.fn(),
+      listMembershipsByOrganizationAndUser: vi.fn(),
       updateMembership: vi.fn(),
       deleteMembership: vi.fn(),
+      deleteMembershipsByOrganizationAndUser: vi.fn(),
       listByOrganizationReadableToUser: vi.fn().mockResolvedValue([]),
     };
     const service = createWorkspaceService({
@@ -191,5 +219,130 @@ describe('workspace service', () => {
     expect(
       workspaceRepo.listByOrganizationReadableToUser,
     ).toHaveBeenNthCalledWith(2, 'org_1', 'user_1', { includeAll: false });
+  });
+
+  it('requires an active organization membership before adding a workspace member', async () => {
+    const insertMembership = vi.fn();
+    const syncApply = vi.fn();
+    const service = createWorkspaceService({
+      accessGraphSync: { apply: syncApply },
+      organizationRepo: {
+        findMembership: vi.fn().mockResolvedValue({
+          userId: 'user_2',
+          organizationId: 'org_1',
+          organizationRole: 'member',
+          status: 'invited',
+          invitedBy: 'owner_1',
+          joinedAt: null,
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+      } as never,
+      workspaceRepo: {
+        findById: vi.fn(),
+        findMembership: vi.fn(),
+        listByOrganizationReadableToUser: vi.fn(),
+        insertWorkspace: vi.fn(),
+        updateWorkspace: vi.fn(),
+        deleteWorkspace: vi.fn(),
+        insertMembership,
+        listMemberships: vi.fn(),
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        updateMembership: vi.fn(),
+        deleteMembership: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
+    });
+
+    await expect(
+      service.addMember({
+        organizationId: 'org_1',
+        workspaceId: 'ws_1',
+        userId: 'user_2',
+        role: 'editor',
+      }),
+    ).rejects.toMatchObject({
+      code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
+      status: StatusCodes.NOT_FOUND,
+    });
+
+    expect(insertMembership).not.toHaveBeenCalled();
+    expect(syncApply).not.toHaveBeenCalled();
+  });
+
+  it('deletes parent and workspace role tuples when deleting a workspace', async () => {
+    const syncApply = vi.fn().mockResolvedValue(undefined);
+    const service = createWorkspaceService({
+      accessGraphSync: { apply: syncApply },
+      organizationRepo: {
+        findMembership: vi.fn(),
+      } as never,
+      workspaceRepo: {
+        findById: vi.fn().mockResolvedValue({
+          id: 'ws_1',
+          organizationId: 'org_1',
+          name: 'Docs',
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+        findMembership: vi.fn(),
+        listByOrganizationReadableToUser: vi.fn(),
+        insertWorkspace: vi.fn(),
+        updateWorkspace: vi.fn(),
+        deleteWorkspace: vi.fn().mockResolvedValue({
+          id: 'ws_1',
+          organizationId: 'org_1',
+          name: 'Docs',
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+        insertMembership: vi.fn(),
+        listMemberships: vi.fn().mockResolvedValue([
+          {
+            userId: 'user_1',
+            workspaceId: 'ws_1',
+            organizationId: 'org_1',
+            workspaceRole: 'manager',
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+          {
+            userId: 'user_2',
+            workspaceId: 'ws_1',
+            organizationId: 'org_1',
+            workspaceRole: 'viewer',
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+        ]),
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        updateMembership: vi.fn(),
+        deleteMembership: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
+    });
+
+    await service.deleteWorkspace('ws_1');
+
+    expect(syncApply).toHaveBeenCalledWith([
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          relation: 'parent',
+        }),
+      },
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          relation: 'manager',
+        }),
+      },
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          relation: 'viewer',
+        }),
+      },
+    ]);
   });
 });

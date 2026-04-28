@@ -19,7 +19,20 @@ export const workspaceRepository = {
     });
   },
 
-  listByOrganizationReadableToUser(
+  findMembership(
+    workspaceId: string,
+    userId: string,
+    database: DatabaseExecutor = db,
+  ) {
+    return database.query.workspaceMembership.findFirst({
+      where: and(
+        eq(workspaceMembership.workspaceId, workspaceId),
+        eq(workspaceMembership.userId, userId),
+      ),
+    });
+  },
+
+  async listByOrganizationReadableToUser(
     organizationId: string,
     userId: string,
     options?: {
@@ -51,6 +64,19 @@ export const workspaceRepository = {
   listMemberships(workspaceId: string, database: DatabaseExecutor = db) {
     return database.query.workspaceMembership.findMany({
       where: eq(workspaceMembership.workspaceId, workspaceId),
+    });
+  },
+
+  listMembershipsByOrganizationAndUser(
+    organizationId: string,
+    userId: string,
+    database: DatabaseExecutor = db,
+  ) {
+    return database.query.workspaceMembership.findMany({
+      where: and(
+        eq(workspaceMembership.organizationId, organizationId),
+        eq(workspaceMembership.userId, userId),
+      ),
     });
   },
 
@@ -145,5 +171,21 @@ export const workspaceRepository = {
       )
       .returning();
     return deleted ?? null;
+  },
+
+  async deleteMembershipsByOrganizationAndUser(
+    organizationId: string,
+    userId: string,
+    database: DatabaseExecutor = db,
+  ) {
+    return database
+      .delete(workspaceMembership)
+      .where(
+        and(
+          eq(workspaceMembership.organizationId, organizationId),
+          eq(workspaceMembership.userId, userId),
+        ),
+      )
+      .returning();
   },
 };

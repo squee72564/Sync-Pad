@@ -6,6 +6,7 @@ import { db } from '../../../src/db/client.js';
 import {
   organization,
   organizationMembership,
+  workspaceMembership,
 } from '../../../src/db/schema/core.js';
 import { createOrganizationService } from '../../../src/services/organization-service.js';
 import {
@@ -14,6 +15,8 @@ import {
   seedOrganization,
   seedOrganizationMembership,
   seedUser,
+  seedWorkspace,
+  seedWorkspaceMembership,
 } from '../../helpers/db-fixtures.js';
 
 describe.sequential('organization service consistency', () => {
@@ -205,6 +208,13 @@ describe.sequential('organization service consistency', () => {
       status: 'active',
       joinedAt: fixtureDate,
     });
+    await seedWorkspace({ id: 'ws_1', organizationId: 'org_1', name: 'Docs' });
+    await seedWorkspaceMembership({
+      userId: 'user_target',
+      organizationId: 'org_1',
+      workspaceId: 'ws_1',
+      workspaceRole: 'editor',
+    });
     const service = createOrganizationService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
@@ -232,6 +242,16 @@ describe.sequential('organization service consistency', () => {
       organizationRole: 'admin',
       status: 'active',
     });
+    expect(
+      await db.query.workspaceMembership.findFirst({
+        where: and(
+          eq(workspaceMembership.workspaceId, 'ws_1'),
+          eq(workspaceMembership.userId, 'user_target'),
+        ),
+      }),
+    ).toMatchObject({
+      workspaceRole: 'editor',
+    });
   });
 
   it('rolls back membership deletes when Permify sync fails', async () => {
@@ -242,6 +262,13 @@ describe.sequential('organization service consistency', () => {
       organizationId: 'org_1',
       organizationRole: 'member',
       status: 'active',
+    });
+    await seedWorkspace({ id: 'ws_1', organizationId: 'org_1', name: 'Docs' });
+    await seedWorkspaceMembership({
+      userId: 'user_target',
+      organizationId: 'org_1',
+      workspaceId: 'ws_1',
+      workspaceRole: 'viewer',
     });
     const service = createOrganizationService({
       accessGraphSync: {
@@ -263,6 +290,106 @@ describe.sequential('organization service consistency', () => {
         ),
       }),
     ).toBeDefined();
+    expect(
+      await db.query.workspaceMembership.findFirst({
+        where: and(
+          eq(workspaceMembership.workspaceId, 'ws_1'),
+          eq(workspaceMembership.userId, 'user_target'),
+        ),
+      }),
+    ).toBeDefined();
+  });
+
+  it('removes dependent workspace memberships when an org membership is suspended', async () => {
+    await seedUser({ id: 'user_target' });
+    await seedOrganization({ id: 'org_1' });
+    await seedOrganizationMembership({
+      userId: 'user_target',
+      organizationId: 'org_1',
+      organizationRole: 'member',
+      status: 'active',
+      joinedAt: fixtureDate,
+    });
+    await seedWorkspace({ id: 'ws_1', organizationId: 'org_1', name: 'Docs' });
+    await seedWorkspaceMembership({
+      userId: 'user_target',
+      organizationId: 'org_1',
+      workspaceId: 'ws_1',
+      workspaceRole: 'commenter',
+    });
+    const service = createOrganizationService({
+      accessGraphSync: {
+        apply: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    await service.updateMember({
+      organizationId: 'org_1',
+      userId: 'user_target',
+      input: { status: 'suspended' },
+    });
+
+    expect(
+      await db.query.organizationMembership.findFirst({
+        where: and(
+          eq(organizationMembership.organizationId, 'org_1'),
+          eq(organizationMembership.userId, 'user_target'),
+        ),
+      }),
+    ).toMatchObject({
+      status: 'suspended',
+    });
+    expect(
+      await db.query.workspaceMembership.findFirst({
+        where: and(
+          eq(workspaceMembership.workspaceId, 'ws_1'),
+          eq(workspaceMembership.userId, 'user_target'),
+        ),
+      }),
+    ).toBeUndefined();
+  });
+
+  it('removes dependent workspace memberships when deleting an org membership', async () => {
+    await seedUser({ id: 'user_target' });
+    await seedOrganization({ id: 'org_1' });
+    await seedOrganizationMembership({
+      userId: 'user_target',
+      organizationId: 'org_1',
+      organizationRole: 'member',
+      status: 'active',
+      joinedAt: fixtureDate,
+    });
+    await seedWorkspace({ id: 'ws_1', organizationId: 'org_1', name: 'Docs' });
+    await seedWorkspaceMembership({
+      userId: 'user_target',
+      organizationId: 'org_1',
+      workspaceId: 'ws_1',
+      workspaceRole: 'viewer',
+    });
+    const service = createOrganizationService({
+      accessGraphSync: {
+        apply: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    await service.deleteMember('org_1', 'user_target');
+
+    expect(
+      await db.query.organizationMembership.findFirst({
+        where: and(
+          eq(organizationMembership.organizationId, 'org_1'),
+          eq(organizationMembership.userId, 'user_target'),
+        ),
+      }),
+    ).toBeUndefined();
+    expect(
+      await db.query.workspaceMembership.findFirst({
+        where: and(
+          eq(workspaceMembership.workspaceId, 'ws_1'),
+          eq(workspaceMembership.userId, 'user_target'),
+        ),
+      }),
+    ).toBeUndefined();
   });
 
   it('throws membership-not-found when a preloaded membership disappears during update', async () => {
