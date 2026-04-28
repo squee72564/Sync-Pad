@@ -19,7 +19,8 @@
     "lint-staged": "lint-staged",
     "prepare": "husky",
     "db:generate:dev": "pnpm --filter api db:generate:dev",
-    "db:migrate:dev": "pnpm --filter api db:migrate:dev"
+    "db:migrate:dev": "pnpm --filter api db:migrate:dev",
+    "db:migrate:test": "pnpm --filter api db:migrate:test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",

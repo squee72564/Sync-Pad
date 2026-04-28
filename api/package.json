@@ -7,10 +7,10 @@
     "dev": "dotenv -e .env -- tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "test": "vitest run --config vitest.config.ts --reporter=agent --silent=passed-only",
-    "test:verbose": "vitest run --config vitest.config.ts --reporter=default",
-    "test:watch": "vitest --config vitest.config.ts --reporter=default",
-    "test:coverage": "vitest run --config vitest.config.ts --coverage",
+    "test": "dotenv -e .env.test -- vitest run --config vitest.config.ts --reporter=agent --silent=passed-only",
+    "test:verbose": "dotenv -e .env.test -- vitest run --config vitest.config.ts --reporter=default",
+    "test:watch": "dotenv -e .env.test -- vitest --config vitest.config.ts --reporter=default",
+    "test:coverage": "dotenv -e .env.test -- vitest run --config vitest.config.ts --coverage",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint:check": "biome check .",
     "lint": "biome check . --write",
@@ -19,7 +19,8 @@
     "check": "pnpm lint:check && pnpm format:check && pnpm typecheck",
     "auth:generate:dev": "dotenv -e .env -- auth generate --config ./src/lib/auth.ts --output ./src/db/schema/auth-schema.ts",
     "db:generate:dev": "dotenv -e .env -- drizzle-kit generate",
-    "db:migrate:dev": "dotenv -e .env -- drizzle-kit migrate"
+    "db:migrate:dev": "dotenv -e .env -- drizzle-kit migrate",
+    "db:migrate:test": "dotenv -e .env.test -- drizzle-kit migrate"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.6.9",
