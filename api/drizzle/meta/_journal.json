@@ -15,6 +15,13 @@
       "when": 1777132903571,
       "tag": "0001_wide_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777351150543,
+      "tag": "0002_tiny_jasper_sitwell",
+      "breakpoints": true
     }
   ]
 }
