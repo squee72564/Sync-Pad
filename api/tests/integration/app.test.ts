@@ -8,7 +8,7 @@ describe('app error handling', () => {
   it('returns canonical not found responses', async () => {
     const app = createApp();
     const response = await app.request('/missing-route');
-    const body = await response.json();
+    const body = (await response.json()) as { requestId: string };
 
     expect(response.status).toBe(StatusCodes.NOT_FOUND);
     expect(body).toEqual({
@@ -35,7 +35,7 @@ describe('app error handling', () => {
     });
 
     const response = await app.request('/__test/app-error');
-    const body = await response.json();
+    const body = (await response.json()) as { requestId: string };
 
     expect(response.status).toBe(StatusCodes.IM_A_TEAPOT);
     expect(body).toEqual({
@@ -56,7 +56,7 @@ describe('app error handling', () => {
     });
 
     const response = await app.request('/__test/native-error');
-    const body = await response.json();
+    const body = (await response.json()) as Record<string, unknown>;
 
     expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(body).toEqual({
@@ -77,7 +77,7 @@ describe('app error handling', () => {
         'x-request-id': 'req_from_client',
       },
     });
-    const body = await response.json();
+    const body = (await response.json()) as { requestId: string };
 
     expect(response.headers.get('x-request-id')).toBe('req_from_client');
     expect(body.requestId).toBe('req_from_client');
