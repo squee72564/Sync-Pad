@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1777132854649,
-      "tag": "0000_rapid_rocket_raccoon",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1777132903571,
-      "tag": "0001_wide_stone_men",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1777351150543,
-      "tag": "0002_tiny_jasper_sitwell",
+      "when": 1777404090635,
+      "tag": "0000_modern_swarm",
       "breakpoints": true
     }
   ]
