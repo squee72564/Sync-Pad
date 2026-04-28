@@ -1,7 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import * as schema from '../db/auth-schema.js';
 import { db } from '../db/client.js';
+import * as schema from '../db/schema/auth-schema.js';
 import { env } from './env.js';
 
 const appOrigin = new URL(env.BETTER_AUTH_URL).origin;
