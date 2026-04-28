@@ -1,0 +1,30 @@
+entity user {}
+
+entity organization {
+    relation owner @user
+    relation admin @user
+    relation member @user
+    relation guest @user
+    relation bot @user
+
+    permission manage = owner or admin
+    permission read = manage or member or guest or bot
+    permission invite = manage
+    permission create_workspace = manage or member
+    permission run_ai = manage or member or bot
+}
+
+entity workspace {
+    relation parent @organization
+    relation owner @user
+    relation admin @user
+    relation member @user
+    relation guest @user
+    relation bot @user
+
+    permission manage = owner or admin or parent.manage
+    permission read = manage or member or guest or bot or parent.read
+    permission write = manage or member
+    permission invite = manage
+    permission run_ai = manage or member or bot or parent.run_ai
+}
