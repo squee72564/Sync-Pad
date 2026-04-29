@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import HomeNavigationMenu from '#/components/home-navigation-bar';
 import {
   Accordion,
@@ -115,10 +115,10 @@ function Home() {
 
         <div className="flex flex-wrap items-center gap-3 mx-auto">
           <Button asChild>
-            <a href="/signin">Sign In</a>
+            <Link to="/signin">Sign In</Link>
           </Button>
           <Button variant="outline" asChild>
-            <a href="/signup">Sign Up</a>
+            <Link to="/signup">Sign Up</Link>
           </Button>
         </div>
       </header>
@@ -212,7 +212,7 @@ function Home() {
           </CardHeader>
           <CardFooter>
             <Button variant="secondary" asChild>
-              <a href="/docs">See where it is headed</a>
+              <Link to="/docs">See where it is headed</Link>
             </Button>
           </CardFooter>
         </Card>
