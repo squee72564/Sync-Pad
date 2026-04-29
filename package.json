@@ -20,7 +20,8 @@
     "prepare": "husky",
     "db:generate:dev": "pnpm --filter api db:generate:dev",
     "db:migrate:dev": "pnpm --filter api db:migrate:dev",
-    "db:migrate:test": "pnpm --filter api db:migrate:test"
+    "db:migrate:test": "pnpm --filter api db:migrate:test",
+    "db:bootstrap:test": "bash infra/local/ensure-test-db.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
