@@ -1,5 +1,6 @@
 'use client';
 
+import { Link } from '@tanstack/react-router';
 import type React from 'react';
 import {
   NavigationMenu,
@@ -54,7 +55,7 @@ export default function HomeNavigationMenu() {
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-            <a href="/docs">Docs</a>
+            <Link to="/docs">Docs</Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>
@@ -71,12 +72,12 @@ function ListItem({
   return (
     <li {...props}>
       <NavigationMenuLink asChild>
-        <a href={href} className="block w-full text-left">
+        <Link to={href} className="block w-full text-left">
           <div className="flex flex-col items-start gap-1 text-left text-sm">
             <div className="leading-none font-medium">{title}</div>
             <div className="line-clamp-2 text-muted-foreground">{children}</div>
           </div>
-        </a>
+        </Link>
       </NavigationMenuLink>
     </li>
   );
