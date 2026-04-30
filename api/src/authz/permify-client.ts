@@ -113,27 +113,36 @@ export const checkPermission = async (
 };
 
 export const writeTuples = async (tuples: TupleInput | TupleInput[]) => {
-  await permifyRequest(
-    `/v1/tenants/${env.PERMIFY_TENANT_ID}/relationships/write`,
-    {
-      tenantId: env.PERMIFY_TENANT_ID,
-      metadata: {
-        schemaVersion: env.PERMIFY_SCHEMA_VERSION,
-      },
-      tuples: Array.isArray(tuples) ? tuples : [tuples],
+  await permifyRequest(`/v1/tenants/${env.PERMIFY_TENANT_ID}/data/write`, {
+    tenantId: env.PERMIFY_TENANT_ID,
+    metadata: {
+      schemaVersion: env.PERMIFY_SCHEMA_VERSION,
     },
-  );
+    tuples: Array.isArray(tuples) ? tuples : [tuples],
+  });
 };
 
 export const deleteTuples = async (tuples: TupleInput | TupleInput[]) => {
-  await permifyRequest(
-    `/v1/tenants/${env.PERMIFY_TENANT_ID}/relationships/delete`,
-    {
+  const tupleList = Array.isArray(tuples) ? tuples : [tuples];
+
+  for (const tuple of tupleList) {
+    await permifyRequest(`/v1/tenants/${env.PERMIFY_TENANT_ID}/data/delete`, {
       tenantId: env.PERMIFY_TENANT_ID,
       metadata: {
         schemaVersion: env.PERMIFY_SCHEMA_VERSION,
       },
-      tuples: Array.isArray(tuples) ? tuples : [tuples],
-    },
-  );
+      tupleFilter: {
+        entity: {
+          type: tuple.entity.type,
+          ids: [tuple.entity.id],
+        },
+        relation: tuple.relation,
+        subject: {
+          type: tuple.subject.type,
+          id: [tuple.subject.id],
+          relation: '',
+        },
+      },
+    });
+  }
 };
