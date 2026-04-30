@@ -127,7 +127,10 @@ export const organizationRepository = {
     return deleted ?? null;
   },
 
-  listOrganizationsForUser(userId: string, database: DatabaseExecutor = db) {
+  async listOrganizationsForUser(
+    userId: string,
+    database: DatabaseExecutor = db,
+  ) {
     return database
       .select({
         organization,

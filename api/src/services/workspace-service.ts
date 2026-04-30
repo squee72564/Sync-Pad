@@ -80,6 +80,10 @@ export const createWorkspaceService = (dependencies?: {
     }));
 
   return {
+    listReadableToUser(input: { actorUserId: string }) {
+      return workspaceRepo.listReadableToUser(input.actorUserId);
+    },
+
     async listByOrganizationReadableToUser(input: {
       actorUserId: string;
       organizationId: string;

@@ -30,12 +30,7 @@ import {
   updateOrganizationMemberSchema,
   updateOrganizationSchema,
 } from '../schemas/organization.js';
-import {
-  type CreateWorkspaceInput,
-  createWorkspaceSchema,
-} from '../schemas/workspace.js';
 import { organizationService } from '../services/organization-service.js';
-import { workspaceService } from '../services/workspace-service.js';
 
 export const organizationsRoute = new Hono<{ Variables: AppVariables }>();
 
@@ -228,50 +223,5 @@ organizationsRoute.delete(
       params.userId,
     );
     return context.json({ membership }, StatusCodes.OK);
-  },
-);
-
-organizationsRoute.get(
-  '/:organizationId/workspaces',
-  requireAuth(),
-  validateRequest({ params: organizationParamsSchema }),
-  loadOrganization<OrganizationParams>(({ params }) => params.organizationId),
-  requireOrganizationPermission('read'),
-  async (context) => {
-    const user = getCurrentUser(context);
-    const { params } =
-      getValidated<Pick<Validated<OrganizationParams>, 'params'>>(context);
-    const workspaces = await workspaceService.listByOrganizationReadableToUser({
-      actorUserId: user.id,
-      organizationId: params.organizationId,
-    });
-    return context.json({ workspaces }, StatusCodes.OK);
-  },
-);
-
-organizationsRoute.post(
-  '/:organizationId/workspaces',
-  requireAuth(),
-  validateRequest({
-    params: organizationParamsSchema,
-    json: createWorkspaceSchema,
-  }),
-  loadOrganization<OrganizationParams>(({ params }) => params.organizationId),
-  requireOrganizationPermission('create_workspace'),
-  async (context) => {
-    const user = getCurrentUser(context);
-    const { params, json } =
-      getValidated<
-        Pick<
-          Validated<OrganizationParams, never, CreateWorkspaceInput>,
-          'params' | 'json'
-        >
-      >(context);
-    const workspace = await workspaceService.createWorkspace({
-      actorUserId: user.id,
-      organizationId: params.organizationId,
-      input: json,
-    });
-    return context.json({ workspace }, StatusCodes.CREATED);
   },
 );

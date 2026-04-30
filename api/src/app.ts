@@ -12,8 +12,9 @@ import {
   securityHeaders,
 } from './middleware/security.js';
 import { healthRoute } from './routes/health.js';
+import { meRoute } from './routes/me.js';
 import { organizationsRoute } from './routes/organizations.js';
-import { workspacesRoute } from './routes/workspaces.js';
+import { organizationWorkspacesRoute } from './routes/workspaces.js';
 
 export const createApp = () => {
   const app = new Hono<{ Variables: AppVariables }>();
@@ -37,8 +38,12 @@ export const createApp = () => {
     return auth.handler(context.req.raw);
   });
 
+  app.route('/api/me', meRoute);
   app.route('/api/organizations', organizationsRoute);
-  app.route('/api/workspaces', workspacesRoute);
+  app.route(
+    '/api/organizations/:organizationId/workspaces',
+    organizationWorkspacesRoute,
+  );
 
   app.notFound(notFoundHandler);
   app.onError(errorHandler);

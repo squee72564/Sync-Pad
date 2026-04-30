@@ -95,12 +95,14 @@ afterEach(() => {
 });
 
 describe('workspace routes', () => {
-  it('returns 401 for direct workspace routes when unauthenticated', async () => {
+  it('returns 401 for nested workspace routes when unauthenticated', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
     vi.mocked(getAuthSession).mockResolvedValue(null);
     const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request('/api/workspaces/ws_1');
+    const response = await createApp().request(
+      '/api/organizations/org_1/workspaces/ws_1',
+    );
 
     expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
   });
@@ -155,6 +157,9 @@ describe('workspace routes', () => {
     const { checkPermission } = await import(
       '../../src/authz/permify-client.js'
     );
+    const { organizationRepository } = await import(
+      '../../src/repositories/organization-repository.js'
+    );
     const { workspaceRepository } = await import(
       '../../src/repositories/workspace-repository.js'
     );
@@ -162,6 +167,9 @@ describe('workspace routes', () => {
       '../../src/services/workspace-service.js'
     );
     vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
+    vi.mocked(organizationRepository.findById).mockResolvedValue(
+      organizationRecord,
+    );
     vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
     vi.mocked(checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.addMember).mockRejectedValue(
@@ -174,16 +182,19 @@ describe('workspace routes', () => {
     );
     const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request('/api/workspaces/ws_1/members', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
+    const response = await createApp().request(
+      '/api/organizations/org_1/workspaces/ws_1/members',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: 'user_2',
+          workspaceRole: 'editor',
+        }),
       },
-      body: JSON.stringify({
-        userId: 'user_2',
-        workspaceRole: 'editor',
-      }),
-    });
+    );
 
     expect(response.status).toBe(StatusCodes.SERVICE_UNAVAILABLE);
     expect(await response.json()).toMatchObject({
@@ -198,6 +209,9 @@ describe('workspace routes', () => {
     const { checkPermission } = await import(
       '../../src/authz/permify-client.js'
     );
+    const { organizationRepository } = await import(
+      '../../src/repositories/organization-repository.js'
+    );
     const { workspaceRepository } = await import(
       '../../src/repositories/workspace-repository.js'
     );
@@ -205,6 +219,9 @@ describe('workspace routes', () => {
       '../../src/services/workspace-service.js'
     );
     vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
+    vi.mocked(organizationRepository.findById).mockResolvedValue(
+      organizationRecord,
+    );
     vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
     vi.mocked(checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.updateMember).mockRejectedValue(
@@ -219,7 +236,7 @@ describe('workspace routes', () => {
     const { createApp } = await import('../../src/app.js');
 
     const response = await createApp().request(
-      '/api/workspaces/ws_1/members/user_2',
+      '/api/organizations/org_1/workspaces/ws_1/members/user_2',
       {
         method: 'PATCH',
         headers: {
@@ -244,6 +261,9 @@ describe('workspace routes', () => {
     const { checkPermission } = await import(
       '../../src/authz/permify-client.js'
     );
+    const { organizationRepository } = await import(
+      '../../src/repositories/organization-repository.js'
+    );
     const { workspaceRepository } = await import(
       '../../src/repositories/workspace-repository.js'
     );
@@ -251,6 +271,9 @@ describe('workspace routes', () => {
       '../../src/services/workspace-service.js'
     );
     vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
+    vi.mocked(organizationRepository.findById).mockResolvedValue(
+      organizationRecord,
+    );
     vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
     vi.mocked(checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.deleteWorkspace).mockRejectedValue(
@@ -258,9 +281,12 @@ describe('workspace routes', () => {
     );
     const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request('/api/workspaces/ws_1', {
-      method: 'DELETE',
-    });
+    const response = await createApp().request(
+      '/api/organizations/org_1/workspaces/ws_1',
+      {
+        method: 'DELETE',
+      },
+    );
 
     expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(await response.json()).toMatchObject({
@@ -272,22 +298,60 @@ describe('workspace routes', () => {
 
   it('returns 500 INTERNAL_ERROR when workspace loading throws a native error', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
+    const { organizationRepository } = await import(
+      '../../src/repositories/organization-repository.js'
+    );
     const { workspaceRepository } = await import(
       '../../src/repositories/workspace-repository.js'
     );
     vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
+    vi.mocked(organizationRepository.findById).mockResolvedValue(
+      organizationRecord,
+    );
     vi.mocked(workspaceRepository.findById).mockRejectedValue(
       new Error('pg failure'),
     );
     const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request('/api/workspaces/ws_1');
+    const response = await createApp().request(
+      '/api/organizations/org_1/workspaces/ws_1',
+    );
 
     expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(await response.json()).toMatchObject({
       code: 'INTERNAL_ERROR',
       detail: 'pg failure',
       status: StatusCodes.INTERNAL_SERVER_ERROR,
+    });
+  });
+
+  it('returns 404 when a workspace does not belong to the route organization', async () => {
+    const { getAuthSession } = await import('../../src/lib/auth-session.js');
+    const { organizationRepository } = await import(
+      '../../src/repositories/organization-repository.js'
+    );
+    const { workspaceRepository } = await import(
+      '../../src/repositories/workspace-repository.js'
+    );
+    vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
+    vi.mocked(organizationRepository.findById).mockResolvedValue(
+      organizationRecord,
+    );
+    vi.mocked(workspaceRepository.findById).mockResolvedValue({
+      ...workspaceRecord,
+      organizationId: 'org_2',
+    });
+    const { createApp } = await import('../../src/app.js');
+
+    const response = await createApp().request(
+      '/api/organizations/org_1/workspaces/ws_1',
+    );
+
+    expect(response.status).toBe(StatusCodes.NOT_FOUND);
+    expect(await response.json()).toMatchObject({
+      code: 'WORKSPACE_NOT_FOUND',
+      detail: 'Workspace not found.',
+      status: StatusCodes.NOT_FOUND,
     });
   });
 });

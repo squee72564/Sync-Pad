@@ -2,6 +2,8 @@ import { and, eq } from 'drizzle-orm';
 
 import { db } from '../db/client.js';
 import {
+  organization,
+  organizationMembership,
   type WorkspaceRole,
   workspace,
   workspaceMembership,
@@ -59,6 +61,38 @@ export const workspaceRepository = {
         ),
       )
       .then((rows) => rows.map((row) => row.workspace));
+  },
+
+  async listReadableToUser(userId: string, database: DatabaseExecutor = db) {
+    return database
+      .select({
+        id: workspace.id,
+        name: workspace.name,
+        organizationId: workspace.organizationId,
+        organizationName: organization.name,
+        workspaceRole: workspaceMembership.workspaceRole,
+        createdAt: workspace.createdAt,
+        updatedAt: workspace.updatedAt,
+      })
+      .from(workspaceMembership)
+      .innerJoin(workspace, eq(workspaceMembership.workspaceId, workspace.id))
+      .innerJoin(organization, eq(workspace.organizationId, organization.id))
+      .innerJoin(
+        organizationMembership,
+        and(
+          eq(workspaceMembership.userId, organizationMembership.userId),
+          eq(
+            workspaceMembership.organizationId,
+            organizationMembership.organizationId,
+          ),
+        ),
+      )
+      .where(
+        and(
+          eq(workspaceMembership.userId, userId),
+          eq(organizationMembership.status, 'active'),
+        ),
+      );
   },
 
   listMemberships(workspaceId: string, database: DatabaseExecutor = db) {

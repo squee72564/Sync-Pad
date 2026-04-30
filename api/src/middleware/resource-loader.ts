@@ -80,3 +80,41 @@ export const loadWorkspace = <TParams>(
     await next();
   };
 };
+
+export const loadWorkspaceInOrganization = <TParams>(
+  selectIds: (validated: Pick<Validated<TParams>, 'params'>) => {
+    organizationId: string;
+    workspaceId: string;
+  },
+): MiddlewareHandler<{ Variables: AppVariables }> => {
+  return async (context, next) => {
+    const validated = getValidated<Pick<Validated<TParams>, 'params'>>(context);
+    const { organizationId, workspaceId } = selectIds(validated);
+
+    if (organizationId.length === 0 || workspaceId.length === 0) {
+      throw new AppError({
+        code: 'WORKSPACE_NOT_FOUND',
+        expose: true,
+        message:
+          'Missing validated organization or workspace id from request params',
+        status: StatusCodes.NOT_FOUND,
+        userMessage: 'Workspace not found.',
+      });
+    }
+
+    const workspace = await workspaceRepository.findById(workspaceId);
+
+    if (!workspace || workspace.organizationId !== organizationId) {
+      throw new AppError({
+        code: 'WORKSPACE_NOT_FOUND',
+        expose: true,
+        message: `Workspace ${workspaceId} was not found in organization ${organizationId}`,
+        status: StatusCodes.NOT_FOUND,
+        userMessage: 'Workspace not found.',
+      });
+    }
+
+    context.set(WORKSPACE_CONTEXT_KEY, workspace);
+    await next();
+  };
+};

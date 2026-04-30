@@ -2,10 +2,13 @@ import { z } from 'zod';
 
 import { workspaceRoleEnum } from '../db/schema/core.js';
 
-export const workspaceParamsSchema = z.object({
+export const organizationWorkspaceParamsSchema = z.object({
+  organizationId: z.string().min(1),
   workspaceId: z.string().min(1),
 });
-export type WorkspaceParams = z.infer<typeof workspaceParamsSchema>;
+export type OrganizationWorkspaceParams = z.infer<
+  typeof organizationWorkspaceParamsSchema
+>;
 
 export const createWorkspaceSchema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -17,12 +20,13 @@ export const updateWorkspaceSchema = z.object({
 });
 export type UpdateWorkspaceInput = z.infer<typeof updateWorkspaceSchema>;
 
-export const workspaceMembershipParamsSchema = z.object({
+export const organizationWorkspaceMembershipParamsSchema = z.object({
+  organizationId: z.string().min(1),
   workspaceId: z.string().min(1),
   userId: z.string().min(1),
 });
-export type WorkspaceMembershipParams = z.infer<
-  typeof workspaceMembershipParamsSchema
+export type OrganizationWorkspaceMembershipParams = z.infer<
+  typeof organizationWorkspaceMembershipParamsSchema
 >;
 
 export const addWorkspaceMemberSchema = z.object({

@@ -192,6 +192,7 @@ describe('workspace service', () => {
       deleteMembership: vi.fn(),
       deleteMembershipsByOrganizationAndUser: vi.fn(),
       listByOrganizationReadableToUser: vi.fn().mockResolvedValue([]),
+      listReadableToUser: vi.fn(),
     };
     const service = createWorkspaceService({
       accessGraphSync: { apply: vi.fn() },
@@ -219,6 +220,53 @@ describe('workspace service', () => {
     expect(
       workspaceRepo.listByOrganizationReadableToUser,
     ).toHaveBeenNthCalledWith(2, 'org_1', 'user_1', { includeAll: false });
+  });
+
+  it('lists workspaces readable to the actor', async () => {
+    const workspaceRepo = {
+      findById: vi.fn(),
+      findMembership: vi.fn(),
+      insertWorkspace: vi.fn(),
+      updateWorkspace: vi.fn(),
+      deleteWorkspace: vi.fn(),
+      insertMembership: vi.fn(),
+      listMemberships: vi.fn(),
+      listMembershipsByOrganizationAndUser: vi.fn(),
+      updateMembership: vi.fn(),
+      deleteMembership: vi.fn(),
+      deleteMembershipsByOrganizationAndUser: vi.fn(),
+      listByOrganizationReadableToUser: vi.fn(),
+      listReadableToUser: vi.fn().mockResolvedValue([
+        {
+          id: 'ws_1',
+          name: 'Docs',
+          organizationId: 'org_1',
+          organizationName: 'Acme',
+          workspaceRole: 'editor',
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        },
+      ]),
+    };
+    const service = createWorkspaceService({
+      accessGraphSync: { apply: vi.fn() },
+      organizationRepo: {
+        findMembership: vi.fn(),
+      } as never,
+      workspaceRepo: workspaceRepo as never,
+    });
+
+    await expect(
+      service.listReadableToUser({ actorUserId: 'user_1' }),
+    ).resolves.toEqual([
+      expect.objectContaining({
+        id: 'ws_1',
+        organizationId: 'org_1',
+        organizationName: 'Acme',
+        workspaceRole: 'editor',
+      }),
+    ]);
+    expect(workspaceRepo.listReadableToUser).toHaveBeenCalledWith('user_1');
   });
 
   it('requires an active organization membership before adding a workspace member', async () => {
