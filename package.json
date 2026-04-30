@@ -2,6 +2,7 @@
   "name": "syncpad",
   "private": true,
   "version": "0.1.0",
+  "type": "module",
   "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "turbo dev",
@@ -21,7 +22,11 @@
     "db:generate:dev": "pnpm --filter api db:generate:dev",
     "db:migrate:dev": "pnpm --filter api db:migrate:dev",
     "db:migrate:test": "pnpm --filter api db:migrate:test",
-    "db:bootstrap:test": "bash infra/local/ensure-test-db.sh"
+    "db:bootstrap:test": "bash infra/local/ensure-test-db.sh",
+    "permify:bootstrap:dev": "pnpm --filter api exec dotenv -e .env -- node ../infra/permify/bootstrap.js",
+    "permify:bootstrap:test": "pnpm --filter api exec dotenv -e .env.test -- node ../infra/permify/bootstrap.js",
+    "infra:bootstrap:dev": "pnpm db:migrate:dev && pnpm permify:bootstrap:dev",
+    "infra:bootstrap:test": "pnpm db:bootstrap:test && pnpm db:migrate:test && pnpm permify:bootstrap:test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
