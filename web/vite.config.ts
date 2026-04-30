@@ -24,6 +24,14 @@ const config = defineConfig({
         target: 'http://localhost:3001',
         changeOrigin: false,
       },
+      '/ready': {
+        target: 'http://localhost:3001',
+        changeOrigin: false,
+      },
+      '/live': {
+        target: 'http://localhost:3001',
+        changeOrigin: false,
+      },
     },
   },
 });
