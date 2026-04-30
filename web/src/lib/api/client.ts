@@ -6,12 +6,17 @@ type ApiErrorPayload = {
   title?: string;
 };
 
-export async function apiGet<TResponse>(path: string): Promise<TResponse> {
+async function apiRequest<TResponse>(
+  path: string,
+  init?: RequestInit,
+): Promise<TResponse> {
   const response = await fetch(path, {
     credentials: 'include',
     headers: {
       accept: 'application/json',
+      ...(init?.headers ?? {}),
     },
+    ...init,
   });
 
   const data = await response.json().catch(() => null);
@@ -31,4 +36,21 @@ export async function apiGet<TResponse>(path: string): Promise<TResponse> {
   }
 
   return data as TResponse;
+}
+
+export function apiGet<TResponse>(path: string): Promise<TResponse> {
+  return apiRequest<TResponse>(path);
+}
+
+export function apiPost<TResponse, TBody>(
+  path: string,
+  body: TBody,
+): Promise<TResponse> {
+  return apiRequest<TResponse>(path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
 }
