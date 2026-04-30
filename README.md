@@ -14,10 +14,20 @@ cp api/.env.example api/.env
 cp api/.env.test.example api/.env.test
 cp web/.env.example web/.env
 cp embedding/.env.example embedding/.env
-docker compose -f docker-compose.dev.yml up -d
-pnpm db:bootstrap:test
 pnpm install
+docker compose -f docker-compose.dev.yml up -d
+pnpm infra:bootstrap:dev
 pnpm dev
+```
+
+`pnpm infra:bootstrap:dev` applies the development database migrations and writes the Permify authorization schema from `infra/permify/schema.syncpad.perm`.
+
+The Permify bootstrap prints a `PERMIFY_SCHEMA_VERSION=...` value. Add that value to `api/.env`, then restart `pnpm dev` so the API uses the schema version for authorization writes and checks.
+
+For test infrastructure, run:
+
+```bash
+pnpm infra:bootstrap:test
 ```
 
 ## Overview
