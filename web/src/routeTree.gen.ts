@@ -18,6 +18,7 @@ import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedDashboardWorkspacesRouteImport } from './routes/_authenticated/dashboard/workspaces'
 import { Route as AuthenticatedDashboardOrganizationsRouteImport } from './routes/_authenticated/dashboard/organizations'
+import { Route as AuthenticatedDashboardOrganizationsNewRouteImport } from './routes/_authenticated/dashboard/organizations_.new'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -67,6 +68,12 @@ const AuthenticatedDashboardOrganizationsRoute =
     path: '/organizations',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
   } as any)
+const AuthenticatedDashboardOrganizationsNewRoute =
+  AuthenticatedDashboardOrganizationsNewRouteImport.update({
+    id: '/organizations_/new',
+    path: '/organizations/new',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -77,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/organizations': typeof AuthenticatedDashboardOrganizationsRoute
   '/dashboard/workspaces': typeof AuthenticatedDashboardWorkspacesRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/organizations/new': typeof AuthenticatedDashboardOrganizationsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +94,7 @@ export interface FileRoutesByTo {
   '/dashboard/organizations': typeof AuthenticatedDashboardOrganizationsRoute
   '/dashboard/workspaces': typeof AuthenticatedDashboardWorkspacesRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/organizations/new': typeof AuthenticatedDashboardOrganizationsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +107,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/organizations': typeof AuthenticatedDashboardOrganizationsRoute
   '/_authenticated/dashboard/workspaces': typeof AuthenticatedDashboardWorkspacesRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/_authenticated/dashboard/organizations_/new': typeof AuthenticatedDashboardOrganizationsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/dashboard/organizations'
     | '/dashboard/workspaces'
     | '/dashboard/'
+    | '/dashboard/organizations/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/dashboard/organizations'
     | '/dashboard/workspaces'
     | '/dashboard'
+    | '/dashboard/organizations/new'
   id:
     | '__root__'
     | '/'
@@ -130,6 +142,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/organizations'
     | '/_authenticated/dashboard/workspaces'
     | '/_authenticated/dashboard/'
+    | '/_authenticated/dashboard/organizations_/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardOrganizationsRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
     }
+    '/_authenticated/dashboard/organizations_/new': {
+      id: '/_authenticated/dashboard/organizations_/new'
+      path: '/organizations/new'
+      fullPath: '/dashboard/organizations/new'
+      preLoaderRoute: typeof AuthenticatedDashboardOrganizationsNewRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
   }
 }
 
@@ -212,6 +232,7 @@ interface AuthenticatedDashboardRouteRouteChildren {
   AuthenticatedDashboardOrganizationsRoute: typeof AuthenticatedDashboardOrganizationsRoute
   AuthenticatedDashboardWorkspacesRoute: typeof AuthenticatedDashboardWorkspacesRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedDashboardOrganizationsNewRoute: typeof AuthenticatedDashboardOrganizationsNewRoute
 }
 
 const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRouteChildren =
@@ -221,6 +242,8 @@ const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRoute
     AuthenticatedDashboardWorkspacesRoute:
       AuthenticatedDashboardWorkspacesRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+    AuthenticatedDashboardOrganizationsNewRoute:
+      AuthenticatedDashboardOrganizationsNewRoute,
   }
 
 const AuthenticatedDashboardRouteRouteWithChildren =

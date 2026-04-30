@@ -7,6 +7,14 @@ export type Organization = {
   updatedAt: string;
 };
 
+export type CreateOrganizationInput = {
+  name: string;
+};
+
+export type CreateOrganizationResponse = {
+  organization: Organization;
+};
+
 export type OrganizationsResponse = {
   organizations: Organization[];
 };

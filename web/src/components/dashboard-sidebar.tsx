@@ -31,11 +31,15 @@ import { authClient } from '#/lib/auth-client';
 
 type PrimaryNavItem = {
   title: string;
-  to: '/dashboard' | '/dashboard/organizations' | '/dashboard/workspaces';
+  to:
+    | '/dashboard'
+    | '/dashboard/organizations'
+    | '/dashboard/organizations/new'
+    | '/dashboard/workspaces';
   icon: typeof HomeIcon;
 };
 
-type PlaceholderNavItem = {
+type SidebarNavItem = {
   title: string;
   icon: typeof UserIcon;
 };
@@ -61,7 +65,7 @@ const browseNavItems: PrimaryNavItem[] = [
   },
 ];
 
-const accountNavItems: PlaceholderNavItem[] = [
+const accountNavItems: SidebarNavItem[] = [
   {
     title: 'Profile',
     icon: UserIcon,
@@ -72,9 +76,10 @@ const accountNavItems: PlaceholderNavItem[] = [
   },
 ];
 
-const createNavItems: PlaceholderNavItem[] = [
+const createNavItems: PrimaryNavItem[] = [
   {
     title: 'New organization',
+    to: '/dashboard/organizations/new',
     icon: PlusCircleIcon,
   },
 ];
@@ -166,9 +171,11 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {createNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton tooltip={item.title} disabled>
-                    <item.icon />
-                    <span>{item.title}</span>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link to={item.to} activeProps={{ 'data-active': true }}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
