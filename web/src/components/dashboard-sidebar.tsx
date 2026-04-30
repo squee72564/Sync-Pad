@@ -1,14 +1,14 @@
 import { Link } from '@tanstack/react-router';
 import {
-  BookOpenIcon,
   BotIcon,
-  FolderKanbanIcon,
+  BriefcaseBusinessIcon,
+  Building2Icon,
   HomeIcon,
   LogOutIcon,
-  SearchIcon,
+  PlusCircleIcon,
   Settings2Icon,
   SparklesIcon,
-  UsersIcon,
+  UserIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -22,7 +22,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
@@ -32,53 +31,51 @@ import { authClient } from '#/lib/auth-client';
 
 type PrimaryNavItem = {
   title: string;
-  to: '/dashboard';
+  to: '/dashboard' | '/dashboard/organizations' | '/dashboard/workspaces';
   icon: typeof HomeIcon;
-  badge?: string;
 };
 
-type SecondaryNavItem = {
+type PlaceholderNavItem = {
   title: string;
-  icon: typeof FolderKanbanIcon;
-  badge?: string;
+  icon: typeof UserIcon;
 };
 
 const primaryNavItems: PrimaryNavItem[] = [
   {
-    title: 'Overview',
+    title: 'Dashboard',
     to: '/dashboard',
     icon: HomeIcon,
   },
 ];
 
-const workspaceAreas: SecondaryNavItem[] = [
+const browseNavItems: PrimaryNavItem[] = [
   {
-    title: 'Projects',
-    icon: FolderKanbanIcon,
+    title: 'Organizations',
+    to: '/dashboard/organizations',
+    icon: Building2Icon,
   },
   {
-    title: 'Documents',
-    icon: BookOpenIcon,
-  },
-  {
-    title: 'Knowledge',
-    icon: SearchIcon,
-  },
-  {
-    title: 'AI Workflows',
-    icon: BotIcon,
-    badge: 'Soon',
+    title: 'Workspaces',
+    to: '/dashboard/workspaces',
+    icon: BriefcaseBusinessIcon,
   },
 ];
 
-const administrationAreas: SecondaryNavItem[] = [
+const accountNavItems: PlaceholderNavItem[] = [
   {
-    title: 'Members',
-    icon: UsersIcon,
+    title: 'Profile',
+    icon: UserIcon,
   },
   {
     title: 'Settings',
     icon: Settings2Icon,
+  },
+];
+
+const createNavItems: PlaceholderNavItem[] = [
+  {
+    title: 'New organization',
+    icon: PlusCircleIcon,
   },
 ];
 
@@ -139,9 +136,6 @@ export function DashboardSidebar() {
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
-                  {item.badge ? (
-                    <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                  ) : null}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -149,18 +143,33 @@ export function DashboardSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace Model</SidebarGroupLabel>
+          <SidebarGroupLabel>Browse</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {workspaceAreas.map((item) => (
+              {browseNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link to={item.to} activeProps={{ 'data-active': true }}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Create</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {createNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton tooltip={item.title} disabled>
                     <item.icon />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
-                  {item.badge ? (
-                    <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                  ) : null}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -168,10 +177,10 @@ export function DashboardSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Admin</SidebarGroupLabel>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {administrationAreas.map((item) => (
+              {accountNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton tooltip={item.title} disabled>
                     <item.icon />

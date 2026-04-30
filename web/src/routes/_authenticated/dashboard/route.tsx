@@ -30,12 +30,6 @@ function DashboardLayout() {
             orientation="vertical"
             className="mx-0 h-5 w-px shrink-0"
           />
-          <div className="min-w-0">
-            <p className="text-sm font-medium">Workspace overview</p>
-            <p className="text-xs text-muted-foreground">
-              Structured execution, documents, knowledge, and AI in one place.
-            </p>
-          </div>
           <div className="ml-auto hidden items-center gap-2 rounded-full border px-3 py-1.5 text-xs text-muted-foreground sm:flex">
             <PanelLeftDashedIcon className="size-3.5" />
             Toggle sidebar with Cmd/Ctrl + B
