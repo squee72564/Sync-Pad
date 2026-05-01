@@ -35,7 +35,9 @@ describe('permify client', () => {
         body: JSON.stringify({
           tenantId: 'syncpad-test',
           metadata: {
+            snapToken: '',
             schemaVersion: undefined,
+            depth: 20,
           },
           entity: {
             type: 'organization',
@@ -45,6 +47,7 @@ describe('permify client', () => {
           subject: {
             type: 'user',
             id: 'user_1',
+            relation: '',
           },
         }),
         headers: {
@@ -97,6 +100,7 @@ describe('permify client', () => {
     fetchMock.mockResolvedValue({
       ok: false,
       status: 503,
+      text: async () => 'service down',
     });
 
     await expect(
@@ -105,6 +109,7 @@ describe('permify client', () => {
       code: 'PERMIFY_UNAVAILABLE',
       status: StatusCodes.SERVICE_UNAVAILABLE,
       details: {
+        responseBody: 'service down',
         responseStatus: 503,
       },
     });

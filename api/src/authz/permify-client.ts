@@ -44,12 +44,17 @@ const permifyRequest = async <TResponse>(
   }
 
   if (!response.ok) {
+    const responseBody = await response.text().catch(() => '');
+
     throw new AppError({
       code: 'PERMIFY_UNAVAILABLE',
       details: {
+        responseBody,
         responseStatus: response.status,
       },
-      message: `Permify returned ${response.status} for ${path}`,
+      message: `Permify returned ${response.status} for ${path}${
+        responseBody ? `: ${responseBody}` : ''
+      }`,
       status: StatusCodes.SERVICE_UNAVAILABLE,
       userMessage: 'Authorization service is unavailable.',
     });
@@ -95,19 +100,23 @@ export const checkPermission = async (
   }>(`/v1/tenants/${env.PERMIFY_TENANT_ID}/permissions/check`, {
     tenantId: env.PERMIFY_TENANT_ID,
     metadata: {
+      snapToken: '',
       schemaVersion: env.PERMIFY_SCHEMA_VERSION,
+      depth: 20,
     },
     entity: getResourceEntity(resource),
     permission,
     subject: {
       type: 'user',
       id: subjectId,
+      relation: '',
     },
   });
 
   return (
     response.can === true ||
     response.can === 1 ||
+    response.can === 'CHECK_RESULT_ALLOWED' ||
     response.can === 'RESULT_ALLOWED'
   );
 };
