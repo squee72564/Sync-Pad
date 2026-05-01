@@ -17,15 +17,12 @@
     "format:check": "biome format .",
     "format": "biome format . --write",
     "check": "pnpm lint:check && pnpm format:check && pnpm typecheck",
-    "auth:generate:dev": "dotenv -e .env -- auth generate --config ./src/lib/auth.ts --output ./src/db/schema/auth-schema.ts",
-    "db:generate:dev": "dotenv -e .env -- drizzle-kit generate",
-    "db:migrate:dev": "dotenv -e .env -- drizzle-kit migrate",
-    "db:seed:dev": "dotenv -e .env -- tsx src/db/seed-dev.ts",
-    "db:migrate:test": "dotenv -e .env.test -- drizzle-kit migrate"
+    "auth:generate:dev": "dotenv -e .env -- auth generate --config ./src/lib/auth.ts --output ./src/db/schema/auth-schema.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.6.9",
     "@hono/node-server": "^2.0.0",
+    "@syncpad/db": "workspace:*",
     "better-auth": "^1.6.9",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
