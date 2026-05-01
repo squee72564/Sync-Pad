@@ -1,1 +1,1 @@
-export { createPermifyClient } from './client';
+export { createPermifyClient } from './client.js';

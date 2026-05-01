@@ -4,9 +4,22 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint:check": "biome check .",
+    "lint": "biome check . --write",
+    "format:check": "biome format .",
+    "format": "biome format . --write",
+    "check": "pnpm lint:check && pnpm format:check && pnpm typecheck",
     "db:generate:dev": "drizzle-kit generate",
     "db:migrate:dev": "drizzle-kit migrate",
     "db:seed:dev": "tsx src/seed-dev.ts",
@@ -21,6 +34,7 @@
     "pg": "^8.20.0"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.10",

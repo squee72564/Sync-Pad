@@ -9,8 +9,8 @@
     "lib": ["ES2022"],
     "types": ["node"],
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "verbatimModuleSyntax": false
   },
-  "include": ["src/**/*"],
-  "exclude": ["src/seed-dev.ts"]
+  "include": ["src/**/*"]
 }
