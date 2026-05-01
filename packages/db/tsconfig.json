@@ -5,11 +5,11 @@
     "moduleResolution": "NodeNext",
     "noEmit": false,
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "src",
     "lib": ["ES2022"],
     "types": ["node"],
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["./src/**/*", "drizzle.config.ts"]
+  "include": ["./src/**/*"]
 }

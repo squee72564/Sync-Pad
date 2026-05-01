@@ -150,3 +150,7 @@ export function createOrganizationRepository(db: DbClient) {
     },
   };
 }
+
+export type OrganizationRepository = ReturnType<
+  typeof createOrganizationRepository
+>;

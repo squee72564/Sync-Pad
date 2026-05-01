@@ -3,18 +3,29 @@ import type {
   InferInsertModel,
   InferSelectModel,
 } from 'drizzle-orm';
-import type * as coreScehma from './schema/core.js';
+import type * as coreSchema from './schema/core.js';
 
-export type Organization = InferSelectModel<typeof coreScehma.organization>;
-export type NewOrganization = InferInsertModel<typeof coreScehma.organization>;
+export type Organization = InferSelectModel<typeof coreSchema.organization>;
+export type NewOrganization = InferInsertModel<typeof coreSchema.organization>;
 export type OrganizationRole = InferEnum<
-  typeof coreScehma.organizationRoleEnum
+  typeof coreSchema.organizationRoleEnum
 >;
-
-export type Workspace = InferSelectModel<typeof coreScehma.workspace>;
-export type NewWorkspace = InferInsertModel<typeof coreScehma.workspace>;
-export type WorkspaceRole = InferEnum<typeof coreScehma.workspaceRoleEnum>;
-
+export type OrganizationMembership = InferSelectModel<
+  typeof coreSchema.organizationMembership
+>;
+export type NewOrganizationMembership = InferInsertModel<
+  typeof coreSchema.organizationMembership
+>;
 export type OrganizationMembershipStatus = InferEnum<
-  typeof coreScehma.organizationMembershipStatusEnum
+  typeof coreSchema.organizationMembershipStatusEnum
 >;
+
+export type Workspace = InferSelectModel<typeof coreSchema.workspace>;
+export type NewWorkspace = InferInsertModel<typeof coreSchema.workspace>;
+export type WorkspaceMembership = InferSelectModel<
+  typeof coreSchema.workspaceMembership
+>;
+export type NewWorkspaceMembership = InferInsertModel<
+  typeof coreSchema.workspaceMembership
+>;
+export type WorkspaceRole = InferEnum<typeof coreSchema.workspaceRoleEnum>;

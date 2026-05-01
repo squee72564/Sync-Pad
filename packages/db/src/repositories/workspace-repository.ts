@@ -229,3 +229,5 @@ export function createWorkspaceRepository(db: DbClient) {
     },
   };
 }
+
+export type WorkspaceRepository = ReturnType<typeof createWorkspaceRepository>;
