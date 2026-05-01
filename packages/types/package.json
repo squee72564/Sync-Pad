@@ -1,0 +1,31 @@
+{
+  "name": "@syncpad/types",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint:check": "biome check .",
+    "lint": "biome check . --write",
+    "format:check": "biome format .",
+    "format": "biome format . --write",
+    "check": "pnpm lint:check && pnpm format:check && pnpm typecheck"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.2",
+  "devDependencies": {
+    "@syncpad/db": "workspace:*"
+  }
+}
