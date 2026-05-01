@@ -1,17 +1,15 @@
 import { Link, useParams } from '@tanstack/react-router';
 import {
   BotIcon,
-  Building2Icon,
-  CreditCardIcon,
+  CalendarClockIcon,
+  FileTextIcon,
   FolderKanbanIcon,
-  FolderPlusIcon,
   HomeIcon,
+  LayoutGridIcon,
   LogOutIcon,
   type LucideIcon,
   Settings2Icon,
-  SparklesIcon,
-  UserRoundPlusIcon,
-  UsersIcon,
+  Table2Icon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -32,88 +30,60 @@ import {
 } from '#/components/ui/sidebar';
 import { authClient } from '#/lib/auth-client';
 
-type PrimaryNavItem = {
-  title: string;
-  to:
-    | '/dashboard'
-    | '/dashboard/organizations'
-    | '/dashboard/organizations/new'
-    | '/dashboard/workspaces';
-  icon: LucideIcon;
-};
-
-type OrganizationNavItem = {
+type WorkspaceRouteItem = {
   title: string;
   icon: LucideIcon;
   to:
-    | '/organizations/$organizationId'
-    | '/organizations/$organizationId/members'
-    | '/organizations/$organizationId/workspaces/new'
     | '/organizations/$organizationId/workspaces'
-    | '/organizations/$organizationId/members/new';
+    | '/organizations/$organizationId/workspaces/$workspaceId';
 };
 
-type OrganizationManagementItem = {
+type PendingWorkspaceItem = {
   title: string;
   icon: LucideIcon;
-  to:
-    | '/organizations/$organizationId/settings'
-    | '/organizations/$organizationId/billing';
 };
 
-const primaryNavItems: PrimaryNavItem[] = [
+const workspaceRouteItems: WorkspaceRouteItem[] = [
   {
-    title: 'Dashboard',
-    to: '/dashboard',
+    title: 'Workspace home',
     icon: HomeIcon,
-  },
-];
-
-const organizationNavItems: OrganizationNavItem[] = [
-  {
-    title: 'Overview',
-    icon: Building2Icon,
-    to: '/organizations/$organizationId',
+    to: '/organizations/$organizationId/workspaces/$workspaceId',
   },
   {
-    title: 'Members',
-    icon: UsersIcon,
-    to: '/organizations/$organizationId/members',
-  },
-  {
-    title: 'Invite member',
-    icon: UserRoundPlusIcon,
-    to: '/organizations/$organizationId/members/new',
-  },
-  {
-    title: 'Workspaces',
+    title: 'All workspaces',
     icon: FolderKanbanIcon,
     to: '/organizations/$organizationId/workspaces',
   },
+];
+
+const workspaceContentItems: PendingWorkspaceItem[] = [
   {
-    title: 'Create workspace',
-    icon: FolderPlusIcon,
-    to: '/organizations/$organizationId/workspaces/new',
+    title: 'Docs',
+    icon: FileTextIcon,
+  },
+  {
+    title: 'Timeline',
+    icon: CalendarClockIcon,
+  },
+  {
+    title: 'Sheets',
+    icon: Table2Icon,
   },
 ];
 
-const organizationManagementItems: OrganizationManagementItem[] = [
+const workspaceManagementItems: PendingWorkspaceItem[] = [
   {
-    title: 'Settings',
+    title: 'Workspace settings',
     icon: Settings2Icon,
-    to: '/organizations/$organizationId/settings',
-  },
-  {
-    title: 'Billing',
-    icon: CreditCardIcon,
-    to: '/organizations/$organizationId/billing',
   },
 ];
 
-export function OrganizationSidebar() {
+export function WorkspaceSidebar() {
   const params = useParams({ strict: false });
   const organizationId =
     typeof params.organizationId === 'string' ? params.organizationId : null;
+  const workspaceId =
+    typeof params.workspaceId === 'string' ? params.workspaceId : null;
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   async function handleSignOut() {
@@ -140,11 +110,13 @@ export function OrganizationSidebar() {
       <SidebarHeader className="gap-3 px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
         <div className="flex items-start gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/40 px-3 py-3 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-9">
-            <SparklesIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
+            <LayoutGridIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-sm font-semibold">Syncpad</p>
-            <p className="text-xs text-sidebar-foreground/70">Organization</p>
+            <p className="truncate text-sm font-semibold">Workspace</p>
+            <p className="truncate text-xs text-sidebar-foreground/70">
+              {workspaceId ?? 'Workspace overview'}
+            </p>
           </div>
           <Badge
             variant="secondary"
@@ -158,17 +130,39 @@ export function OrganizationSidebar() {
       <SidebarSeparator />
 
       <SidebarContent>
+        {organizationId && workspaceId ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {workspaceRouteItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <Link
+                        to={item.to}
+                        params={{ organizationId, workspaceId }}
+                        activeProps={{ 'data-active': true }}
+                      >
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
+
         <SidebarGroup>
-          <SidebarGroupLabel>Home</SidebarGroupLabel>
+          <SidebarGroupLabel>Content</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {primaryNavItems.map((item) => (
+              {workspaceContentItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link to={item.to} activeProps={{ 'data-active': true }}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
+                  <SidebarMenuButton tooltip={item.title} disabled>
+                    <item.icon />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -176,53 +170,21 @@ export function OrganizationSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {organizationId ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>Organization</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {organizationNavItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <Link
-                        to={item.to}
-                        params={{ organizationId }}
-                        activeProps={{ 'data-active': true }}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : null}
-
-        {organizationId ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>Manage</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {organizationManagementItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <Link
-                        to={item.to}
-                        params={{ organizationId }}
-                        activeProps={{ 'data-active': true }}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : null}
+        <SidebarGroup>
+          <SidebarGroupLabel>Manage</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {workspaceManagementItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton tooltip={item.title} disabled>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
