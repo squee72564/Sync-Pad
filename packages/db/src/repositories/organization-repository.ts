@@ -1,11 +1,11 @@
 import { and, eq } from 'drizzle-orm';
 import type { DbClient } from '../index.js';
-import {
-  type OrganizationMembershipStatus,
-  type OrganizationRole,
-  organization,
-  organizationMembership,
-} from '../schema/core.js';
+import { organization, organizationMembership } from '../schema/core.js';
+
+import type {
+  OrganizationMembershipStatus,
+  OrganizationRole,
+} from '../types.js';
 
 type DatabaseExecutor = Pick<
   DbClient,

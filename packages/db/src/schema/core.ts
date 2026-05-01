@@ -30,11 +30,6 @@ export const workspaceRoleEnum = pgEnum('workspace_role', [
   'viewer',
 ]);
 
-export type OrganizationRole = (typeof organizationRoleEnum.enumValues)[number];
-export type OrganizationMembershipStatus =
-  (typeof organizationMembershipStatusEnum.enumValues)[number];
-export type WorkspaceRole = (typeof workspaceRoleEnum.enumValues)[number];
-
 export const organization = pgTable('organization', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),

@@ -3,3 +3,11 @@ export {
   createOrganizationRepository,
   createWorkspaceRepository,
 } from './repositories/index.js';
+export type {
+  NewOrganization,
+  NewWorkspace,
+  Organization,
+  OrganizationMembershipStatus,
+  OrganizationRole,
+  Workspace,
+} from './types.js';

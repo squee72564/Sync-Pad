@@ -4,10 +4,11 @@ import type { DbClient } from '../client.js';
 import {
   organization,
   organizationMembership,
-  type WorkspaceRole,
   workspace,
   workspaceMembership,
 } from '../schema/core.js';
+
+import type { WorkspaceRole } from '../types.js';
 
 type DatabaseExecutor = Pick<
   DbClient,
