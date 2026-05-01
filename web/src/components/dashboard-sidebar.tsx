@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Badge } from '#/components/ui/badge';
 import {
   Sidebar,
   SidebarContent,
@@ -117,12 +116,6 @@ export function DashboardSidebar() {
             <p className="truncate text-sm font-semibold">Syncpad</p>
             <p className="text-xs text-sidebar-foreground/70">Dashboard</p>
           </div>
-          <Badge
-            variant="secondary"
-            className="rounded-full px-2 py-0.5 group-data-[collapsible=icon]:hidden"
-          >
-            Alpha
-          </Badge>
         </div>
       </SidebarHeader>
 

@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Badge } from '#/components/ui/badge';
 import {
   Sidebar,
   SidebarContent,
@@ -35,7 +34,7 @@ type WorkspaceRouteItem = {
   title: string;
   icon: LucideIcon;
   to:
-    | '/organizations/$organizationId/workspaces'
+    | '/dashboard/workspaces'
     | '/organizations/$organizationId/workspaces/$workspaceId';
 };
 
@@ -48,6 +47,20 @@ type WorkspaceSidebarProps = {
   workspace?: Workspace;
 };
 
+type PrimaryNavItem = {
+  title: string;
+  to: '/dashboard';
+  icon: LucideIcon;
+};
+
+const primaryNavItems: PrimaryNavItem[] = [
+  {
+    title: 'Dashboard',
+    to: '/dashboard',
+    icon: HomeIcon,
+  },
+];
+
 const workspaceRouteItems: WorkspaceRouteItem[] = [
   {
     title: 'Workspace home',
@@ -57,7 +70,7 @@ const workspaceRouteItems: WorkspaceRouteItem[] = [
   {
     title: 'All workspaces',
     icon: FolderKanbanIcon,
-    to: '/organizations/$organizationId/workspaces',
+    to: '/dashboard/workspaces',
   },
 ];
 
@@ -125,18 +138,30 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
               {workspace?.id ?? workspaceId ?? 'Workspace overview'}
             </p>
           </div>
-          <Badge
-            variant="secondary"
-            className="rounded-full px-2 py-0.5 group-data-[collapsible=icon]:hidden"
-          >
-            Alpha
-          </Badge>
         </div>
       </SidebarHeader>
 
       <SidebarSeparator />
 
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Home</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {primaryNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link to={item.to} activeProps={{ 'data-active': true }}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {organizationId && workspaceId ? (
           <SidebarGroup>
             <SidebarGroupLabel>Workspace</SidebarGroupLabel>
