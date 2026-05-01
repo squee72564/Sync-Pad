@@ -23,6 +23,7 @@
     "@better-auth/drizzle-adapter": "^1.6.9",
     "@hono/node-server": "^2.0.0",
     "@syncpad/db": "workspace:*",
+    "@syncpad/permify": "workspace:*",
     "better-auth": "^1.6.9",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
