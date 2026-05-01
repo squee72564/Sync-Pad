@@ -15,7 +15,7 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.url(),
   PERMIFY_URL: z.url(),
   PERMIFY_TENANT_ID: z.string().min(1).default('syncpad'),
-  PERMIFY_SCHEMA_VERSION: z.string().min(1).optional(),
+  PERMIFY_SCHEMA_VERSION: z.string().min(1),
 });
 
 type Env = z.infer<typeof envSchema>;
