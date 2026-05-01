@@ -30,6 +30,7 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from '#/components/ui/sidebar';
+import type { Organization } from '#/features/organizations/types';
 import { authClient } from '#/lib/auth-client';
 
 type PrimaryNavItem = {
@@ -59,6 +60,10 @@ type OrganizationManagementItem = {
   to:
     | '/organizations/$organizationId/settings'
     | '/organizations/$organizationId/billing';
+};
+
+type OrganizationSidebarProps = {
+  organization?: Organization;
 };
 
 const primaryNavItems: PrimaryNavItem[] = [
@@ -110,7 +115,9 @@ const organizationManagementItems: OrganizationManagementItem[] = [
   },
 ];
 
-export function OrganizationSidebar() {
+export function OrganizationSidebar({
+  organization,
+}: OrganizationSidebarProps) {
   const params = useParams({ strict: false });
   const organizationId =
     typeof params.organizationId === 'string' ? params.organizationId : null;
@@ -143,7 +150,9 @@ export function OrganizationSidebar() {
             <SparklesIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-sm font-semibold">Syncpad</p>
+            <p className="truncate text-sm font-semibold">
+              {organization?.name ?? 'Syncpad'}
+            </p>
             <p className="text-xs text-sidebar-foreground/70">Organization</p>
           </div>
           <Badge

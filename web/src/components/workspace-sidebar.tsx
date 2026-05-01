@@ -28,6 +28,7 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from '#/components/ui/sidebar';
+import type { Workspace } from '#/features/workspaces/types';
 import { authClient } from '#/lib/auth-client';
 
 type WorkspaceRouteItem = {
@@ -41,6 +42,10 @@ type WorkspaceRouteItem = {
 type PendingWorkspaceItem = {
   title: string;
   icon: LucideIcon;
+};
+
+type WorkspaceSidebarProps = {
+  workspace?: Workspace;
 };
 
 const workspaceRouteItems: WorkspaceRouteItem[] = [
@@ -78,7 +83,7 @@ const workspaceManagementItems: PendingWorkspaceItem[] = [
   },
 ];
 
-export function WorkspaceSidebar() {
+export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
   const params = useParams({ strict: false });
   const organizationId =
     typeof params.organizationId === 'string' ? params.organizationId : null;
@@ -113,9 +118,11 @@ export function WorkspaceSidebar() {
             <LayoutGridIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-sm font-semibold">Workspace</p>
+            <p className="truncate text-sm font-semibold">
+              {workspace?.name ?? 'Workspace'}
+            </p>
             <p className="truncate text-xs text-sidebar-foreground/70">
-              {workspaceId ?? 'Workspace overview'}
+              {workspace?.id ?? workspaceId ?? 'Workspace overview'}
             </p>
           </div>
           <Badge

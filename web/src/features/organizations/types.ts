@@ -15,6 +15,10 @@ export type CreateOrganizationResponse = {
   organization: Organization;
 };
 
+export type OrganizationResponse = {
+  organization: Organization;
+};
+
 export type OrganizationsResponse = {
   organizations: Organization[];
 };

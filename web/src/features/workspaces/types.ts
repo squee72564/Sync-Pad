@@ -16,6 +16,10 @@ export type CreateWorkspaceResponse = {
   workspace: Workspace;
 };
 
+export type WorkspaceResponse = {
+  workspace: Workspace;
+};
+
 export type OrganizationWorkspacesResponse = {
   workspaces: Workspace[];
 };

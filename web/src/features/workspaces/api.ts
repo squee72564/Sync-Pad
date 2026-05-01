@@ -3,6 +3,7 @@ import type {
   CreateWorkspaceInput,
   CreateWorkspaceResponse,
   OrganizationWorkspacesResponse,
+  WorkspaceResponse,
 } from './types';
 
 type CreateWorkspaceVariables = {
@@ -10,9 +11,23 @@ type CreateWorkspaceVariables = {
   organizationId: string;
 };
 
+type GetWorkspaceVariables = {
+  organizationId: string;
+  workspaceId: string;
+};
+
 export function getOrganizationWorkspaces(organizationId: string) {
   return apiGet<OrganizationWorkspacesResponse>(
     `/api/organizations/${organizationId}/workspaces`,
+  );
+}
+
+export function getWorkspace({
+  organizationId,
+  workspaceId,
+}: GetWorkspaceVariables) {
+  return apiGet<WorkspaceResponse>(
+    `/api/organizations/${organizationId}/workspaces/${workspaceId}`,
   );
 }
 
