@@ -17,6 +17,7 @@ cp embedding/.env.example embedding/.env
 pnpm install
 docker compose -f docker-compose.dev.yml up -d
 pnpm infra:bootstrap:dev
+pnpm db:seed:dev --email \<EMAIL\> --password \<PASSWORD\> --name \<NAME\> # Seed database with user and mock values if desired
 pnpm dev
 ```
 
