@@ -6,18 +6,29 @@ Syncpad is an AI-native collaborative workspace for teams.
 
 It combines structured project tracking, real-time collaborative documents, and organization-level knowledge into a single system where both humans and AI can operate over the same context.
 
-## Quick start
+## Development Quick start
 
 ```bash
+# Copy example environment variables, then change to your own values
 cp .env.example .env
 cp api/.env.example api/.env
 cp api/.env.test.example api/.env.test
 cp web/.env.example web/.env
 cp embedding/.env.example embedding/.env
+
+# Install dependencies
 pnpm install
+
+# Start docker compose
 docker compose -f docker-compose.dev.yml up -d
+
+# Bootstrap database and permify
 pnpm infra:bootstrap:dev
+
+# Optionally seed with user and mock data
 pnpm db:seed:dev --email `EMAIL` --password `PASSWORD` --name `NAME` # Seed database with user and mock values if desired
+
+# Run services
 pnpm dev
 ```
 
@@ -25,7 +36,7 @@ pnpm dev
 
 The Permify bootstrap prints a `PERMIFY_SCHEMA_VERSION=...` value. Add that value to `api/.env`, then restart `pnpm dev` so the API uses the schema version for authorization writes and checks.
 
-For test infrastructure, run:
+To boostrap test infrastructure and run tests make sure to do:
 
 ```bash
 pnpm infra:bootstrap:test
