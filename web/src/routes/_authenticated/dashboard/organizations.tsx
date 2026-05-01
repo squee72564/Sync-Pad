@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Building2Icon } from 'lucide-react';
 
 import {
@@ -61,15 +61,21 @@ function OrganizationsPage() {
         organizationsQuery.data.organizations.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {organizationsQuery.data.organizations.map((organization) => (
-              <Card key={organization.id}>
-                <CardHeader>
-                  <div className="flex size-9 items-center justify-center rounded-md bg-muted">
-                    <Building2Icon className="size-4" />
-                  </div>
-                  <CardTitle>{organization.name}</CardTitle>
-                  <CardDescription>{organization.id}</CardDescription>
-                </CardHeader>
-              </Card>
+              <Link
+                params={{ organizationId: organization.id }}
+                to={`/organizations/$organizationId`}
+                key={organization.id}
+              >
+                <Card>
+                  <CardHeader>
+                    <div className="flex size-9 items-center justify-center rounded-md bg-muted">
+                      <Building2Icon className="size-4" />
+                    </div>
+                    <CardTitle>{organization.name}</CardTitle>
+                    <CardDescription>{organization.id}</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
             ))}
           </div>
         ) : (
