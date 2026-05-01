@@ -1,10 +1,9 @@
+import type { Organization, Workspace } from '@syncpad/types';
 import type {
   AuthSessionInfo,
   AuthUser,
-  OrganizationRecord,
   ValidatedRequestData,
-  WorkspaceRecord,
-} from '../types/api.js';
+} from '../types/auth.js';
 
 export const REQUEST_ID_CONTEXT_KEY = 'requestId';
 export const SESSION_CONTEXT_KEY = 'session';
@@ -18,8 +17,8 @@ export type AppVariables = {
   requestId: string;
   session: AuthSessionInfo | null;
   currentUser: AuthUser | null;
-  organization: OrganizationRecord | null;
-  workspace: WorkspaceRecord | null;
+  organization: Organization | null;
+  workspace: Workspace | null;
   validated: ValidatedRequestData;
   authorization?: {
     checked: boolean;

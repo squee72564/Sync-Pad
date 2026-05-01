@@ -2,19 +2,23 @@ import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AppError } from '../../src/lib/error.js';
-import type { AuthSession } from '../../src/types/api.js';
+import type { AuthSession } from '../../src/types/auth.js';
 
 vi.mock('../../src/lib/auth-session.js', () => ({
   getAuthSession: vi.fn(),
 }));
 
-vi.mock('../../src/authz/permify-client.js', async () => {
-  const actual = await vi.importActual('../../src/authz/permify-client.js');
-  return {
-    ...actual,
+vi.mock('../../src/authz/permify-client.js', () => ({
+  accessGraphSync: {
+    apply: vi.fn(),
+  },
+  permissionChecker: {
     checkPermission: vi.fn(),
-  };
-});
+    deleteTuples: vi.fn(),
+    writeTuples: vi.fn(),
+  },
+  permifyInstance: {},
+}));
 
 vi.mock('../../src/repositories/organization-repository.js', () => ({
   organizationRepository: {
@@ -122,7 +126,7 @@ describe('organization routes', () => {
 
   it('returns 403 for authenticated but unauthorized organization access', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../src/authz/permify-client.js'
     );
     const { organizationRepository } = await import(
@@ -132,7 +136,7 @@ describe('organization routes', () => {
     vi.mocked(organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(checkPermission).mockResolvedValue(false);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(false);
     const { createApp } = await import('../../src/app.js');
 
     const response = await createApp().request('/api/organizations/org_1');
@@ -145,7 +149,7 @@ describe('organization routes', () => {
 
   it('returns 200 for authorized organization detail requests', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../src/authz/permify-client.js'
     );
     const { organizationRepository } = await import(
@@ -155,7 +159,7 @@ describe('organization routes', () => {
     vi.mocked(organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(checkPermission).mockResolvedValue(true);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     const { createApp } = await import('../../src/app.js');
 
     const response = await createApp().request('/api/organizations/org_1');
@@ -204,7 +208,7 @@ describe('organization routes', () => {
 
   it('returns canonical 503 when adding an organization member fails during sync', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../src/authz/permify-client.js'
     );
     const { organizationRepository } = await import(
@@ -217,7 +221,7 @@ describe('organization routes', () => {
     vi.mocked(organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(checkPermission).mockResolvedValue(true);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(organizationService.addMember).mockRejectedValue(
       new AppError({
         code: 'PERMIFY_SYNC_FAILED',
@@ -253,7 +257,7 @@ describe('organization routes', () => {
 
   it('returns 404 when updating a missing organization membership', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../src/authz/permify-client.js'
     );
     const { organizationRepository } = await import(
@@ -266,7 +270,7 @@ describe('organization routes', () => {
     vi.mocked(organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(checkPermission).mockResolvedValue(true);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(organizationService.updateMember).mockRejectedValue(
       new AppError({
         code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',

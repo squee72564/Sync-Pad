@@ -3,10 +3,18 @@ import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AppVariables } from '../../../src/lib/context.js';
-import type { AuthUser } from '../../../src/types/api.js';
+import type { AuthUser } from '../../../src/types/auth.js';
 
 vi.mock('../../../src/authz/permify-client.js', () => ({
-  checkPermission: vi.fn(),
+  accessGraphSync: {
+    apply: vi.fn(),
+  },
+  permissionChecker: {
+    checkPermission: vi.fn(),
+    deleteTuples: vi.fn(),
+    writeTuples: vi.fn(),
+  },
+  permifyInstance: {},
 }));
 
 afterEach(() => {
@@ -30,10 +38,10 @@ describe('authorization middleware', () => {
       '../../../src/middleware/authorization.js'
     );
     const { errorHandler } = await import('../../../src/http/error-handler.js');
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../../src/authz/permify-client.js'
     );
-    vi.mocked(checkPermission).mockResolvedValue(false);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(false);
 
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {
@@ -68,10 +76,10 @@ describe('authorization middleware', () => {
     const { requireWorkspacePermission } = await import(
       '../../../src/middleware/authorization.js'
     );
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../../src/authz/permify-client.js'
     );
-    vi.mocked(checkPermission).mockResolvedValue(true);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
 
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {

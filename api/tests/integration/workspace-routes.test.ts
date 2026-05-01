@@ -2,19 +2,23 @@ import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AppError } from '../../src/lib/error.js';
-import type { AuthSession } from '../../src/types/api.js';
+import type { AuthSession } from '../../src/types/auth.js';
 
 vi.mock('../../src/lib/auth-session.js', () => ({
   getAuthSession: vi.fn(),
 }));
 
-vi.mock('../../src/authz/permify-client.js', async () => {
-  const actual = await vi.importActual('../../src/authz/permify-client.js');
-  return {
-    ...actual,
+vi.mock('../../src/authz/permify-client.js', () => ({
+  accessGraphSync: {
+    apply: vi.fn(),
+  },
+  permissionChecker: {
     checkPermission: vi.fn(),
-  };
-});
+    deleteTuples: vi.fn(),
+    writeTuples: vi.fn(),
+  },
+  permifyInstance: {},
+}));
 
 vi.mock('../../src/repositories/organization-repository.js', () => ({
   organizationRepository: {
@@ -109,7 +113,7 @@ describe('workspace routes', () => {
 
   it('returns canonical 503 when workspace creation sync fails', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../src/authz/permify-client.js'
     );
     const { organizationRepository } = await import(
@@ -122,7 +126,7 @@ describe('workspace routes', () => {
     vi.mocked(organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(checkPermission).mockResolvedValue(true);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.createWorkspace).mockRejectedValue(
       new AppError({
         code: 'PERMIFY_SYNC_FAILED',
@@ -154,7 +158,7 @@ describe('workspace routes', () => {
 
   it('returns canonical 503 when adding a workspace member fails during sync', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../src/authz/permify-client.js'
     );
     const { organizationRepository } = await import(
@@ -171,7 +175,7 @@ describe('workspace routes', () => {
       organizationRecord,
     );
     vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
-    vi.mocked(checkPermission).mockResolvedValue(true);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.addMember).mockRejectedValue(
       new AppError({
         code: 'PERMIFY_SYNC_FAILED',
@@ -206,7 +210,7 @@ describe('workspace routes', () => {
 
   it('returns 404 when updating a missing workspace membership', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../src/authz/permify-client.js'
     );
     const { organizationRepository } = await import(
@@ -223,7 +227,7 @@ describe('workspace routes', () => {
       organizationRecord,
     );
     vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
-    vi.mocked(checkPermission).mockResolvedValue(true);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.updateMember).mockRejectedValue(
       new AppError({
         code: 'WORKSPACE_MEMBERSHIP_NOT_FOUND',
@@ -258,7 +262,7 @@ describe('workspace routes', () => {
 
   it('returns 500 INTERNAL_ERROR when workspace deletion throws a native error', async () => {
     const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { checkPermission } = await import(
+    const { permissionChecker } = await import(
       '../../src/authz/permify-client.js'
     );
     const { organizationRepository } = await import(
@@ -275,7 +279,7 @@ describe('workspace routes', () => {
       organizationRecord,
     );
     vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
-    vi.mocked(checkPermission).mockResolvedValue(true);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.deleteWorkspace).mockRejectedValue(
       new Error('pg failure'),
     );

@@ -1,9 +1,5 @@
+import { resourceDefinitions, resources } from '@syncpad/permify';
 import { describe, expect, it } from 'vitest';
-
-import {
-  resourceDefinitions,
-  resources,
-} from '../../../src/authz/permissions.js';
 
 describe('authz resource builders', () => {
   it('builds organization descriptors with explicit organization ids', () => {

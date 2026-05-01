@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AuthSession } from '../../src/types/api.js';
+import type { AuthSession } from '../../src/types/auth.js';
 
 vi.mock('../../src/lib/auth-session.js', () => ({
   getAuthSession: vi.fn(),

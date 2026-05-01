@@ -1,23 +1,24 @@
-import { StatusCodes } from 'http-status-codes';
+import type { OrganizationRepository, WorkspaceRepository } from '@syncpad/db';
 
-import { checkPermission } from '../authz/permify-client.js';
-import { resources } from '../authz/permissions.js';
 import {
   type AccessGraphOperation,
   type AccessGraphSync,
-  permifyAccessGraphSync,
+  resources,
   toWorkspaceMembershipTuple,
   toWorkspaceParentTuple,
-} from '../authz/tuple-sync.js';
+} from '@syncpad/permify';
+import type { WorkspaceMembership } from '@syncpad/types';
+import { StatusCodes } from 'http-status-codes';
+import {
+  accessGraphSync as permifyAccessGraphSync,
+  permissionChecker,
+} from '../authz/permify-client.js';
 import { db } from '../db/client.js';
 import { AppError } from '../lib/error.js';
 import { organizationRepository } from '../repositories/organization-repository.js';
 import { workspaceRepository } from '../repositories/workspace-repository.js';
-import type { WorkspaceMembershipRecord } from '../types/api.js';
 
-type WorkspaceRepository = typeof workspaceRepository;
-type OrganizationRepository = typeof organizationRepository;
-type WorkspaceMembershipCleanupRecord = WorkspaceMembershipRecord;
+type WorkspaceMembershipCleanupRecord = WorkspaceMembership;
 
 const syncOrThrow = async (
   accessGraphSync: AccessGraphSync,
@@ -88,8 +89,12 @@ export const createWorkspaceService = (dependencies?: {
       actorUserId: string;
       organizationId: string;
     }) {
-      const includeAll = await checkPermission(
-        input.actorUserId,
+      const includeAll = await permissionChecker.checkPermission(
+        {
+          id: input.actorUserId,
+          type: '',
+          relation: '',
+        },
         resources.organization(input.organizationId),
         'manage',
       );

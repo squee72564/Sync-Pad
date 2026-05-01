@@ -1,12 +1,11 @@
-import { StatusCodes } from 'http-status-codes';
-
 import {
   type AccessGraphOperation,
   type AccessGraphSync,
-  permifyAccessGraphSync,
   toOrganizationMembershipTuple,
   toWorkspaceMembershipTuple,
-} from '../authz/tuple-sync.js';
+} from '@syncpad/permify';
+import { StatusCodes } from 'http-status-codes';
+import { accessGraphSync as permifyAccessGraphSync } from '../authz/permify-client.js';
 import { db } from '../db/client.js';
 import { AppError } from '../lib/error.js';
 import { organizationRepository } from '../repositories/organization-repository.js';

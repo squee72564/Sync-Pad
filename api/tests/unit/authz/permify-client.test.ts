@@ -1,134 +1,124 @@
 import { StatusCodes } from 'http-status-codes';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { checkPermission } from '../../../src/authz/permify-client.js';
-import { resources } from '../../../src/authz/permissions.js';
-import { env } from '../../../src/lib/env.js';
+const permifyMocks = vi.hoisted(() => {
+  const permifyInstance = {
+    grpc: {},
+    schemaVersion: 'schema_1',
+    tenantId: 'tenant_1',
+  };
+  const rawPermissionChecker = {
+    bulkCheckPermission: vi.fn(),
+    checkPermission: vi.fn(),
+    deleteTuples: vi.fn(),
+    writeTuples: vi.fn(),
+  };
+  const accessGraphSync = {
+    apply: vi.fn(),
+  };
 
-describe('permify client', () => {
-  const fetchMock = vi.fn();
+  return {
+    accessGraphSync,
+    createPermifyAccessGraphSync: vi.fn(() => accessGraphSync),
+    createPermifyClient: vi.fn(() => permifyInstance),
+    createPermissionChecker: vi.fn(() => rawPermissionChecker),
+    permifyInstance,
+    rawPermissionChecker,
+  };
+});
 
+vi.mock('@syncpad/permify', () => ({
+  createPermifyAccessGraphSync: permifyMocks.createPermifyAccessGraphSync,
+  createPermifyClient: permifyMocks.createPermifyClient,
+  createPermissionChecker: permifyMocks.createPermissionChecker,
+}));
+
+describe('api permify client', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', fetchMock);
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
     vi.clearAllMocks();
+    vi.resetModules();
   });
 
-  it('serializes organization resources using the registry id key', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({ can: true }),
+  it('constructs the app singleton from package factories and env config', async () => {
+    const { env } = await import('../../../src/lib/env.js');
+    const { accessGraphSync, permissionChecker, permifyInstance } =
+      await import('../../../src/authz/permify-client.js');
+
+    expect(permifyMocks.createPermifyClient).toHaveBeenCalledWith({
+      endpoint: env.PERMIFY_URL,
+      schemaVersion: env.PERMIFY_SCHEMA_VERSION,
+      tenantId: env.PERMIFY_TENANT_ID,
     });
-
-    const allowed = await checkPermission(
-      'user_1',
-      resources.organization('org_1'),
-      'read',
+    expect(permifyMocks.createPermissionChecker).toHaveBeenCalledWith(
+      permifyMocks.permifyInstance,
     );
-
-    expect(allowed).toBe(true);
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining('/permissions/check'),
-      expect.objectContaining({
-        headers: {
-          'content-type': 'application/json',
-        },
-        method: 'POST',
-      }),
+    expect(permifyMocks.createPermifyAccessGraphSync).toHaveBeenCalledWith(
+      permissionChecker,
     );
-
-    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(JSON.parse(requestInit.body as string)).toEqual({
-      tenantId: 'syncpad-test',
-      metadata: {
-        snapToken: '',
-        schemaVersion: env.PERMIFY_SCHEMA_VERSION,
-        depth: 20,
-      },
-      entity: {
-        type: 'organization',
-        id: 'org_1',
-      },
-      permission: 'read',
-      subject: {
-        type: 'user',
-        id: 'user_1',
-        relation: '',
-      },
-    });
+    expect(permifyInstance).toBe(permifyMocks.permifyInstance);
+    expect(accessGraphSync).toBe(permifyMocks.accessGraphSync);
   });
 
-  it('serializes workspace resources using the registry id key', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({ can: 'RESULT_ALLOWED' }),
-    });
-
-    const allowed = await checkPermission(
-      'user_1',
-      resources.workspace('ws_1'),
-      'manage',
+  it('delegates successful permission checks to the package checker', async () => {
+    permifyMocks.rawPermissionChecker.checkPermission.mockResolvedValue(true);
+    const { permissionChecker } = await import(
+      '../../../src/authz/permify-client.js'
     );
-
-    expect(allowed).toBe(true);
-    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(JSON.parse(requestInit.body as string)).toMatchObject({
-      entity: {
-        type: 'workspace',
-        id: 'ws_1',
-      },
-      permission: 'manage',
-      subject: {
-        type: 'user',
-        id: 'user_1',
-      },
-    });
-  });
-
-  it('wraps fetch failures as PERMIFY_UNAVAILABLE', async () => {
-    fetchMock.mockRejectedValue(new Error('network down'));
+    const subject = { id: 'user_1', type: 'user', relation: '' };
+    const resource = {
+      type: 'organization',
+      organizationId: 'org_1',
+    } as const;
 
     await expect(
-      checkPermission('user_1', resources.organization('org_1'), 'read'),
-    ).rejects.toMatchObject({
-      code: 'PERMIFY_UNAVAILABLE',
-      status: StatusCodes.SERVICE_UNAVAILABLE,
-    });
+      permissionChecker.checkPermission(subject, resource, 'read'),
+    ).resolves.toBe(true);
+    expect(
+      permifyMocks.rawPermissionChecker.checkPermission,
+    ).toHaveBeenCalledWith(subject, resource, 'read');
   });
 
-  it('wraps non-2xx responses as PERMIFY_UNAVAILABLE with response status details', async () => {
-    fetchMock.mockResolvedValue({
-      ok: false,
-      status: 503,
-      text: async () => 'service down',
-    });
+  it('normalizes permission check transport failures as PERMIFY_UNAVAILABLE', async () => {
+    const transportError = new Error('transport down');
+    permifyMocks.rawPermissionChecker.checkPermission.mockRejectedValue(
+      transportError,
+    );
+    const { permissionChecker } = await import(
+      '../../../src/authz/permify-client.js'
+    );
 
     await expect(
-      checkPermission('user_1', resources.organization('org_1'), 'read'),
-    ).rejects.toMatchObject({
-      code: 'PERMIFY_UNAVAILABLE',
-      status: StatusCodes.SERVICE_UNAVAILABLE,
-      details: {
-        responseBody: 'service down',
-        responseStatus: 503,
-      },
-    });
-  });
-
-  it('rejects invalid resource descriptors', async () => {
-    await expect(
-      checkPermission(
-        'user_1',
-        {
-          type: 'organization',
-          organizationId: undefined,
-        } as never,
+      permissionChecker.checkPermission(
+        { id: 'user_1', type: 'user', relation: '' },
+        { type: 'organization', organizationId: 'org_1' },
         'read',
       ),
     ).rejects.toMatchObject({
+      cause: transportError,
+      code: 'PERMIFY_UNAVAILABLE',
+      status: StatusCodes.SERVICE_UNAVAILABLE,
+    });
+  });
+
+  it('normalizes invalid authorization descriptors as app context errors', async () => {
+    const descriptorError = new Error(
+      'Invalid resource descriptor for organization',
+    );
+    permifyMocks.rawPermissionChecker.checkPermission.mockRejectedValue(
+      descriptorError,
+    );
+    const { permissionChecker } = await import(
+      '../../../src/authz/permify-client.js'
+    );
+
+    await expect(
+      permissionChecker.checkPermission(
+        { id: 'user_1', type: 'user', relation: '' },
+        { type: 'organization', organizationId: undefined } as never,
+        'read',
+      ),
+    ).rejects.toMatchObject({
+      cause: descriptorError,
       code: 'AUTHORIZATION_CONTEXT_INVALID',
       status: StatusCodes.INTERNAL_SERVER_ERROR,
     });

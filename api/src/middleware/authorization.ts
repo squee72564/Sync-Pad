@@ -1,11 +1,11 @@
+import {
+  type OrganizationPermission,
+  resources,
+  type WorkspacePermission,
+} from '@syncpad/permify';
 import type { Context, MiddlewareHandler } from 'hono';
 import { StatusCodes } from 'http-status-codes';
-import { checkPermission } from '../authz/permify-client.js';
-import type {
-  OrganizationPermission,
-  WorkspacePermission,
-} from '../authz/permissions.js';
-import { resources } from '../authz/permissions.js';
+import { permissionChecker } from '../authz/permify-client.js';
 import {
   type AppVariables,
   AUTHORIZATION_CONTEXT_KEY,
@@ -53,8 +53,12 @@ export const requireOrganizationPermission = (
       });
     }
 
-    const allowed = await checkPermission(
-      user.id,
+    const allowed = await permissionChecker.checkPermission(
+      {
+        id: user.id,
+        type: '',
+        relation: '',
+      },
       resources.organization(organizationId),
       permission,
     );
@@ -98,8 +102,12 @@ export const requireWorkspacePermission = (
       });
     }
 
-    const allowed = await checkPermission(
-      user.id,
+    const allowed = await permissionChecker.checkPermission(
+      {
+        id: user.id,
+        type: '',
+        relation: '',
+      },
       resources.workspace(workspaceId),
       permission,
     );

@@ -1,11 +1,10 @@
-import { eq } from 'drizzle-orm';
-
-import { writeTuples } from '../authz/permify-client.js';
 import {
   toOrganizationMembershipTuple,
   toWorkspaceMembershipTuple,
   toWorkspaceParentTuple,
-} from '../authz/tuple-sync.js';
+} from '@syncpad/permify';
+import { eq } from 'drizzle-orm';
+import { permissionChecker } from '../authz/permify-client.js';
 import { auth } from '../lib/auth.js';
 import { env } from '../lib/env.js';
 import { db, pool } from './client.js';
@@ -255,7 +254,7 @@ const seedDomainData = async (userId: string) => {
 const syncPermifyTuples = async (
   seedData: Awaited<ReturnType<typeof seedDomainData>>,
 ) => {
-  await writeTuples([
+  await permissionChecker.writeTuples([
     ...seedData.organizationMemberships.map(toOrganizationMembershipTuple),
     ...seedData.workspaces.map(toWorkspaceParentTuple),
     ...seedData.workspaceMemberships.map(toWorkspaceMembershipTuple),

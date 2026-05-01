@@ -1,4 +1,4 @@
-import type { AuthSession } from '../types/api.js';
+import type { AuthSession } from '../types/auth.js';
 import { auth } from './auth.js';
 
 export const getAuthSession = async (

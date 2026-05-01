@@ -7,15 +7,19 @@ vi.mock('../../../src/db/client.js', () => ({
   },
 }));
 
-vi.mock('../../../src/authz/permify-client.js', async () => {
-  const actual = await vi.importActual('../../../src/authz/permify-client.js');
-  return {
-    ...actual,
+vi.mock('../../../src/authz/permify-client.js', () => ({
+  accessGraphSync: {
+    apply: vi.fn(),
+  },
+  permissionChecker: {
     checkPermission: vi.fn(),
-  };
-});
+    deleteTuples: vi.fn(),
+    writeTuples: vi.fn(),
+  },
+  permifyInstance: {},
+}));
 
-import { checkPermission } from '../../../src/authz/permify-client.js';
+import { permissionChecker } from '../../../src/authz/permify-client.js';
 import { createWorkspaceService } from '../../../src/services/workspace-service.js';
 
 const fixtureDate = new Date('2024-01-02T03:04:05.000Z');
@@ -202,13 +206,13 @@ describe('workspace service', () => {
       workspaceRepo: workspaceRepo as never,
     });
 
-    vi.mocked(checkPermission).mockResolvedValueOnce(true);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValueOnce(true);
     await service.listByOrganizationReadableToUser({
       actorUserId: 'user_1',
       organizationId: 'org_1',
     });
 
-    vi.mocked(checkPermission).mockResolvedValueOnce(false);
+    vi.mocked(permissionChecker.checkPermission).mockResolvedValueOnce(false);
     await service.listByOrganizationReadableToUser({
       actorUserId: 'user_1',
       organizationId: 'org_1',
