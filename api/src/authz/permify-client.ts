@@ -1,157 +1,52 @@
+import {
+  createPermifyAccessGraphSync,
+  createPermifyClient,
+  createPermissionChecker,
+  type PermissionChecker,
+} from '@syncpad/permify';
 import { StatusCodes } from 'http-status-codes';
-
 import { env } from '../lib/env.js';
 import { AppError } from '../lib/error.js';
-import type {
-  OrganizationPermission,
-  ResourceDescriptor,
-  ResourceDescriptorMap,
-  ResourceType,
-  WorkspacePermission,
-} from './permissions.js';
-import { resourceDefinitions } from './permissions.js';
 
-type TupleInput = {
-  entity: { type: string; id: string };
-  relation: string;
-  subject: { type: string; id: string };
-};
+export const permifyInstance = createPermifyClient({
+  endpoint: env.PERMIFY_URL,
+  tenantId: env.PERMIFY_TENANT_ID,
+  schemaVersion: env.PERMIFY_SCHEMA_VERSION,
+});
 
-const buildUrl = (path: string) => new URL(path, env.PERMIFY_URL).toString();
+const normalizePermissionChecker = (
+  checker: PermissionChecker,
+): PermissionChecker => ({
+  ...checker,
+  async checkPermission(...args) {
+    try {
+      return await checker.checkPermission(...args);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.startsWith('Invalid resource descriptor')
+      ) {
+        throw new AppError({
+          cause: error,
+          code: 'AUTHORIZATION_CONTEXT_INVALID',
+          message: error.message,
+          status: StatusCodes.INTERNAL_SERVER_ERROR,
+        });
+      }
 
-const permifyRequest = async <TResponse>(
-  path: string,
-  body: Record<string, unknown>,
-): Promise<TResponse> => {
-  let response: Response;
+      throw new AppError({
+        cause: error,
+        code: 'PERMIFY_UNAVAILABLE',
+        message: 'Permify permission check failed',
+        status: StatusCodes.SERVICE_UNAVAILABLE,
+        userMessage: 'Authorization service is unavailable.',
+      });
+    }
+  },
+});
 
-  try {
-    response = await fetch(buildUrl(path), {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-  } catch (error) {
-    throw new AppError({
-      cause: error,
-      code: 'PERMIFY_UNAVAILABLE',
-      message: 'Permify request failed',
-      status: StatusCodes.SERVICE_UNAVAILABLE,
-      userMessage: 'Authorization service is unavailable.',
-    });
-  }
+export const permissionChecker = normalizePermissionChecker(
+  createPermissionChecker(permifyInstance),
+);
 
-  if (!response.ok) {
-    const responseBody = await response.text().catch(() => '');
-
-    throw new AppError({
-      code: 'PERMIFY_UNAVAILABLE',
-      details: {
-        responseBody,
-        responseStatus: response.status,
-      },
-      message: `Permify returned ${response.status} for ${path}${
-        responseBody ? `: ${responseBody}` : ''
-      }`,
-      status: StatusCodes.SERVICE_UNAVAILABLE,
-      userMessage: 'Authorization service is unavailable.',
-    });
-  }
-
-  return (await response.json()) as TResponse;
-};
-
-const getResourceId = <TType extends ResourceType>(
-  resource: ResourceDescriptorMap[TType],
-) => {
-  const idKey = resourceDefinitions[resource.type]
-    .idKey as keyof ResourceDescriptorMap[TType];
-  const id = resource[idKey];
-
-  if (typeof id !== 'string') {
-    throw new AppError({
-      code: 'AUTHORIZATION_CONTEXT_INVALID',
-      message: `Invalid resource descriptor for ${resource.type}`,
-      status: StatusCodes.INTERNAL_SERVER_ERROR,
-    });
-  }
-
-  return id;
-};
-
-const getResourceEntity = <TType extends ResourceType>(
-  resource: ResourceDescriptorMap[TType],
-) => {
-  return {
-    type: resource.type,
-    id: getResourceId(resource),
-  };
-};
-
-export const checkPermission = async (
-  subjectId: string,
-  resource: ResourceDescriptor,
-  permission: OrganizationPermission | WorkspacePermission,
-) => {
-  const response = await permifyRequest<{
-    can?: string | number | boolean;
-  }>(`/v1/tenants/${env.PERMIFY_TENANT_ID}/permissions/check`, {
-    tenantId: env.PERMIFY_TENANT_ID,
-    metadata: {
-      snapToken: '',
-      schemaVersion: env.PERMIFY_SCHEMA_VERSION,
-      depth: 20,
-    },
-    entity: getResourceEntity(resource),
-    permission,
-    subject: {
-      type: 'user',
-      id: subjectId,
-      relation: '',
-    },
-  });
-
-  return (
-    response.can === true ||
-    response.can === 1 ||
-    response.can === 'CHECK_RESULT_ALLOWED' ||
-    response.can === 'RESULT_ALLOWED'
-  );
-};
-
-export const writeTuples = async (tuples: TupleInput | TupleInput[]) => {
-  await permifyRequest(`/v1/tenants/${env.PERMIFY_TENANT_ID}/data/write`, {
-    tenantId: env.PERMIFY_TENANT_ID,
-    metadata: {
-      schemaVersion: env.PERMIFY_SCHEMA_VERSION,
-    },
-    tuples: Array.isArray(tuples) ? tuples : [tuples],
-  });
-};
-
-export const deleteTuples = async (tuples: TupleInput | TupleInput[]) => {
-  const tupleList = Array.isArray(tuples) ? tuples : [tuples];
-
-  for (const tuple of tupleList) {
-    await permifyRequest(`/v1/tenants/${env.PERMIFY_TENANT_ID}/data/delete`, {
-      tenantId: env.PERMIFY_TENANT_ID,
-      metadata: {
-        schemaVersion: env.PERMIFY_SCHEMA_VERSION,
-      },
-      tupleFilter: {
-        entity: {
-          type: tuple.entity.type,
-          ids: [tuple.entity.id],
-        },
-        relation: tuple.relation,
-        subject: {
-          type: tuple.subject.type,
-          id: [tuple.subject.id],
-          relation: '',
-        },
-      },
-    });
-  }
-};
+export const accessGraphSync = createPermifyAccessGraphSync(permissionChecker);

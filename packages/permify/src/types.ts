@@ -1,3 +1,6 @@
+import type { Tuple as PermifyTuple } from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
+
+export type Tuple = PermifyTuple;
 export type OrganizationPermission =
   | 'read'
   | 'manage'
