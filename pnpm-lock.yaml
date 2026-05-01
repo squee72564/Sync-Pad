@@ -66,6 +66,9 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@syncpad/types':
+        specifier: workspace:*
+        version: link:../packages/types
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0
@@ -160,6 +163,12 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  packages/types:
+    devDependencies:
+      '@syncpad/db':
+        specifier: workspace:*
+        version: link:../db
+
   web:
     dependencies:
       '@fontsource-variable/geist':
@@ -232,6 +241,9 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@syncpad/types':
+        specifier: workspace:*
+        version: link:../packages/types
       '@tailwindcss/typography':
         specifier: ^0.5.16
         version: 0.5.19(tailwindcss@4.2.4)
@@ -7127,7 +7139,7 @@ snapshots:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
       solid-js: 1.9.12
-      vitest: 4.1.5(@types/node@22.19.17)(@vitest/coverage-v8@4.1.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(msw@2.13.6(@types/node@22.19.17)(typescript@5.9.3))(vite@8.0.10(@types/node@22.19.17)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
+      vitest: 4.1.5(@types/node@25.6.0)(@vitest/coverage-v8@4.1.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(msw@2.13.6(@types/node@25.6.0)(typescript@6.0.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@opentelemetry/api'
