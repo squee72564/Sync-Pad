@@ -8,6 +8,14 @@ export type Workspace = {
   updatedAt: string;
 };
 
+export type CreateWorkspaceInput = {
+  name: string;
+};
+
+export type CreateWorkspaceResponse = {
+  workspace: Workspace;
+};
+
 export type OrganizationWorkspacesResponse = {
   workspaces: Workspace[];
 };
