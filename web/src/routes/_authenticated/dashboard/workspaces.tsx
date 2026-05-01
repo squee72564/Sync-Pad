@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { BriefcaseBusinessIcon } from 'lucide-react';
 
 import { Badge } from '#/components/ui/badge';
@@ -58,23 +58,32 @@ function WorkspacesPage() {
         workspacesQuery.data.workspaces.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {workspacesQuery.data.workspaces.map((workspace) => (
-              <Card key={workspace.id}>
-                <CardHeader>
-                  <div className="flex size-9 items-center justify-center rounded-md bg-muted">
-                    <BriefcaseBusinessIcon className="size-4" />
+              <Link
+                key={workspace.id}
+                to="/organizations/$organizationId/workspaces/$workspaceId"
+                params={{
+                  organizationId: workspace.organizationId,
+                  workspaceId: workspace.id,
+                }}
+              >
+                <Card>
+                  <CardHeader>
+                    <div className="flex size-9 items-center justify-center rounded-md bg-muted">
+                      <BriefcaseBusinessIcon className="size-4" />
+                    </div>
+                    <CardTitle>{workspace.name}</CardTitle>
+                    <CardDescription>
+                      {workspace.organizationName}
+                    </CardDescription>
+                    <CardAction>
+                      <Badge variant="outline">{workspace.workspaceRole}</Badge>
+                    </CardAction>
+                  </CardHeader>
+                  <div className="px-6 text-xs text-muted-foreground">
+                    {workspace.organizationId} / {workspace.id}
                   </div>
-                  <CardTitle>{workspace.name}</CardTitle>
-                  <CardDescription>
-                    {workspace.organizationName}
-                  </CardDescription>
-                  <CardAction>
-                    <Badge variant="outline">{workspace.workspaceRole}</Badge>
-                  </CardAction>
-                </CardHeader>
-                <div className="px-6 text-xs text-muted-foreground">
-                  {workspace.organizationId} / {workspace.id}
-                </div>
-              </Card>
+                </Card>
+              </Link>
             ))}
           </div>
         ) : (
