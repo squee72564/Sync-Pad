@@ -1,0 +1,1 @@
+export { createPermifyClient } from './client';
