@@ -1,6 +1,7 @@
 import { Link, useParams } from '@tanstack/react-router';
 import {
   BotIcon,
+  FolderKanbanIcon,
   HomeIcon,
   LogOutIcon,
   SparklesIcon,
@@ -41,7 +42,8 @@ type OrganizationNavItem = {
   icon: typeof UserIcon;
   to:
     | '/organizations/$organizationId'
-    | '/organizations/$organizationId/members';
+    | '/organizations/$organizationId/members'
+    | '/organizations/$organizationId/workspaces';
 };
 
 const primaryNavItems: PrimaryNavItem[] = [
@@ -57,6 +59,11 @@ const organizationNavItems: OrganizationNavItem[] = [
     title: 'Members',
     icon: UsersIcon,
     to: '/organizations/$organizationId/members',
+  },
+  {
+    title: 'Organization workspaces',
+    icon: FolderKanbanIcon,
+    to: '/organizations/$organizationId/workspaces',
   },
 ];
 
@@ -94,7 +101,9 @@ export function OrganizationSidebar() {
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
             <p className="truncate text-sm font-semibold">Syncpad</p>
-            <p className="text-xs text-sidebar-foreground/70">Team workspace</p>
+            <p className="text-xs text-sidebar-foreground/70">
+              Organization Overview
+            </p>
           </div>
           <Badge
             variant="secondary"
@@ -128,7 +137,7 @@ export function OrganizationSidebar() {
 
         {organizationId ? (
           <SidebarGroup>
-            <SidebarGroupLabel>Current Organization</SidebarGroupLabel>
+            <SidebarGroupLabel>Organization Items</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {organizationNavItems.map((item) => (
@@ -146,6 +155,15 @@ export function OrganizationSidebar() {
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
+
+        {organizationId ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Organization Settings</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu></SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         ) : null}

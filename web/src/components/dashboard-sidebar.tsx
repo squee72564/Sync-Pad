@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import {
   BotIcon,
-  BriefcaseBusinessIcon,
   Building2Icon,
+  FolderKanbanIcon,
   HomeIcon,
   LogOutIcon,
   PlusCircleIcon,
@@ -61,7 +61,7 @@ const browseNavItems: PrimaryNavItem[] = [
   {
     title: 'Workspaces',
     to: '/dashboard/workspaces',
-    icon: BriefcaseBusinessIcon,
+    icon: FolderKanbanIcon,
   },
 ];
 
@@ -115,7 +115,7 @@ export function DashboardSidebar() {
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
             <p className="truncate text-sm font-semibold">Syncpad</p>
-            <p className="text-xs text-sidebar-foreground/70">Team workspace</p>
+            <p className="text-xs text-sidebar-foreground/70">Dashboard</p>
           </div>
           <Badge
             variant="secondary"
