@@ -169,7 +169,11 @@ export function OrganizationSidebar({
               {primaryNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link to={item.to} activeProps={{ 'data-active': true }}>
+                    <Link
+                      to={item.to}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -191,6 +195,7 @@ export function OrganizationSidebar({
                       <Link
                         to={item.to}
                         params={{ organizationId }}
+                        activeOptions={{ exact: true }}
                         activeProps={{ 'data-active': true }}
                       >
                         <item.icon />
@@ -215,6 +220,7 @@ export function OrganizationSidebar({
                       <Link
                         to={item.to}
                         params={{ organizationId }}
+                        activeOptions={{ exact: true }}
                         activeProps={{ 'data-active': true }}
                       >
                         <item.icon />

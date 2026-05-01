@@ -151,7 +151,11 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
               {primaryNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link to={item.to} activeProps={{ 'data-active': true }}>
+                    <Link
+                      to={item.to}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -173,6 +177,7 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
                       <Link
                         to={item.to}
                         params={{ organizationId, workspaceId }}
+                        activeOptions={{ exact: true }}
                         activeProps={{ 'data-active': true }}
                       >
                         <item.icon />

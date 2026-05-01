@@ -40,6 +40,7 @@ type PrimaryNavItem = {
 
 type SidebarNavItem = {
   title: string;
+  to: '/dashboard/profile' | '/dashboard/settings';
   icon: typeof UserIcon;
 };
 
@@ -68,10 +69,12 @@ const accountNavItems: SidebarNavItem[] = [
   {
     title: 'Profile',
     icon: UserIcon,
+    to: '/dashboard/profile',
   },
   {
     title: 'Settings',
     icon: Settings2Icon,
+    to: '/dashboard/settings',
   },
 ];
 
@@ -129,7 +132,11 @@ export function DashboardSidebar() {
               {primaryNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link to={item.to} activeProps={{ 'data-active': true }}>
+                    <Link
+                      to={item.to}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -147,7 +154,11 @@ export function DashboardSidebar() {
               {browseNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link to={item.to} activeProps={{ 'data-active': true }}>
+                    <Link
+                      to={item.to}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -165,7 +176,11 @@ export function DashboardSidebar() {
               {createNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
-                    <Link to={item.to} activeProps={{ 'data-active': true }}>
+                    <Link
+                      to={item.to}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -182,9 +197,15 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {accountNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton tooltip={item.title} disabled>
-                    <item.icon />
-                    <span>{item.title}</span>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link
+                      to={item.to}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
