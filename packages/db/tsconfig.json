@@ -11,6 +11,5 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["src/seed-dev.ts"]
+  "include": ["src/**/*", "drizzle.config.ts"]
 }
