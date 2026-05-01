@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeftIcon, Building2Icon } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 import { toast } from 'sonner';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
@@ -63,7 +63,7 @@ function NewOrganizationPage() {
     },
   });
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const trimmedName = name.trim();
