@@ -14,10 +14,13 @@ import { Route as SigninRouteImport } from './routes/signin'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedOrganizationsRouteRouteImport } from './routes/_authenticated/organizations/route'
 import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authenticated/dashboard/route'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
+import { Route as AuthenticatedOrganizationsOrganizationIdRouteImport } from './routes/_authenticated/organizations/$organizationId'
 import { Route as AuthenticatedDashboardWorkspacesRouteImport } from './routes/_authenticated/dashboard/workspaces'
 import { Route as AuthenticatedDashboardOrganizationsRouteImport } from './routes/_authenticated/dashboard/organizations'
+import { Route as AuthenticatedOrganizationsOrganizationIdMembersRouteImport } from './routes/_authenticated/organizations/$organizationId_.members'
 import { Route as AuthenticatedDashboardOrganizationsNewRouteImport } from './routes/_authenticated/dashboard/organizations_.new'
 
 const SignupRoute = SignupRouteImport.update({
@@ -44,6 +47,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedOrganizationsRouteRoute =
+  AuthenticatedOrganizationsRouteRouteImport.update({
+    id: '/organizations',
+    path: '/organizations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRouteRoute =
   AuthenticatedDashboardRouteRouteImport.update({
     id: '/dashboard',
@@ -56,6 +65,12 @@ const AuthenticatedDashboardIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
   } as any)
+const AuthenticatedOrganizationsOrganizationIdRoute =
+  AuthenticatedOrganizationsOrganizationIdRouteImport.update({
+    id: '/$organizationId',
+    path: '/$organizationId',
+    getParentRoute: () => AuthenticatedOrganizationsRouteRoute,
+  } as any)
 const AuthenticatedDashboardWorkspacesRoute =
   AuthenticatedDashboardWorkspacesRouteImport.update({
     id: '/workspaces',
@@ -67,6 +82,12 @@ const AuthenticatedDashboardOrganizationsRoute =
     id: '/organizations',
     path: '/organizations',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
+const AuthenticatedOrganizationsOrganizationIdMembersRoute =
+  AuthenticatedOrganizationsOrganizationIdMembersRouteImport.update({
+    id: '/$organizationId_/members',
+    path: '/$organizationId/members',
+    getParentRoute: () => AuthenticatedOrganizationsRouteRoute,
   } as any)
 const AuthenticatedDashboardOrganizationsNewRoute =
   AuthenticatedDashboardOrganizationsNewRouteImport.update({
@@ -81,20 +102,26 @@ export interface FileRoutesByFullPath {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
+  '/organizations': typeof AuthenticatedOrganizationsRouteRouteWithChildren
   '/dashboard/organizations': typeof AuthenticatedDashboardOrganizationsRoute
   '/dashboard/workspaces': typeof AuthenticatedDashboardWorkspacesRoute
+  '/organizations/$organizationId': typeof AuthenticatedOrganizationsOrganizationIdRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/organizations/new': typeof AuthenticatedDashboardOrganizationsNewRoute
+  '/organizations/$organizationId/members': typeof AuthenticatedOrganizationsOrganizationIdMembersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/organizations': typeof AuthenticatedOrganizationsRouteRouteWithChildren
   '/dashboard/organizations': typeof AuthenticatedDashboardOrganizationsRoute
   '/dashboard/workspaces': typeof AuthenticatedDashboardWorkspacesRoute
+  '/organizations/$organizationId': typeof AuthenticatedOrganizationsOrganizationIdRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/organizations/new': typeof AuthenticatedDashboardOrganizationsNewRoute
+  '/organizations/$organizationId/members': typeof AuthenticatedOrganizationsOrganizationIdMembersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,10 +131,13 @@ export interface FileRoutesById {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
+  '/_authenticated/organizations': typeof AuthenticatedOrganizationsRouteRouteWithChildren
   '/_authenticated/dashboard/organizations': typeof AuthenticatedDashboardOrganizationsRoute
   '/_authenticated/dashboard/workspaces': typeof AuthenticatedDashboardWorkspacesRoute
+  '/_authenticated/organizations/$organizationId': typeof AuthenticatedOrganizationsOrganizationIdRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/dashboard/organizations_/new': typeof AuthenticatedDashboardOrganizationsNewRoute
+  '/_authenticated/organizations/$organizationId_/members': typeof AuthenticatedOrganizationsOrganizationIdMembersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,20 +147,26 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/dashboard'
+    | '/organizations'
     | '/dashboard/organizations'
     | '/dashboard/workspaces'
+    | '/organizations/$organizationId'
     | '/dashboard/'
     | '/dashboard/organizations/new'
+    | '/organizations/$organizationId/members'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/docs'
     | '/signin'
     | '/signup'
+    | '/organizations'
     | '/dashboard/organizations'
     | '/dashboard/workspaces'
+    | '/organizations/$organizationId'
     | '/dashboard'
     | '/dashboard/organizations/new'
+    | '/organizations/$organizationId/members'
   id:
     | '__root__'
     | '/'
@@ -139,10 +175,13 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/_authenticated/dashboard'
+    | '/_authenticated/organizations'
     | '/_authenticated/dashboard/organizations'
     | '/_authenticated/dashboard/workspaces'
+    | '/_authenticated/organizations/$organizationId'
     | '/_authenticated/dashboard/'
     | '/_authenticated/dashboard/organizations_/new'
+    | '/_authenticated/organizations/$organizationId_/members'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -190,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/organizations': {
+      id: '/_authenticated/organizations'
+      path: '/organizations'
+      fullPath: '/organizations'
+      preLoaderRoute: typeof AuthenticatedOrganizationsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -204,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
     }
+    '/_authenticated/organizations/$organizationId': {
+      id: '/_authenticated/organizations/$organizationId'
+      path: '/$organizationId'
+      fullPath: '/organizations/$organizationId'
+      preLoaderRoute: typeof AuthenticatedOrganizationsOrganizationIdRouteImport
+      parentRoute: typeof AuthenticatedOrganizationsRouteRoute
+    }
     '/_authenticated/dashboard/workspaces': {
       id: '/_authenticated/dashboard/workspaces'
       path: '/workspaces'
@@ -217,6 +270,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/organizations'
       preLoaderRoute: typeof AuthenticatedDashboardOrganizationsRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
+    '/_authenticated/organizations/$organizationId_/members': {
+      id: '/_authenticated/organizations/$organizationId_/members'
+      path: '/$organizationId/members'
+      fullPath: '/organizations/$organizationId/members'
+      preLoaderRoute: typeof AuthenticatedOrganizationsOrganizationIdMembersRouteImport
+      parentRoute: typeof AuthenticatedOrganizationsRouteRoute
     }
     '/_authenticated/dashboard/organizations_/new': {
       id: '/_authenticated/dashboard/organizations_/new'
@@ -251,13 +311,34 @@ const AuthenticatedDashboardRouteRouteWithChildren =
     AuthenticatedDashboardRouteRouteChildren,
   )
 
+interface AuthenticatedOrganizationsRouteRouteChildren {
+  AuthenticatedOrganizationsOrganizationIdRoute: typeof AuthenticatedOrganizationsOrganizationIdRoute
+  AuthenticatedOrganizationsOrganizationIdMembersRoute: typeof AuthenticatedOrganizationsOrganizationIdMembersRoute
+}
+
+const AuthenticatedOrganizationsRouteRouteChildren: AuthenticatedOrganizationsRouteRouteChildren =
+  {
+    AuthenticatedOrganizationsOrganizationIdRoute:
+      AuthenticatedOrganizationsOrganizationIdRoute,
+    AuthenticatedOrganizationsOrganizationIdMembersRoute:
+      AuthenticatedOrganizationsOrganizationIdMembersRoute,
+  }
+
+const AuthenticatedOrganizationsRouteRouteWithChildren =
+  AuthenticatedOrganizationsRouteRoute._addFileChildren(
+    AuthenticatedOrganizationsRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRouteRoute: typeof AuthenticatedDashboardRouteRouteWithChildren
+  AuthenticatedOrganizationsRouteRoute: typeof AuthenticatedOrganizationsRouteRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRouteRoute:
     AuthenticatedDashboardRouteRouteWithChildren,
+  AuthenticatedOrganizationsRouteRoute:
+    AuthenticatedOrganizationsRouteRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
