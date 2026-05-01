@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { checkPermission } from '../../../src/authz/permify-client.js';
 import { resources } from '../../../src/authz/permissions.js';
+import { env } from '../../../src/lib/env.js';
 
 describe('permify client', () => {
   const fetchMock = vi.fn();
@@ -32,30 +33,32 @@ describe('permify client', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/permissions/check'),
       expect.objectContaining({
-        body: JSON.stringify({
-          tenantId: 'syncpad-test',
-          metadata: {
-            snapToken: '',
-            schemaVersion: undefined,
-            depth: 20,
-          },
-          entity: {
-            type: 'organization',
-            id: 'org_1',
-          },
-          permission: 'read',
-          subject: {
-            type: 'user',
-            id: 'user_1',
-            relation: '',
-          },
-        }),
         headers: {
           'content-type': 'application/json',
         },
         method: 'POST',
       }),
     );
+
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(requestInit.body as string)).toEqual({
+      tenantId: 'syncpad-test',
+      metadata: {
+        snapToken: '',
+        schemaVersion: env.PERMIFY_SCHEMA_VERSION,
+        depth: 20,
+      },
+      entity: {
+        type: 'organization',
+        id: 'org_1',
+      },
+      permission: 'read',
+      subject: {
+        type: 'user',
+        id: 'user_1',
+        relation: '',
+      },
+    });
   });
 
   it('serializes workspace resources using the registry id key', async () => {
