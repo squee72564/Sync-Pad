@@ -20,6 +20,7 @@
     "auth:generate:dev": "dotenv -e .env -- auth generate --config ./src/lib/auth.ts --output ./src/db/schema/auth-schema.ts",
     "db:generate:dev": "dotenv -e .env -- drizzle-kit generate",
     "db:migrate:dev": "dotenv -e .env -- drizzle-kit migrate",
+    "db:seed:dev": "dotenv -e .env -- tsx src/db/seed-dev.ts",
     "db:migrate:test": "dotenv -e .env.test -- drizzle-kit migrate"
   },
   "dependencies": {
