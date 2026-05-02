@@ -28,7 +28,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.28.2",
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "pg": "^8.20.0"
