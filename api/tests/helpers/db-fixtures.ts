@@ -1,16 +1,12 @@
-import { and, eq, sql } from 'drizzle-orm';
-
-import { db } from '../../src/db/client.js';
-import { user } from '../../src/db/schema/auth-schema.js';
 import {
+  authSchema,
+  coreSchema,
   type OrganizationMembershipStatus,
   type OrganizationRole,
-  organization,
-  organizationMembership,
   type WorkspaceRole,
-  workspace,
-  workspaceMembership,
-} from '../../src/db/schema/core.js';
+} from '@syncpad/db';
+import { and, eq, sql } from 'drizzle-orm';
+import { db } from '../../src/db/client.js';
 
 const FIXED_DATE = new Date('2024-01-02T03:04:05.000Z');
 
@@ -33,7 +29,7 @@ export const seedUser = async (input: {
   email?: string;
   name?: string;
 }) => {
-  await db.insert(user).values({
+  await db.insert(authSchema.user).values({
     id: input.id,
     email: input.email ?? `${input.id}@example.com`,
     emailVerified: true,
@@ -44,7 +40,7 @@ export const seedUser = async (input: {
   });
 
   return db.query.user.findFirst({
-    where: eq(user.id, input.id),
+    where: eq(authSchema.user.id, input.id),
   });
 };
 
@@ -52,7 +48,7 @@ export const seedOrganization = async (input: {
   id: string;
   name?: string;
 }) => {
-  await db.insert(organization).values({
+  await db.insert(coreSchema.organization).values({
     id: input.id,
     name: input.name ?? input.id,
     createdAt: FIXED_DATE,
@@ -60,7 +56,7 @@ export const seedOrganization = async (input: {
   });
 
   return db.query.organization.findFirst({
-    where: eq(organization.id, input.id),
+    where: eq(coreSchema.organization.id, input.id),
   });
 };
 
@@ -72,7 +68,7 @@ export const seedOrganizationMembership = async (input: {
   invitedBy?: string | null;
   joinedAt?: Date | null;
 }) => {
-  await db.insert(organizationMembership).values({
+  await db.insert(coreSchema.organizationMembership).values({
     userId: input.userId,
     organizationId: input.organizationId,
     organizationRole: input.organizationRole ?? 'member',
@@ -90,8 +86,11 @@ export const seedOrganizationMembership = async (input: {
 
   return db.query.organizationMembership.findFirst({
     where: and(
-      eq(organizationMembership.userId, input.userId),
-      eq(organizationMembership.organizationId, input.organizationId),
+      eq(coreSchema.organizationMembership.userId, input.userId),
+      eq(
+        coreSchema.organizationMembership.organizationId,
+        input.organizationId,
+      ),
     ),
   });
 };
@@ -101,7 +100,7 @@ export const seedWorkspace = async (input: {
   organizationId: string;
   name?: string;
 }) => {
-  await db.insert(workspace).values({
+  await db.insert(coreSchema.workspace).values({
     id: input.id,
     organizationId: input.organizationId,
     name: input.name ?? input.id,
@@ -110,7 +109,7 @@ export const seedWorkspace = async (input: {
   });
 
   return db.query.workspace.findFirst({
-    where: eq(workspace.id, input.id),
+    where: eq(coreSchema.workspace.id, input.id),
   });
 };
 
@@ -120,7 +119,7 @@ export const seedWorkspaceMembership = async (input: {
   organizationId: string;
   workspaceRole?: WorkspaceRole;
 }) => {
-  await db.insert(workspaceMembership).values({
+  await db.insert(coreSchema.workspaceMembership).values({
     userId: input.userId,
     workspaceId: input.workspaceId,
     organizationId: input.organizationId,
@@ -131,8 +130,8 @@ export const seedWorkspaceMembership = async (input: {
 
   return db.query.workspaceMembership.findFirst({
     where: and(
-      eq(workspaceMembership.userId, input.userId),
-      eq(workspaceMembership.workspaceId, input.workspaceId),
+      eq(coreSchema.workspaceMembership.userId, input.userId),
+      eq(coreSchema.workspaceMembership.workspaceId, input.workspaceId),
     ),
   });
 };

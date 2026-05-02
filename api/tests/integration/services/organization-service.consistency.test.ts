@@ -1,13 +1,8 @@
+import { coreSchema } from '@syncpad/db';
 import { and, eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { db } from '../../../src/db/client.js';
-import {
-  organization,
-  organizationMembership,
-  workspaceMembership,
-} from '../../../src/db/schema/core.js';
 import { createOrganizationService } from '../../../src/services/organization-service.js';
 import {
   fixtureDate,
@@ -48,7 +43,7 @@ describe.sequential('organization service consistency', () => {
 
     expect(
       await db.query.organization.findFirst({
-        where: eq(organization.name, 'Acme Rollback'),
+        where: eq(coreSchema.organization.name, 'Acme Rollback'),
       }),
     ).toBeUndefined();
     expect(await db.query.organizationMembership.findMany()).toHaveLength(0);
@@ -78,8 +73,8 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.organizationMembership.findFirst({
         where: and(
-          eq(organizationMembership.organizationId, 'org_1'),
-          eq(organizationMembership.userId, 'user_target'),
+          eq(coreSchema.organizationMembership.organizationId, 'org_1'),
+          eq(coreSchema.organizationMembership.userId, 'user_target'),
         ),
       }),
     ).toBeUndefined();
@@ -106,8 +101,8 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.organizationMembership.findFirst({
         where: and(
-          eq(organizationMembership.organizationId, 'org_1'),
-          eq(organizationMembership.userId, 'user_target'),
+          eq(coreSchema.organizationMembership.organizationId, 'org_1'),
+          eq(coreSchema.organizationMembership.userId, 'user_target'),
         ),
       }),
     ).toMatchObject({
@@ -146,8 +141,8 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.organizationMembership.findFirst({
         where: and(
-          eq(organizationMembership.organizationId, 'org_1'),
-          eq(organizationMembership.userId, 'user_target'),
+          eq(coreSchema.organizationMembership.organizationId, 'org_1'),
+          eq(coreSchema.organizationMembership.userId, 'user_target'),
         ),
       }),
     ).toMatchObject({
@@ -187,8 +182,8 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.organizationMembership.findFirst({
         where: and(
-          eq(organizationMembership.organizationId, 'org_1'),
-          eq(organizationMembership.userId, 'user_target'),
+          eq(coreSchema.organizationMembership.organizationId, 'org_1'),
+          eq(coreSchema.organizationMembership.userId, 'user_target'),
         ),
       }),
     ).toMatchObject({
@@ -234,8 +229,8 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.organizationMembership.findFirst({
         where: and(
-          eq(organizationMembership.organizationId, 'org_1'),
-          eq(organizationMembership.userId, 'user_target'),
+          eq(coreSchema.organizationMembership.organizationId, 'org_1'),
+          eq(coreSchema.organizationMembership.userId, 'user_target'),
         ),
       }),
     ).toMatchObject({
@@ -245,8 +240,8 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.workspaceMembership.findFirst({
         where: and(
-          eq(workspaceMembership.workspaceId, 'ws_1'),
-          eq(workspaceMembership.userId, 'user_target'),
+          eq(coreSchema.workspaceMembership.workspaceId, 'ws_1'),
+          eq(coreSchema.workspaceMembership.userId, 'user_target'),
         ),
       }),
     ).toMatchObject({
@@ -285,16 +280,16 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.organizationMembership.findFirst({
         where: and(
-          eq(organizationMembership.organizationId, 'org_1'),
-          eq(organizationMembership.userId, 'user_target'),
+          eq(coreSchema.organizationMembership.organizationId, 'org_1'),
+          eq(coreSchema.organizationMembership.userId, 'user_target'),
         ),
       }),
     ).toBeDefined();
     expect(
       await db.query.workspaceMembership.findFirst({
         where: and(
-          eq(workspaceMembership.workspaceId, 'ws_1'),
-          eq(workspaceMembership.userId, 'user_target'),
+          eq(coreSchema.workspaceMembership.workspaceId, 'ws_1'),
+          eq(coreSchema.workspaceMembership.userId, 'user_target'),
         ),
       }),
     ).toBeDefined();
@@ -332,8 +327,8 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.organizationMembership.findFirst({
         where: and(
-          eq(organizationMembership.organizationId, 'org_1'),
-          eq(organizationMembership.userId, 'user_target'),
+          eq(coreSchema.organizationMembership.organizationId, 'org_1'),
+          eq(coreSchema.organizationMembership.userId, 'user_target'),
         ),
       }),
     ).toMatchObject({
@@ -342,8 +337,8 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.workspaceMembership.findFirst({
         where: and(
-          eq(workspaceMembership.workspaceId, 'ws_1'),
-          eq(workspaceMembership.userId, 'user_target'),
+          eq(coreSchema.workspaceMembership.workspaceId, 'ws_1'),
+          eq(coreSchema.workspaceMembership.userId, 'user_target'),
         ),
       }),
     ).toBeUndefined();
@@ -377,16 +372,16 @@ describe.sequential('organization service consistency', () => {
     expect(
       await db.query.organizationMembership.findFirst({
         where: and(
-          eq(organizationMembership.organizationId, 'org_1'),
-          eq(organizationMembership.userId, 'user_target'),
+          eq(coreSchema.organizationMembership.organizationId, 'org_1'),
+          eq(coreSchema.organizationMembership.userId, 'user_target'),
         ),
       }),
     ).toBeUndefined();
     expect(
       await db.query.workspaceMembership.findFirst({
         where: and(
-          eq(workspaceMembership.workspaceId, 'ws_1'),
-          eq(workspaceMembership.userId, 'user_target'),
+          eq(coreSchema.workspaceMembership.workspaceId, 'ws_1'),
+          eq(coreSchema.workspaceMembership.userId, 'user_target'),
         ),
       }),
     ).toBeUndefined();

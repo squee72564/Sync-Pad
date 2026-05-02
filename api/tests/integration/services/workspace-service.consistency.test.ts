@@ -1,9 +1,8 @@
+import { coreSchema } from '@syncpad/db';
 import { and, eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { db } from '../../../src/db/client.js';
-import { workspace, workspaceMembership } from '../../../src/db/schema/core.js';
 import { createWorkspaceService } from '../../../src/services/workspace-service.js';
 import {
   resetDatabase,
@@ -52,8 +51,8 @@ describe.sequential('workspace service consistency', () => {
     expect(
       await db.query.workspace.findFirst({
         where: and(
-          eq(workspace.organizationId, 'org_1'),
-          eq(workspace.name, 'Docs'),
+          eq(coreSchema.workspace.organizationId, 'org_1'),
+          eq(coreSchema.workspace.name, 'Docs'),
         ),
       }),
     ).toBeUndefined();
@@ -97,8 +96,8 @@ describe.sequential('workspace service consistency', () => {
     expect(
       await db.query.workspaceMembership.findFirst({
         where: and(
-          eq(workspaceMembership.workspaceId, 'ws_1'),
-          eq(workspaceMembership.userId, 'user_target'),
+          eq(coreSchema.workspaceMembership.workspaceId, 'ws_1'),
+          eq(coreSchema.workspaceMembership.userId, 'user_target'),
         ),
       }),
     ).toBeUndefined();
@@ -139,8 +138,8 @@ describe.sequential('workspace service consistency', () => {
     expect(
       await db.query.workspaceMembership.findFirst({
         where: and(
-          eq(workspaceMembership.workspaceId, 'ws_1'),
-          eq(workspaceMembership.userId, 'user_target'),
+          eq(coreSchema.workspaceMembership.workspaceId, 'ws_1'),
+          eq(coreSchema.workspaceMembership.userId, 'user_target'),
         ),
       }),
     ).toMatchObject({
@@ -179,8 +178,8 @@ describe.sequential('workspace service consistency', () => {
     expect(
       await db.query.workspaceMembership.findFirst({
         where: and(
-          eq(workspaceMembership.workspaceId, 'ws_1'),
-          eq(workspaceMembership.userId, 'user_target'),
+          eq(coreSchema.workspaceMembership.workspaceId, 'ws_1'),
+          eq(coreSchema.workspaceMembership.userId, 'user_target'),
         ),
       }),
     ).toBeDefined();
@@ -214,7 +213,7 @@ describe.sequential('workspace service consistency', () => {
 
     expect(
       await db.query.workspace.findFirst({
-        where: eq(workspace.id, 'ws_1'),
+        where: eq(coreSchema.workspace.id, 'ws_1'),
       }),
     ).toBeDefined();
   });
@@ -249,8 +248,8 @@ describe.sequential('workspace service consistency', () => {
     expect(
       await db.query.workspace.findFirst({
         where: and(
-          eq(workspace.organizationId, 'org_1'),
-          eq(workspace.name, 'Docs'),
+          eq(coreSchema.workspace.organizationId, 'org_1'),
+          eq(coreSchema.workspace.name, 'Docs'),
         ),
       }),
     ).toBeUndefined();
@@ -296,8 +295,8 @@ describe.sequential('workspace service consistency', () => {
     expect(
       await db.query.workspaceMembership.findFirst({
         where: and(
-          eq(workspaceMembership.workspaceId, 'ws_1'),
-          eq(workspaceMembership.userId, 'user_target'),
+          eq(coreSchema.workspaceMembership.workspaceId, 'ws_1'),
+          eq(coreSchema.workspaceMembership.userId, 'user_target'),
         ),
       }),
     ).toBeUndefined();

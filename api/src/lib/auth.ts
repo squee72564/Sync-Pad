@@ -1,7 +1,7 @@
+import { authSchema } from '@syncpad/db';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from '../db/client.js';
-import * as schema from '../db/schema/auth-schema.js';
 import { env } from './env.js';
 
 const appOrigin = new URL(env.BETTER_AUTH_URL).origin;
@@ -12,7 +12,7 @@ export const auth = betterAuth({
   basePath: '/api/auth',
   database: drizzleAdapter(db, {
     provider: 'pg',
-    schema,
+    schema: authSchema,
   }),
   trustedOrigins: [appOrigin],
   emailAndPassword: {

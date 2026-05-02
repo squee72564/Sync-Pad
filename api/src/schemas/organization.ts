@@ -1,9 +1,5 @@
+import { coreSchema } from '@syncpad/db';
 import { z } from 'zod';
-
-import {
-  organizationMembershipStatusEnum,
-  organizationRoleEnum,
-} from '../db/schema/core.js';
 
 export const organizationParamsSchema = z.object({
   organizationId: z.string().min(1),
@@ -30,9 +26,9 @@ export type OrganizationMembershipParams = z.infer<
 
 export const addOrganizationMemberSchema = z.object({
   userId: z.string().min(1),
-  organizationRole: z.enum(organizationRoleEnum.enumValues),
+  organizationRole: z.enum(coreSchema.organizationRoleEnum.enumValues),
   status: z
-    .enum(organizationMembershipStatusEnum.enumValues)
+    .enum(coreSchema.organizationMembershipStatusEnum.enumValues)
     .default('invited'),
 });
 export type AddOrganizationMemberInput = z.infer<
@@ -41,8 +37,12 @@ export type AddOrganizationMemberInput = z.infer<
 
 export const updateOrganizationMemberSchema = z
   .object({
-    organizationRole: z.enum(organizationRoleEnum.enumValues).optional(),
-    status: z.enum(organizationMembershipStatusEnum.enumValues).optional(),
+    organizationRole: z
+      .enum(coreSchema.organizationRoleEnum.enumValues)
+      .optional(),
+    status: z
+      .enum(coreSchema.organizationMembershipStatusEnum.enumValues)
+      .optional(),
   })
   .refine(
     (value) =>

@@ -1,3 +1,4 @@
+import { authSchema, coreSchema } from '@syncpad/db';
 import {
   toOrganizationMembershipTuple,
   toWorkspaceMembershipTuple,
@@ -8,13 +9,6 @@ import { permissionChecker } from '../authz/permify-client.js';
 import { auth } from '../lib/auth.js';
 import { env } from '../lib/env.js';
 import { db, pool } from './client.js';
-import { user } from './schema/auth-schema.js';
-import {
-  organization,
-  organizationMembership,
-  workspace,
-  workspaceMembership,
-} from './schema/core.js';
 
 type SeedOptions = {
   email: string;
@@ -118,7 +112,7 @@ const parseOptions = (args: string[]): SeedOptions => {
 
 const getUserByEmail = async (email: string) => {
   return db.query.user.findFirst({
-    where: eq(user.email, email),
+    where: eq(authSchema.user.email, email),
   });
 };
 
@@ -158,13 +152,13 @@ const seedDomainData = async (userId: string) => {
 
     for (const seedOrganization of defaultSeed) {
       const [createdOrganization] = await tx
-        .insert(organization)
+        .insert(coreSchema.organization)
         .values({
           id: seedOrganization.id,
           name: seedOrganization.name,
         })
         .onConflictDoUpdate({
-          target: organization.id,
+          target: coreSchema.organization.id,
           set: {
             name: seedOrganization.name,
             updatedAt: now,
@@ -174,7 +168,7 @@ const seedDomainData = async (userId: string) => {
       organizations.push(createdOrganization);
 
       const [createdOrganizationMembership] = await tx
-        .insert(organizationMembership)
+        .insert(coreSchema.organizationMembership)
         .values({
           userId,
           organizationId: seedOrganization.id,
@@ -185,8 +179,8 @@ const seedDomainData = async (userId: string) => {
         })
         .onConflictDoUpdate({
           target: [
-            organizationMembership.userId,
-            organizationMembership.organizationId,
+            coreSchema.organizationMembership.userId,
+            coreSchema.organizationMembership.organizationId,
           ],
           set: {
             organizationRole: 'owner',
@@ -201,14 +195,14 @@ const seedDomainData = async (userId: string) => {
 
       for (const seedWorkspace of seedOrganization.workspaces) {
         const [createdWorkspace] = await tx
-          .insert(workspace)
+          .insert(coreSchema.workspace)
           .values({
             id: seedWorkspace.id,
             name: seedWorkspace.name,
             organizationId: seedOrganization.id,
           })
           .onConflictDoUpdate({
-            target: workspace.id,
+            target: coreSchema.workspace.id,
             set: {
               name: seedWorkspace.name,
               organizationId: seedOrganization.id,
@@ -219,7 +213,7 @@ const seedDomainData = async (userId: string) => {
         workspaces.push(createdWorkspace);
 
         const [createdWorkspaceMembership] = await tx
-          .insert(workspaceMembership)
+          .insert(coreSchema.workspaceMembership)
           .values({
             userId,
             workspaceId: seedWorkspace.id,
@@ -228,8 +222,8 @@ const seedDomainData = async (userId: string) => {
           })
           .onConflictDoUpdate({
             target: [
-              workspaceMembership.userId,
-              workspaceMembership.workspaceId,
+              coreSchema.workspaceMembership.userId,
+              coreSchema.workspaceMembership.workspaceId,
             ],
             set: {
               organizationId: seedOrganization.id,

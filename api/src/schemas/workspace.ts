@@ -1,6 +1,5 @@
+import { coreSchema } from '@syncpad/db';
 import { z } from 'zod';
-
-import { workspaceRoleEnum } from '../db/schema/core.js';
 
 export const organizationWorkspaceParamsSchema = z.object({
   organizationId: z.string().min(1),
@@ -31,13 +30,13 @@ export type OrganizationWorkspaceMembershipParams = z.infer<
 
 export const addWorkspaceMemberSchema = z.object({
   userId: z.string().min(1),
-  workspaceRole: z.enum(workspaceRoleEnum.enumValues),
+  workspaceRole: z.enum(coreSchema.workspaceRoleEnum.enumValues),
 });
 export type AddWorkspaceMemberInput = z.infer<typeof addWorkspaceMemberSchema>;
 
 export const updateWorkspaceMemberSchema = z
   .object({
-    workspaceRole: z.enum(workspaceRoleEnum.enumValues),
+    workspaceRole: z.enum(coreSchema.workspaceRoleEnum.enumValues),
   })
   .partial()
   .refine((value) => value.workspaceRole !== undefined, {
