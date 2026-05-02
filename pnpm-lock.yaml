@@ -35,6 +35,9 @@ importers:
       '@hono/node-server':
         specifier: ^2.0.0
         version: 2.0.0(hono@4.12.15)
+      '@syncpad/core':
+        specifier: workspace:*
+        version: link:../packages/core
       '@syncpad/db':
         specifier: workspace:*
         version: link:../packages/db
@@ -124,6 +127,19 @@ importers:
       vitest:
         specifier: ^4.1.5
         version: 4.1.5(@types/node@25.6.0)(@vitest/coverage-v8@4.1.5)(jsdom@28.1.0(@noble/hashes@2.2.0))(msw@2.13.6(@types/node@25.6.0)(typescript@6.0.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
+
+  packages/core:
+    dependencies:
+      '@syncpad/db':
+        specifier: workspace:*
+        version: link:../db
+      '@syncpad/permify':
+        specifier: workspace:*
+        version: link:../permify
+    devDependencies:
+      '@types/node':
+        specifier: ^25.6.0
+        version: 25.6.0
 
   packages/db:
     dependencies:
