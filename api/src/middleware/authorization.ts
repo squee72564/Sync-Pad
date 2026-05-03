@@ -14,7 +14,7 @@ import {
   VALIDATED_CONTEXT_KEY,
   WORKSPACE_CONTEXT_KEY,
 } from '../lib/context.js';
-import { AppError } from '../lib/error.js';
+import { ApiError } from '../lib/error.js';
 
 const getCurrentUserAndFail = (
   context: Context<{ Variables: AppVariables }, string, object>,
@@ -22,7 +22,7 @@ const getCurrentUserAndFail = (
   const user = context.get(CURRENT_USER_CONTEXT_KEY);
 
   if (!user) {
-    throw new AppError({
+    throw new ApiError({
       code: 'AUTHORIZATION_CONTEXT_INVALID',
       message: 'Missing authenticated user for authorization check',
       status: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -46,7 +46,7 @@ export const requireOrganizationPermission = (
       null;
 
     if (!organizationId) {
-      throw new AppError({
+      throw new ApiError({
         code: 'AUTHORIZATION_CONTEXT_INVALID',
         message: 'Missing organization id for authorization check',
         status: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -64,7 +64,7 @@ export const requireOrganizationPermission = (
     );
 
     if (!allowed) {
-      throw new AppError({
+      throw new ApiError({
         code: 'FORBIDDEN',
         expose: true,
         message: `Permission denied for organization:${organizationId} ${permission}`,
@@ -95,7 +95,7 @@ export const requireWorkspacePermission = (
       null;
 
     if (!workspaceId) {
-      throw new AppError({
+      throw new ApiError({
         code: 'AUTHORIZATION_CONTEXT_INVALID',
         message: 'Missing workspace id for authorization check',
         status: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -113,7 +113,7 @@ export const requireWorkspacePermission = (
     );
 
     if (!allowed) {
-      throw new AppError({
+      throw new ApiError({
         code: 'FORBIDDEN',
         expose: true,
         message: `Permission denied for workspace:${workspaceId} ${permission}`,

@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { AppError } from '../../src/lib/error.js';
+import { ApiError } from '../../src/lib/error.js';
 import type { AuthSession } from '../../src/types/auth.js';
 
 vi.mock('../../src/lib/auth-session.js', () => ({
@@ -128,7 +128,7 @@ describe('workspace routes', () => {
     );
     vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.createWorkspace).mockRejectedValue(
-      new AppError({
+      new ApiError({
         code: 'PERMIFY_SYNC_FAILED',
         message: 'sync failed',
         status: StatusCodes.SERVICE_UNAVAILABLE,
@@ -177,7 +177,7 @@ describe('workspace routes', () => {
     vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
     vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.addMember).mockRejectedValue(
-      new AppError({
+      new ApiError({
         code: 'PERMIFY_SYNC_FAILED',
         message: 'sync failed',
         status: StatusCodes.SERVICE_UNAVAILABLE,
@@ -229,7 +229,7 @@ describe('workspace routes', () => {
     vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
     vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(workspaceService.updateMember).mockRejectedValue(
-      new AppError({
+      new ApiError({
         code: 'WORKSPACE_MEMBERSHIP_NOT_FOUND',
         expose: true,
         message: 'missing membership',

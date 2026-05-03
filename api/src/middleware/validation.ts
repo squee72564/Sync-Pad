@@ -4,7 +4,7 @@ import type { ZodType } from 'zod';
 import { ZodError, type z } from 'zod';
 
 import { type AppVariables, VALIDATED_CONTEXT_KEY } from '../lib/context.js';
-import { AppError } from '../lib/error.js';
+import { ApiError } from '../lib/error.js';
 
 type RequestSchemas<TParams, TQuery, TJson> = {
   params?: ZodType<TParams>;
@@ -37,7 +37,7 @@ const toValidationError = (error: unknown) => {
           },
         ]);
 
-  return new AppError({
+  return new ApiError({
     cause: error,
     code: 'VALIDATION_FAILED',
     details: {

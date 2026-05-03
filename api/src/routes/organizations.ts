@@ -6,7 +6,7 @@ import {
   CURRENT_USER_CONTEXT_KEY,
   ORGANIZATION_CONTEXT_KEY,
 } from '../lib/context.js';
-import { AppError } from '../lib/error.js';
+import { ApiError } from '../lib/error.js';
 import { requireAuth } from '../middleware/authentication.js';
 import { requireOrganizationPermission } from '../middleware/authorization.js';
 import { loadOrganization } from '../middleware/resource-loader.js';
@@ -40,7 +40,7 @@ const getCurrentUser = (
   const user = context.get(CURRENT_USER_CONTEXT_KEY);
 
   if (!user) {
-    throw new AppError({
+    throw new ApiError({
       code: 'AUTHORIZATION_CONTEXT_INVALID',
       message: 'Authenticated route is missing current user context',
       status: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -56,7 +56,7 @@ const getLoadedOrganization = (
   const organization = context.get(ORGANIZATION_CONTEXT_KEY);
 
   if (!organization) {
-    throw new AppError({
+    throw new ApiError({
       code: 'AUTHORIZATION_CONTEXT_INVALID',
       message: 'Organization route is missing loaded organization context',
       status: StatusCodes.INTERNAL_SERVER_ERROR,

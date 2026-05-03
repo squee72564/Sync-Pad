@@ -2,7 +2,7 @@ import type { ErrorHandler } from 'hono';
 
 import { type AppVariables, REQUEST_ID_CONTEXT_KEY } from '../lib/context.js';
 import { env } from '../lib/env.js';
-import { toAppError } from '../lib/error.js';
+import { toApiError } from '../lib/error.js';
 import { logger } from '../lib/logger.js';
 
 export const errorHandler: ErrorHandler<{ Variables: AppVariables }> = (
@@ -10,7 +10,7 @@ export const errorHandler: ErrorHandler<{ Variables: AppVariables }> = (
   context,
 ) => {
   const requestId = context.get(REQUEST_ID_CONTEXT_KEY);
-  const appError = toAppError(error, {
+  const apiError = toApiError(error, {
     metadata: {
       method: context.req.method,
       path: context.req.path,
@@ -21,21 +21,21 @@ export const errorHandler: ErrorHandler<{ Variables: AppVariables }> = (
 
   logger.error(
     {
-      err: appError,
-      error: appError.toLogObject(),
+      err: apiError,
+      error: apiError.toLogObject(),
       method: context.req.method,
       path: context.req.path,
       requestId,
-      status: appError.status,
+      status: apiError.status,
     },
     'request failed',
   );
 
   return context.json(
-    appError.toProblem(env.NODE_ENV, {
+    apiError.toProblem(env.NODE_ENV, {
       instance: context.req.path,
       requestId,
     }),
-    appError.status,
+    apiError.status,
   );
 };

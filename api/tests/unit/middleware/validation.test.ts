@@ -46,7 +46,7 @@ describe('validation middleware', () => {
     });
   });
 
-  it('normalizes zod issues into a 400 AppError', async () => {
+  it('normalizes zod issues into a 400 ApiError', async () => {
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {
       context.set('requestId', 'req_test');

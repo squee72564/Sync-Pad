@@ -4,15 +4,15 @@ import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 
 export type AppEnv = 'development' | 'test' | 'production';
 
-export type AppErrorDetails = Record<string, unknown>;
-export type AppErrorMetadata = Record<string, unknown>;
+export type ApiErrorDetails = Record<string, unknown>;
+export type ApiErrorMetadata = Record<string, unknown>;
 
-export type AppErrorOptions = {
+export type ApiErrorOptions = {
   cause?: unknown;
   code: string;
-  details?: AppErrorDetails;
+  details?: ApiErrorDetails;
   expose?: boolean;
-  metadata?: AppErrorMetadata;
+  metadata?: ApiErrorMetadata;
   message: string;
   requestId?: string;
   status: ContentfulStatusCode;
@@ -26,7 +26,7 @@ export type AppErrorOptions = {
 export type ProblemDetails = {
   code: string;
   detail?: string;
-  details?: AppErrorDetails;
+  details?: ApiErrorDetails;
   instance?: string;
   requestId?: string;
   status: ContentfulStatusCode;
@@ -59,11 +59,11 @@ const getDefaultPublicDetail = (status: ContentfulStatusCode) => {
   return 'The request could not be completed.';
 };
 
-export class AppError extends Error {
+export class ApiError extends Error {
   readonly code: string;
-  readonly details?: AppErrorDetails;
+  readonly details?: ApiErrorDetails;
   readonly expose?: boolean;
-  readonly metadata?: AppErrorMetadata;
+  readonly metadata?: ApiErrorMetadata;
   readonly requestId?: string;
   readonly status: ContentfulStatusCode;
   readonly tags: string[];
@@ -72,7 +72,7 @@ export class AppError extends Error {
   readonly type: string;
   readonly userMessage?: string;
 
-  constructor(options: AppErrorOptions) {
+  constructor(options: ApiErrorOptions) {
     const {
       cause,
       code,
@@ -156,8 +156,8 @@ export class AppError extends Error {
   }
 }
 
-export const isAppError = (value: unknown): value is AppError =>
-  value instanceof AppError;
+export const isApiError = (value: unknown): value is ApiError =>
+  value instanceof ApiError;
 
 const syncpadStatusByKind: Record<ErrorKind, ContentfulStatusCode> = {
   conflict: StatusCodes.CONFLICT,
@@ -169,16 +169,16 @@ const syncpadStatusByKind: Record<ErrorKind, ContentfulStatusCode> = {
   validation: StatusCodes.BAD_REQUEST,
 };
 
-export const toAppError = (
+export const toApiError = (
   value: unknown,
-  fallback?: Partial<Omit<AppErrorOptions, 'message'>>,
+  fallback?: Partial<Omit<ApiErrorOptions, 'message'>>,
 ) => {
-  if (isAppError(value)) {
+  if (isApiError(value)) {
     return value;
   }
 
   if (isSyncpadError(value)) {
-    return new AppError({
+    return new ApiError({
       cause: value.cause ?? value,
       code: value.code,
       details: value.details,
@@ -195,7 +195,7 @@ export const toAppError = (
   const fallbackCode = fallback?.code ?? 'INTERNAL_ERROR';
 
   if (value instanceof Error) {
-    return new AppError({
+    return new ApiError({
       cause: value,
       code: fallbackCode,
       details: fallback?.details,
@@ -212,7 +212,7 @@ export const toAppError = (
     });
   }
 
-  return new AppError({
+  return new ApiError({
     code: fallbackCode,
     details: fallback?.details,
     expose: fallback?.expose,

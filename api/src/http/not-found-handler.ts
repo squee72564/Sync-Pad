@@ -3,12 +3,12 @@ import { StatusCodes } from 'http-status-codes';
 
 import { type AppVariables, REQUEST_ID_CONTEXT_KEY } from '../lib/context.js';
 import { env } from '../lib/env.js';
-import { AppError } from '../lib/error.js';
+import { ApiError } from '../lib/error.js';
 
 export const notFoundHandler: NotFoundHandler<{ Variables: AppVariables }> = (
   context,
 ) => {
-  const error = new AppError({
+  const error = new ApiError({
     code: 'ROUTE_NOT_FOUND',
     expose: true,
     message: `No route matched ${context.req.method} ${context.req.path}`,

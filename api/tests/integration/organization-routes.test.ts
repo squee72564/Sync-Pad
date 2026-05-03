@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { AppError } from '../../src/lib/error.js';
+import { ApiError } from '../../src/lib/error.js';
 import type { AuthSession } from '../../src/types/auth.js';
 
 vi.mock('../../src/lib/auth-session.js', () => ({
@@ -181,7 +181,7 @@ describe('organization routes', () => {
     );
     vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
     vi.mocked(organizationService.createOrganization).mockRejectedValue(
-      new AppError({
+      new ApiError({
         code: 'PERMIFY_SYNC_FAILED',
         message: 'sync failed',
         status: StatusCodes.SERVICE_UNAVAILABLE,
@@ -223,7 +223,7 @@ describe('organization routes', () => {
     );
     vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(organizationService.addMember).mockRejectedValue(
-      new AppError({
+      new ApiError({
         code: 'PERMIFY_SYNC_FAILED',
         message: 'sync failed',
         status: StatusCodes.SERVICE_UNAVAILABLE,
@@ -272,7 +272,7 @@ describe('organization routes', () => {
     );
     vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
     vi.mocked(organizationService.updateMember).mockRejectedValue(
-      new AppError({
+      new ApiError({
         code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
         expose: true,
         message: 'missing membership',

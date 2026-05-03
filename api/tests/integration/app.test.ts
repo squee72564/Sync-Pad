@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import { describe, expect, it } from 'vitest';
 
 import { createApp } from '../../src/app.js';
-import { AppError } from '../../src/lib/error.js';
+import { ApiError } from '../../src/lib/error.js';
 
 describe('app error handling', () => {
   it('returns canonical not found responses', async () => {
@@ -22,10 +22,10 @@ describe('app error handling', () => {
     });
   });
 
-  it('normalizes thrown AppError instances', async () => {
+  it('normalizes thrown ApiError instances', async () => {
     const app = createApp();
     app.get('/__test/app-error', () => {
-      throw new AppError({
+      throw new ApiError({
         code: 'TEST_ERROR',
         expose: true,
         message: 'app error route failed',

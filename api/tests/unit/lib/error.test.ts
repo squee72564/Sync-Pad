@@ -2,12 +2,12 @@ import { SyncpadError } from '@syncpad/errors';
 import { StatusCodes } from 'http-status-codes';
 import { describe, expect, it } from 'vitest';
 
-import { AppError, isAppError, toAppError } from '../../../src/lib/error.js';
+import { ApiError, isApiError, toApiError } from '../../../src/lib/error.js';
 
-describe('AppError', () => {
+describe('ApiError', () => {
   it('preserves structured fields and log context', () => {
     const cause = new Error('database offline');
-    const error = new AppError({
+    const error = new ApiError({
       cause,
       code: 'ORG_LOOKUP_FAILED',
       details: { orgId: 'org_123' },
@@ -30,7 +30,7 @@ describe('AppError', () => {
   });
 
   it('exposes debug detail by default in development', () => {
-    const error = new AppError({
+    const error = new ApiError({
       code: 'TASK_CREATE_FAILED',
       details: { field: 'title' },
       message: 'Task title exceeded column width',
@@ -49,7 +49,7 @@ describe('AppError', () => {
   });
 
   it('suppresses internal detail in production by default', () => {
-    const error = new AppError({
+    const error = new ApiError({
       code: 'INTERNAL_ERROR',
       details: { queryName: 'insertDocument' },
       message: 'violated unique constraint documents_slug_key',
@@ -69,7 +69,7 @@ describe('AppError', () => {
   });
 
   it('allows explicit safe exposure in production', () => {
-    const error = new AppError({
+    const error = new ApiError({
       code: 'AUTH_INVALID_CREDENTIALS',
       details: { reason: 'invalid_credentials' },
       expose: true,
@@ -90,21 +90,21 @@ describe('AppError', () => {
   });
 });
 
-describe('toAppError', () => {
-  it('returns the same AppError instance', () => {
-    const error = new AppError({
+describe('toApiError', () => {
+  it('returns the same ApiError instance', () => {
+    const error = new ApiError({
       code: 'NOT_FOUND',
       message: 'Document not found',
       status: StatusCodes.NOT_FOUND,
     });
 
-    expect(toAppError(error)).toBe(error);
-    expect(isAppError(error)).toBe(true);
+    expect(toApiError(error)).toBe(error);
+    expect(isApiError(error)).toBe(true);
   });
 
   it('normalizes native errors to INTERNAL_ERROR by default', () => {
     const source = new Error('socket hang up');
-    const error = toAppError(source);
+    const error = toApiError(source);
 
     expect(error.code).toBe('INTERNAL_ERROR');
     expect(error.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
@@ -116,7 +116,7 @@ describe('toAppError', () => {
   });
 
   it('normalizes non-error throws and captures metadata', () => {
-    const error = toAppError('boom');
+    const error = toApiError('boom');
 
     expect(error.code).toBe('INTERNAL_ERROR');
     expect(error.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
@@ -149,7 +149,7 @@ describe('toAppError', () => {
       userMessage: 'Shared user message.',
     });
 
-    const error = toAppError(source);
+    const error = toApiError(source);
 
     expect(error).toMatchObject({
       cause,

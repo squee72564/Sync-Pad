@@ -76,7 +76,7 @@ describe('auth middleware', () => {
     });
   });
 
-  it('requireAuth returns a 401 AppError when the session is missing', async () => {
+  it('requireAuth returns a 401 ApiError when the session is missing', async () => {
     const { requireAuth } = await import(
       '../../../src/middleware/authentication.js'
     );

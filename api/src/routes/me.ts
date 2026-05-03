@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 
 import { type AppVariables, CURRENT_USER_CONTEXT_KEY } from '../lib/context.js';
-import { AppError } from '../lib/error.js';
+import { ApiError } from '../lib/error.js';
 import { requireAuth } from '../middleware/authentication.js';
 import { validateRequest } from '../middleware/validation.js';
 import {
@@ -21,7 +21,7 @@ const getCurrentUser = (
   const user = context.get(CURRENT_USER_CONTEXT_KEY);
 
   if (!user) {
-    throw new AppError({
+    throw new ApiError({
       code: 'AUTHORIZATION_CONTEXT_INVALID',
       message: 'Authenticated route is missing current user context',
       status: StatusCodes.INTERNAL_SERVER_ERROR,

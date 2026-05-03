@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { REQUEST_ID_CONTEXT_KEY } from '../lib/context.js';
 import { env } from '../lib/env.js';
-import { AppError } from '../lib/error.js';
+import { ApiError } from '../lib/error.js';
 
 const createErrorResponse = (
   status: StatusCodes.FORBIDDEN | StatusCodes.REQUEST_TOO_LONG,
@@ -15,7 +15,7 @@ const createErrorResponse = (
   instance: string,
   requestId?: string,
 ) => {
-  const error = new AppError({
+  const error = new ApiError({
     code,
     expose: true,
     message,

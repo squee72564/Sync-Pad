@@ -6,7 +6,7 @@ import {
   CURRENT_USER_CONTEXT_KEY,
   SESSION_CONTEXT_KEY,
 } from '../lib/context.js';
-import { AppError } from '../lib/error.js';
+import { ApiError } from '../lib/error.js';
 
 const applyAuthSession = (
   context: Context<{ Variables: AppVariables }, string, object>,
@@ -30,7 +30,7 @@ export const requireAuth =
     const authSession = await getAuthSession(context.req.raw);
 
     if (!authSession) {
-      throw new AppError({
+      throw new ApiError({
         code: 'UNAUTHENTICATED',
         expose: true,
         message: 'No valid session for request',

@@ -6,7 +6,7 @@ import {
   CURRENT_USER_CONTEXT_KEY,
   WORKSPACE_CONTEXT_KEY,
 } from '../lib/context.js';
-import { AppError } from '../lib/error.js';
+import { ApiError } from '../lib/error.js';
 import { requireAuth } from '../middleware/authentication.js';
 import {
   requireOrganizationPermission,
@@ -52,7 +52,7 @@ const getCurrentUser = (
   const user = context.get(CURRENT_USER_CONTEXT_KEY);
 
   if (!user) {
-    throw new AppError({
+    throw new ApiError({
       code: 'AUTHORIZATION_CONTEXT_INVALID',
       message: 'Authenticated route is missing current user context',
       status: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -68,7 +68,7 @@ const getLoadedWorkspace = (
   const workspace = context.get(WORKSPACE_CONTEXT_KEY);
 
   if (!workspace) {
-    throw new AppError({
+    throw new ApiError({
       code: 'AUTHORIZATION_CONTEXT_INVALID',
       message: 'Workspace route is missing loaded workspace context',
       status: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -288,7 +288,7 @@ organizationWorkspacesRoute.patch(
         >
       >(context);
     if (json.workspaceRole === undefined) {
-      throw new AppError({
+      throw new ApiError({
         code: 'AUTHORIZATION_CONTEXT_INVALID',
         message:
           'Workspace membership update route is missing validated workspace role',

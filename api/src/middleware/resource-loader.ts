@@ -6,7 +6,7 @@ import {
   ORGANIZATION_CONTEXT_KEY,
   WORKSPACE_CONTEXT_KEY,
 } from '../lib/context.js';
-import { AppError } from '../lib/error.js';
+import { ApiError } from '../lib/error.js';
 import { organizationRepository } from '../repositories/organization-repository.js';
 import { workspaceRepository } from '../repositories/workspace-repository.js';
 import { getValidated, type Validated } from './validation.js';
@@ -21,7 +21,7 @@ export const loadOrganization = <TParams>(
     const organizationId = selectOrganizationId(validated);
 
     if (organizationId.length === 0) {
-      throw new AppError({
+      throw new ApiError({
         code: 'ORGANIZATION_NOT_FOUND',
         expose: true,
         message: 'Missing validated organization id from request params',
@@ -33,7 +33,7 @@ export const loadOrganization = <TParams>(
     const organization = await organizationRepository.findById(organizationId);
 
     if (!organization) {
-      throw new AppError({
+      throw new ApiError({
         code: 'ORGANIZATION_NOT_FOUND',
         expose: true,
         message: `Organization ${organizationId} was not found`,
@@ -55,7 +55,7 @@ export const loadWorkspace = <TParams>(
     const workspaceId = selectWorkspaceId(validated);
 
     if (workspaceId.length === 0) {
-      throw new AppError({
+      throw new ApiError({
         code: 'WORKSPACE_NOT_FOUND',
         expose: true,
         message: 'Missing validated workspace id from request params',
@@ -67,7 +67,7 @@ export const loadWorkspace = <TParams>(
     const workspace = await workspaceRepository.findById(workspaceId);
 
     if (!workspace) {
-      throw new AppError({
+      throw new ApiError({
         code: 'WORKSPACE_NOT_FOUND',
         expose: true,
         message: `Workspace ${workspaceId} was not found`,
@@ -92,7 +92,7 @@ export const loadWorkspaceInOrganization = <TParams>(
     const { organizationId, workspaceId } = selectIds(validated);
 
     if (organizationId.length === 0 || workspaceId.length === 0) {
-      throw new AppError({
+      throw new ApiError({
         code: 'WORKSPACE_NOT_FOUND',
         expose: true,
         message:
@@ -105,7 +105,7 @@ export const loadWorkspaceInOrganization = <TParams>(
     const workspace = await workspaceRepository.findById(workspaceId);
 
     if (!workspace || workspace.organizationId !== organizationId) {
-      throw new AppError({
+      throw new ApiError({
         code: 'WORKSPACE_NOT_FOUND',
         expose: true,
         message: `Workspace ${workspaceId} was not found in organization ${organizationId}`,
