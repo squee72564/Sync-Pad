@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 
 import type { DbClient } from '../client.js';
+import { withDbError } from '../errors.js';
 import {
   organization,
   organizationMembership,
@@ -18,9 +19,11 @@ type DatabaseExecutor = Pick<
 export function createWorkspaceRepository(db: DbClient) {
   return {
     findById(workspaceId: string, database: DatabaseExecutor = db) {
-      return database.query.workspace.findFirst({
-        where: eq(workspace.id, workspaceId),
-      });
+      return withDbError({ entity: 'workspace', operation: 'findById' }, () =>
+        database.query.workspace.findFirst({
+          where: eq(workspace.id, workspaceId),
+        }),
+      );
     },
 
     findMembership(
@@ -28,12 +31,16 @@ export function createWorkspaceRepository(db: DbClient) {
       userId: string,
       database: DatabaseExecutor = db,
     ) {
-      return database.query.workspaceMembership.findFirst({
-        where: and(
-          eq(workspaceMembership.workspaceId, workspaceId),
-          eq(workspaceMembership.userId, userId),
-        ),
-      });
+      return withDbError(
+        { entity: 'workspaceMembership', operation: 'findMembership' },
+        () =>
+          database.query.workspaceMembership.findFirst({
+            where: and(
+              eq(workspaceMembership.workspaceId, workspaceId),
+              eq(workspaceMembership.userId, userId),
+            ),
+          }),
+      );
     },
 
     async listByOrganizationReadableToUser(
@@ -44,63 +51,85 @@ export function createWorkspaceRepository(db: DbClient) {
       },
       database: DatabaseExecutor = db,
     ) {
-      if (options?.includeAll) {
-        return database.query.workspace.findMany({
-          where: eq(workspace.organizationId, organizationId),
-        });
-      }
+      return withDbError(
+        { entity: 'workspace', operation: 'listByOrganizationReadableToUser' },
+        () => {
+          if (options?.includeAll) {
+            return database.query.workspace.findMany({
+              where: eq(workspace.organizationId, organizationId),
+            });
+          }
 
-      return database
-        .select({
-          workspace,
-        })
-        .from(workspaceMembership)
-        .innerJoin(workspace, eq(workspaceMembership.workspaceId, workspace.id))
-        .where(
-          and(
-            eq(workspaceMembership.organizationId, organizationId),
-            eq(workspaceMembership.userId, userId),
-          ),
-        )
-        .then((rows) => rows.map((row) => row.workspace));
+          return database
+            .select({
+              workspace,
+            })
+            .from(workspaceMembership)
+            .innerJoin(
+              workspace,
+              eq(workspaceMembership.workspaceId, workspace.id),
+            )
+            .where(
+              and(
+                eq(workspaceMembership.organizationId, organizationId),
+                eq(workspaceMembership.userId, userId),
+              ),
+            )
+            .then((rows) => rows.map((row) => row.workspace));
+        },
+      );
     },
 
     async listReadableToUser(userId: string, database: DatabaseExecutor = db) {
-      return database
-        .select({
-          id: workspace.id,
-          name: workspace.name,
-          organizationId: workspace.organizationId,
-          organizationName: organization.name,
-          workspaceRole: workspaceMembership.workspaceRole,
-          createdAt: workspace.createdAt,
-          updatedAt: workspace.updatedAt,
-        })
-        .from(workspaceMembership)
-        .innerJoin(workspace, eq(workspaceMembership.workspaceId, workspace.id))
-        .innerJoin(organization, eq(workspace.organizationId, organization.id))
-        .innerJoin(
-          organizationMembership,
-          and(
-            eq(workspaceMembership.userId, organizationMembership.userId),
-            eq(
-              workspaceMembership.organizationId,
-              organizationMembership.organizationId,
+      return withDbError(
+        { entity: 'workspace', operation: 'listReadableToUser' },
+        () =>
+          database
+            .select({
+              id: workspace.id,
+              name: workspace.name,
+              organizationId: workspace.organizationId,
+              organizationName: organization.name,
+              workspaceRole: workspaceMembership.workspaceRole,
+              createdAt: workspace.createdAt,
+              updatedAt: workspace.updatedAt,
+            })
+            .from(workspaceMembership)
+            .innerJoin(
+              workspace,
+              eq(workspaceMembership.workspaceId, workspace.id),
+            )
+            .innerJoin(
+              organization,
+              eq(workspace.organizationId, organization.id),
+            )
+            .innerJoin(
+              organizationMembership,
+              and(
+                eq(workspaceMembership.userId, organizationMembership.userId),
+                eq(
+                  workspaceMembership.organizationId,
+                  organizationMembership.organizationId,
+                ),
+              ),
+            )
+            .where(
+              and(
+                eq(workspaceMembership.userId, userId),
+                eq(organizationMembership.status, 'active'),
+              ),
             ),
-          ),
-        )
-        .where(
-          and(
-            eq(workspaceMembership.userId, userId),
-            eq(organizationMembership.status, 'active'),
-          ),
-        );
+      );
     },
 
     listMemberships(workspaceId: string, database: DatabaseExecutor = db) {
-      return database.query.workspaceMembership.findMany({
-        where: eq(workspaceMembership.workspaceId, workspaceId),
-      });
+      return withDbError(
+        { entity: 'workspaceMembership', operation: 'listMemberships' },
+        () =>
+          database.query.workspaceMembership.findMany({
+            where: eq(workspaceMembership.workspaceId, workspaceId),
+          }),
+      );
     },
 
     listMembershipsByOrganizationAndUser(
@@ -108,12 +137,19 @@ export function createWorkspaceRepository(db: DbClient) {
       userId: string,
       database: DatabaseExecutor = db,
     ) {
-      return database.query.workspaceMembership.findMany({
-        where: and(
-          eq(workspaceMembership.organizationId, organizationId),
-          eq(workspaceMembership.userId, userId),
-        ),
-      });
+      return withDbError(
+        {
+          entity: 'workspaceMembership',
+          operation: 'listMembershipsByOrganizationAndUser',
+        },
+        () =>
+          database.query.workspaceMembership.findMany({
+            where: and(
+              eq(workspaceMembership.organizationId, organizationId),
+              eq(workspaceMembership.userId, userId),
+            ),
+          }),
+      );
     },
 
     async insertWorkspace(
@@ -124,11 +160,16 @@ export function createWorkspaceRepository(db: DbClient) {
       },
       database: DatabaseExecutor = db,
     ) {
-      const [created] = await database
-        .insert(workspace)
-        .values(values)
-        .returning();
-      return created;
+      return withDbError(
+        { entity: 'workspace', operation: 'insertWorkspace' },
+        async () => {
+          const [created] = await database
+            .insert(workspace)
+            .values(values)
+            .returning();
+          return created;
+        },
+      );
     },
 
     async updateWorkspace(
@@ -139,23 +180,33 @@ export function createWorkspaceRepository(db: DbClient) {
       },
       database: DatabaseExecutor = db,
     ) {
-      const [updated] = await database
-        .update(workspace)
-        .set(values)
-        .where(eq(workspace.id, workspaceId))
-        .returning();
-      return updated ?? null;
+      return withDbError(
+        { entity: 'workspace', operation: 'updateWorkspace' },
+        async () => {
+          const [updated] = await database
+            .update(workspace)
+            .set(values)
+            .where(eq(workspace.id, workspaceId))
+            .returning();
+          return updated ?? null;
+        },
+      );
     },
 
     async deleteWorkspace(
       workspaceId: string,
       database: DatabaseExecutor = db,
     ) {
-      const [deleted] = await database
-        .delete(workspace)
-        .where(eq(workspace.id, workspaceId))
-        .returning();
-      return deleted ?? null;
+      return withDbError(
+        { entity: 'workspace', operation: 'deleteWorkspace' },
+        async () => {
+          const [deleted] = await database
+            .delete(workspace)
+            .where(eq(workspace.id, workspaceId))
+            .returning();
+          return deleted ?? null;
+        },
+      );
     },
 
     async insertMembership(
@@ -167,11 +218,16 @@ export function createWorkspaceRepository(db: DbClient) {
       },
       database: DatabaseExecutor = db,
     ) {
-      const [created] = await database
-        .insert(workspaceMembership)
-        .values(values)
-        .returning();
-      return created;
+      return withDbError(
+        { entity: 'workspaceMembership', operation: 'insertMembership' },
+        async () => {
+          const [created] = await database
+            .insert(workspaceMembership)
+            .values(values)
+            .returning();
+          return created;
+        },
+      );
     },
 
     async updateMembership(
@@ -182,17 +238,22 @@ export function createWorkspaceRepository(db: DbClient) {
       },
       database: DatabaseExecutor = db,
     ) {
-      const [updated] = await database
-        .update(workspaceMembership)
-        .set(values)
-        .where(
-          and(
-            eq(workspaceMembership.workspaceId, workspaceId),
-            eq(workspaceMembership.userId, userId),
-          ),
-        )
-        .returning();
-      return updated ?? null;
+      return withDbError(
+        { entity: 'workspaceMembership', operation: 'updateMembership' },
+        async () => {
+          const [updated] = await database
+            .update(workspaceMembership)
+            .set(values)
+            .where(
+              and(
+                eq(workspaceMembership.workspaceId, workspaceId),
+                eq(workspaceMembership.userId, userId),
+              ),
+            )
+            .returning();
+          return updated ?? null;
+        },
+      );
     },
 
     async deleteMembership(
@@ -200,16 +261,21 @@ export function createWorkspaceRepository(db: DbClient) {
       userId: string,
       database: DatabaseExecutor = db,
     ) {
-      const [deleted] = await database
-        .delete(workspaceMembership)
-        .where(
-          and(
-            eq(workspaceMembership.workspaceId, workspaceId),
-            eq(workspaceMembership.userId, userId),
-          ),
-        )
-        .returning();
-      return deleted ?? null;
+      return withDbError(
+        { entity: 'workspaceMembership', operation: 'deleteMembership' },
+        async () => {
+          const [deleted] = await database
+            .delete(workspaceMembership)
+            .where(
+              and(
+                eq(workspaceMembership.workspaceId, workspaceId),
+                eq(workspaceMembership.userId, userId),
+              ),
+            )
+            .returning();
+          return deleted ?? null;
+        },
+      );
     },
 
     async deleteMembershipsByOrganizationAndUser(
@@ -217,15 +283,22 @@ export function createWorkspaceRepository(db: DbClient) {
       userId: string,
       database: DatabaseExecutor = db,
     ) {
-      return database
-        .delete(workspaceMembership)
-        .where(
-          and(
-            eq(workspaceMembership.organizationId, organizationId),
-            eq(workspaceMembership.userId, userId),
-          ),
-        )
-        .returning();
+      return withDbError(
+        {
+          entity: 'workspaceMembership',
+          operation: 'deleteMembershipsByOrganizationAndUser',
+        },
+        () =>
+          database
+            .delete(workspaceMembership)
+            .where(
+              and(
+                eq(workspaceMembership.organizationId, organizationId),
+                eq(workspaceMembership.userId, userId),
+              ),
+            )
+            .returning(),
+      );
     },
   };
 }

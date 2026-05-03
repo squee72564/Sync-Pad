@@ -7,15 +7,16 @@ export function createDbClientAndPool(connectionString: string) {
   const pool = new Pool({
     connectionString,
   });
+  const client = drizzle(pool, {
+    schema: {
+      ...authSchema,
+      ...coreSchema,
+    },
+  });
 
   return {
     pool: pool,
-    client: drizzle(pool, {
-      schema: {
-        ...authSchema,
-        ...coreSchema,
-      },
-    }),
+    client,
   };
 }
 

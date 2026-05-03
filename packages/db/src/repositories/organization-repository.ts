@@ -1,4 +1,5 @@
 import { and, eq } from 'drizzle-orm';
+import { withDbError } from '../errors.js';
 import type { DbClient } from '../index.js';
 import { organization, organizationMembership } from '../schema/core.js';
 
@@ -15,9 +16,13 @@ type DatabaseExecutor = Pick<
 export function createOrganizationRepository(db: DbClient) {
   return {
     findById(organizationId: string, database: DatabaseExecutor = db) {
-      return database.query.organization.findFirst({
-        where: eq(organization.id, organizationId),
-      });
+      return withDbError(
+        { entity: 'organization', operation: 'findById' },
+        () =>
+          database.query.organization.findFirst({
+            where: eq(organization.id, organizationId),
+          }),
+      );
     },
 
     findMembership(
@@ -25,18 +30,26 @@ export function createOrganizationRepository(db: DbClient) {
       userId: string,
       database: DatabaseExecutor = db,
     ) {
-      return database.query.organizationMembership.findFirst({
-        where: and(
-          eq(organizationMembership.organizationId, organizationId),
-          eq(organizationMembership.userId, userId),
-        ),
-      });
+      return withDbError(
+        { entity: 'organizationMembership', operation: 'findMembership' },
+        () =>
+          database.query.organizationMembership.findFirst({
+            where: and(
+              eq(organizationMembership.organizationId, organizationId),
+              eq(organizationMembership.userId, userId),
+            ),
+          }),
+      );
     },
 
     listMemberships(organizationId: string, database: DatabaseExecutor = db) {
-      return database.query.organizationMembership.findMany({
-        where: eq(organizationMembership.organizationId, organizationId),
-      });
+      return withDbError(
+        { entity: 'organizationMembership', operation: 'listMemberships' },
+        () =>
+          database.query.organizationMembership.findMany({
+            where: eq(organizationMembership.organizationId, organizationId),
+          }),
+      );
     },
 
     async insertOrganization(
@@ -46,11 +59,16 @@ export function createOrganizationRepository(db: DbClient) {
       },
       database: DatabaseExecutor = db,
     ) {
-      const [created] = await database
-        .insert(organization)
-        .values(values)
-        .returning();
-      return created;
+      return withDbError(
+        { entity: 'organization', operation: 'insertOrganization' },
+        async () => {
+          const [created] = await database
+            .insert(organization)
+            .values(values)
+            .returning();
+          return created;
+        },
+      );
     },
 
     async updateOrganization(
@@ -60,12 +78,17 @@ export function createOrganizationRepository(db: DbClient) {
       },
       database: DatabaseExecutor = db,
     ) {
-      const [updated] = await database
-        .update(organization)
-        .set(values)
-        .where(eq(organization.id, organizationId))
-        .returning();
-      return updated ?? null;
+      return withDbError(
+        { entity: 'organization', operation: 'updateOrganization' },
+        async () => {
+          const [updated] = await database
+            .update(organization)
+            .set(values)
+            .where(eq(organization.id, organizationId))
+            .returning();
+          return updated ?? null;
+        },
+      );
     },
 
     async insertMembership(
@@ -79,11 +102,16 @@ export function createOrganizationRepository(db: DbClient) {
       },
       database: DatabaseExecutor = db,
     ) {
-      const [created] = await database
-        .insert(organizationMembership)
-        .values(values)
-        .returning();
-      return created;
+      return withDbError(
+        { entity: 'organizationMembership', operation: 'insertMembership' },
+        async () => {
+          const [created] = await database
+            .insert(organizationMembership)
+            .values(values)
+            .returning();
+          return created;
+        },
+      );
     },
 
     async updateMembership(
@@ -97,17 +125,22 @@ export function createOrganizationRepository(db: DbClient) {
       },
       database: DatabaseExecutor = db,
     ) {
-      const [updated] = await database
-        .update(organizationMembership)
-        .set(values)
-        .where(
-          and(
-            eq(organizationMembership.organizationId, organizationId),
-            eq(organizationMembership.userId, userId),
-          ),
-        )
-        .returning();
-      return updated ?? null;
+      return withDbError(
+        { entity: 'organizationMembership', operation: 'updateMembership' },
+        async () => {
+          const [updated] = await database
+            .update(organizationMembership)
+            .set(values)
+            .where(
+              and(
+                eq(organizationMembership.organizationId, organizationId),
+                eq(organizationMembership.userId, userId),
+              ),
+            )
+            .returning();
+          return updated ?? null;
+        },
+      );
     },
 
     async deleteMembership(
@@ -115,38 +148,47 @@ export function createOrganizationRepository(db: DbClient) {
       userId: string,
       database: DatabaseExecutor = db,
     ) {
-      const [deleted] = await database
-        .delete(organizationMembership)
-        .where(
-          and(
-            eq(organizationMembership.organizationId, organizationId),
-            eq(organizationMembership.userId, userId),
-          ),
-        )
-        .returning();
-      return deleted ?? null;
+      return withDbError(
+        { entity: 'organizationMembership', operation: 'deleteMembership' },
+        async () => {
+          const [deleted] = await database
+            .delete(organizationMembership)
+            .where(
+              and(
+                eq(organizationMembership.organizationId, organizationId),
+                eq(organizationMembership.userId, userId),
+              ),
+            )
+            .returning();
+          return deleted ?? null;
+        },
+      );
     },
 
     async listOrganizationsForUser(
       userId: string,
       database: DatabaseExecutor = db,
     ) {
-      return database
-        .select({
-          organization,
-        })
-        .from(organizationMembership)
-        .innerJoin(
-          organization,
-          eq(organizationMembership.organizationId, organization.id),
-        )
-        .where(
-          and(
-            eq(organizationMembership.userId, userId),
-            eq(organizationMembership.status, 'active'),
-          ),
-        )
-        .then((rows) => rows.map((row) => row.organization));
+      return withDbError(
+        { entity: 'organization', operation: 'listOrganizationsForUser' },
+        () =>
+          database
+            .select({
+              organization,
+            })
+            .from(organizationMembership)
+            .innerJoin(
+              organization,
+              eq(organizationMembership.organizationId, organization.id),
+            )
+            .where(
+              and(
+                eq(organizationMembership.userId, userId),
+                eq(organizationMembership.status, 'active'),
+              ),
+            )
+            .then((rows) => rows.map((row) => row.organization)),
+      );
     },
   };
 }
