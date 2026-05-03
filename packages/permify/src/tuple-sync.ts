@@ -1,7 +1,4 @@
-import type {
-  Subject,
-  Tuple,
-} from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
+import type { Tuple } from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
 import type {
   OrganizationMembership,
   Workspace,

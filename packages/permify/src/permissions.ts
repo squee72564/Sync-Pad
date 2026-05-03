@@ -6,12 +6,11 @@ import {
 import { isPermifyError, PermifyError } from '@syncpad/errors';
 import type { PermifyInstance } from './client.js';
 import {
-  type OrganizationPermission,
-  type ResourceDescriptor,
+  type PermissionCheckItem,
+  type PermissionFor,
   type ResourceDescriptorMap,
   type ResourceType,
   resourceDefinitions,
-  type WorkspacePermission,
 } from './types.js';
 
 const getResourceId = <TType extends ResourceType>(
@@ -63,10 +62,10 @@ const toPermifyUnavailableError = (
 
 export function createPermissionChecker(instance: PermifyInstance) {
   return {
-    async checkPermission(
+    async checkPermission<TResource extends ResourceType>(
       subject: Subject,
-      resource: ResourceDescriptor,
-      permission: OrganizationPermission | WorkspacePermission,
+      resource: ResourceDescriptorMap[TResource],
+      permission: PermissionFor<TResource>,
       depth: number = 20,
       _instance: PermifyInstance = instance,
     ) {
@@ -90,11 +89,7 @@ export function createPermissionChecker(instance: PermifyInstance) {
     },
 
     async bulkCheckPermission(
-      items: {
-        subject: Subject;
-        resource: ResourceDescriptor;
-        permission: OrganizationPermission | WorkspacePermission;
-      }[],
+      items: PermissionCheckItem[],
       depth: number = 20,
       _instance: PermifyInstance = instance,
     ) {

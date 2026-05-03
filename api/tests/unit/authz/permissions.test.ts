@@ -1,5 +1,23 @@
-import { resourceDefinitions, resources, subjects } from '@syncpad/permify';
+import {
+  type PermissionFor,
+  resourceDefinitions,
+  resources,
+  subjects,
+} from '@syncpad/permify';
 import { describe, expect, it } from 'vitest';
+
+const organizationPermission: PermissionFor<'organization'> = 'invite';
+const workspacePermission: PermissionFor<'workspace'> = 'write';
+// @ts-expect-error workspace-only permissions are not valid organization permissions.
+const invalidOrganizationPermission: PermissionFor<'organization'> = 'write';
+// @ts-expect-error organization-only permissions are not valid workspace permissions.
+const invalidWorkspacePermission: PermissionFor<'workspace'> =
+  'create_workspace';
+
+void organizationPermission;
+void workspacePermission;
+void invalidOrganizationPermission;
+void invalidWorkspacePermission;
 
 describe('authz resource builders', () => {
   it('builds organization descriptors with explicit organization ids', () => {
@@ -19,6 +37,24 @@ describe('authz resource builders', () => {
   it('keeps registry id keys aligned with current descriptor fields', () => {
     expect(resourceDefinitions.organization.idKey).toBe('organizationId');
     expect(resourceDefinitions.workspace.idKey).toBe('workspaceId');
+  });
+
+  it('keeps registry permissions aligned with current schema permissions', () => {
+    expect(resourceDefinitions.organization.permissions).toEqual([
+      'read',
+      'manage',
+      'invite',
+      'create_workspace',
+      'run_ai',
+    ]);
+    expect(resourceDefinitions.workspace.permissions).toEqual([
+      'read',
+      'comment',
+      'write',
+      'manage',
+      'invite',
+      'run_ai',
+    ]);
   });
 
   it('builds user subjects with the Permify entity type', () => {
