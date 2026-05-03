@@ -21,7 +21,7 @@
     "prepare": "husky",
     "db:generate:dev": "dotenv -e ./api/.env -- pnpm --filter @syncpad/db db:generate:dev",
     "db:migrate:dev": "dotenv -e ./api/.env -- pnpm --filter @syncpad/db db:migrate:dev",
-    "db:seed:dev": "dotenv -e ./api/.env -- pnpm --filter @syncpad/db db:seed:dev",
+    "db:seed:dev": "dotenv -e ./api/.env -- pnpm --filter @syncpad/api db:seed:dev",
     "db:migrate:test": "dotenv -e ./api/.env.test -- pnpm --filter @syncpad/db db:migrate:test",
     "db:bootstrap:test": "dotenv -e ./api/.env.test -- bash infra/local/ensure-test-db.sh",
     "permify:bootstrap:dev": "pnpm --filter api exec dotenv -e .env -- node ../infra/permify/bootstrap.js",
