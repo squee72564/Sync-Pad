@@ -10,6 +10,7 @@ import {
   type AccessGraphSync,
   type PermissionChecker,
   resources,
+  subjects,
   toWorkspaceMembershipTuple,
   toWorkspaceParentTuple,
 } from '@syncpad/permify';
@@ -77,11 +78,7 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       organizationId: string;
     }) {
       const includeAll = await permissionChecker.checkPermission(
-        {
-          id: input.actorUserId,
-          type: '',
-          relation: '',
-        },
+        subjects.user(input.actorUserId),
         resources.organization(input.organizationId),
         'manage',
       );

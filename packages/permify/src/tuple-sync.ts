@@ -8,6 +8,7 @@ import type {
   WorkspaceMembership,
 } from '@syncpad/types';
 import type { PermissionChecker } from './index.js';
+import { subjects } from './types.js';
 
 export const PERMIFY_RELATIONS = {
   workspaceParent: 'parent',
@@ -23,12 +24,6 @@ export interface AccessGraphSync {
   ) => Promise<void>;
 }
 
-const createUserSubject = (userId: string): Subject => ({
-  type: 'user',
-  id: userId,
-  relation: '',
-});
-
 export const toOrganizationMembershipTuple = (
   membership: OrganizationMembership,
 ): Tuple => ({
@@ -37,7 +32,7 @@ export const toOrganizationMembershipTuple = (
     id: membership.organizationId,
   },
   relation: membership.organizationRole,
-  subject: createUserSubject(membership.userId),
+  subject: subjects.user(membership.userId),
 });
 
 export const toWorkspaceMembershipTuple = (
@@ -48,7 +43,7 @@ export const toWorkspaceMembershipTuple = (
     id: membership.workspaceId,
   },
   relation: membership.workspaceRole,
-  subject: createUserSubject(membership.userId),
+  subject: subjects.user(membership.userId),
 });
 
 export const toWorkspaceParentTuple = (record: Workspace): Tuple => ({

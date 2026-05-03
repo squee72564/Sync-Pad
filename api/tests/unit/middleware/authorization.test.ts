@@ -17,6 +17,21 @@ vi.mock('../../../src/authz/permify-client.js', () => ({
   permifyInstance: {},
 }));
 
+vi.mock('@syncpad/permify', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@syncpad/permify')>();
+
+  return {
+    ...actual,
+    subjects: {
+      user: (userId: string) => ({
+        type: 'user',
+        id: userId,
+        relation: '',
+      }),
+    },
+  };
+});
+
 afterEach(() => {
   vi.clearAllMocks();
   vi.resetModules();
@@ -64,6 +79,11 @@ describe('authorization middleware', () => {
     const response = await app.request('/protected');
     const body = await response.json();
 
+    expect(permissionChecker.checkPermission).toHaveBeenCalledWith(
+      { type: 'user', id: currentUser.id, relation: '' },
+      { type: 'organization', organizationId: 'org_1' },
+      'read',
+    );
     expect(response.status).toBe(StatusCodes.FORBIDDEN);
     expect(body).toMatchObject({
       code: 'FORBIDDEN',
@@ -97,6 +117,11 @@ describe('authorization middleware', () => {
 
     const response = await app.request('/protected');
 
+    expect(permissionChecker.checkPermission).toHaveBeenCalledWith(
+      { type: 'user', id: currentUser.id, relation: '' },
+      { type: 'workspace', workspaceId: 'ws_1' },
+      'read',
+    );
     expect(response.status).toBe(StatusCodes.OK);
     expect(await response.json()).toEqual({
       checked: true,

@@ -1,4 +1,4 @@
-import { resourceDefinitions, resources } from '@syncpad/permify';
+import { resourceDefinitions, resources, subjects } from '@syncpad/permify';
 import { describe, expect, it } from 'vitest';
 
 describe('authz resource builders', () => {
@@ -19,5 +19,13 @@ describe('authz resource builders', () => {
   it('keeps registry id keys aligned with current descriptor fields', () => {
     expect(resourceDefinitions.organization.idKey).toBe('organizationId');
     expect(resourceDefinitions.workspace.idKey).toBe('workspaceId');
+  });
+
+  it('builds user subjects with the Permify entity type', () => {
+    expect(subjects.user('user_1')).toEqual({
+      type: 'user',
+      id: 'user_1',
+      relation: '',
+    });
   });
 });

@@ -1,6 +1,7 @@
 import {
   type OrganizationPermission,
   resources,
+  subjects,
   type WorkspacePermission,
 } from '@syncpad/permify';
 import type { Context, MiddlewareHandler } from 'hono';
@@ -54,11 +55,7 @@ export const requireOrganizationPermission = (
     }
 
     const allowed = await permissionChecker.checkPermission(
-      {
-        id: user.id,
-        type: '',
-        relation: '',
-      },
+      subjects.user(user.id),
       resources.organization(organizationId),
       permission,
     );
@@ -103,11 +100,7 @@ export const requireWorkspacePermission = (
     }
 
     const allowed = await permissionChecker.checkPermission(
-      {
-        id: user.id,
-        type: '',
-        relation: '',
-      },
+      subjects.user(user.id),
       resources.workspace(workspaceId),
       permission,
     );

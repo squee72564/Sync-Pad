@@ -1,4 +1,7 @@
-import type { Tuple as PermifyTuple } from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
+import type {
+  Tuple as PermifyTuple,
+  Subject,
+} from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
 
 export type Tuple = PermifyTuple;
 export type OrganizationPermission =
@@ -54,5 +57,13 @@ export const resources: ResourceBuilderMap = {
   workspace: (workspaceId) => ({
     type: 'workspace',
     workspaceId,
+  }),
+};
+
+export const subjects = {
+  user: (userId: string): Subject => ({
+    type: 'user',
+    id: userId,
+    relation: '',
   }),
 };
