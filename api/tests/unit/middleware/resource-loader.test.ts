@@ -17,7 +17,7 @@ afterEach(() => {
 
 describe('resource loader middleware', () => {
   it('loads an organization into context with a typed selector', async () => {
-    const { loadOrganization } = await import(
+    const { loadOrganizationResource } = await import(
       '../../../src/middleware/resource-loader.js'
     );
     const { organizationRepository } = await import(
@@ -41,7 +41,7 @@ describe('resource loader middleware', () => {
     });
     app.get(
       '/protected',
-      loadOrganization<{ organizationId: string }>(
+      loadOrganizationResource<{ organizationId: string }>(
         ({ params }) => params.organizationId,
       ),
       (context) => context.json({ organization: context.get('organization') }),
@@ -61,7 +61,7 @@ describe('resource loader middleware', () => {
   });
 
   it('returns 404 when an organization is missing', async () => {
-    const { loadOrganization } = await import(
+    const { loadOrganizationResource } = await import(
       '../../../src/middleware/resource-loader.js'
     );
     const { errorHandler } = await import('../../../src/http/error-handler.js');
@@ -82,7 +82,7 @@ describe('resource loader middleware', () => {
     });
     app.get(
       '/protected',
-      loadOrganization<{ organizationId: string }>(
+      loadOrganizationResource<{ organizationId: string }>(
         ({ params }) => params.organizationId,
       ),
       () => new Response(null),
@@ -101,7 +101,7 @@ describe('resource loader middleware', () => {
   });
 
   it('returns 404 when the validated organization id is empty', async () => {
-    const { loadOrganization } = await import(
+    const { loadOrganizationResource } = await import(
       '../../../src/middleware/resource-loader.js'
     );
     const { errorHandler } = await import('../../../src/http/error-handler.js');
@@ -118,7 +118,7 @@ describe('resource loader middleware', () => {
     });
     app.get(
       '/protected',
-      loadOrganization<{ organizationId: string }>(
+      loadOrganizationResource<{ organizationId: string }>(
         ({ params }) => params.organizationId,
       ),
       () => new Response(null),

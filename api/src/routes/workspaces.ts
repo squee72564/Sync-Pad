@@ -13,14 +13,10 @@ import {
   requireWorkspacePermission,
 } from '../middleware/authorization.js';
 import {
-  loadOrganization,
-  loadWorkspaceInOrganization,
+  loadOrganizationResource,
+  loadWorkspaceResourceInOrganization,
 } from '../middleware/resource-loader.js';
-import {
-  getValidated,
-  type Validated,
-  validateRequest,
-} from '../middleware/validation.js';
+import { getValidated, validateRequest } from '../middleware/validation.js';
 import { workspaceRepository } from '../repositories/workspace-repository.js';
 import {
   type OrganizationParams,
@@ -62,7 +58,7 @@ const getCurrentUser = (
   return user;
 };
 
-const getLoadedWorkspace = (
+const getWorkspaceResource = (
   context: Context<{ Variables: AppVariables }, string, object>,
 ) => {
   const workspace = context.get(WORKSPACE_CONTEXT_KEY);
@@ -82,12 +78,13 @@ organizationWorkspacesRoute.get(
   '/',
   requireAuth(),
   validateRequest({ params: organizationParamsSchema }),
-  loadOrganization<OrganizationParams>(({ params }) => params.organizationId),
+  loadOrganizationResource<OrganizationParams>(
+    ({ params }) => params.organizationId,
+  ),
   requireOrganizationPermission('read'),
   async (context) => {
     const user = getCurrentUser(context);
-    const { params } =
-      getValidated<Pick<Validated<OrganizationParams>, 'params'>>(context);
+    const { params } = getValidated<OrganizationParams>(context);
     const workspaces = await workspaceService.listByOrganizationReadableToUser({
       actorUserId: user.id,
       organizationId: params.organizationId,
@@ -103,17 +100,17 @@ organizationWorkspacesRoute.post(
     params: organizationParamsSchema,
     json: createWorkspaceSchema,
   }),
-  loadOrganization<OrganizationParams>(({ params }) => params.organizationId),
+  loadOrganizationResource<OrganizationParams>(
+    ({ params }) => params.organizationId,
+  ),
   requireOrganizationPermission('create_workspace'),
   async (context) => {
     const user = getCurrentUser(context);
-    const { params, json } =
-      getValidated<
-        Pick<
-          Validated<OrganizationParams, never, CreateWorkspaceInput>,
-          'params' | 'json'
-        >
-      >(context);
+    const { params, json } = getValidated<
+      OrganizationParams,
+      never,
+      CreateWorkspaceInput
+    >(context);
     const workspace = await workspaceService.createWorkspace({
       actorUserId: user.id,
       organizationId: params.organizationId,
@@ -127,16 +124,18 @@ organizationWorkspacesRoute.get(
   '/:workspaceId',
   requireAuth(),
   validateRequest({ params: organizationWorkspaceParamsSchema }),
-  loadOrganization<OrganizationWorkspaceParams>(
+  loadOrganizationResource<OrganizationWorkspaceParams>(
     ({ params }) => params.organizationId,
   ),
-  loadWorkspaceInOrganization<OrganizationWorkspaceParams>(({ params }) => ({
-    organizationId: params.organizationId,
-    workspaceId: params.workspaceId,
-  })),
+  loadWorkspaceResourceInOrganization<OrganizationWorkspaceParams>(
+    ({ params }) => ({
+      organizationId: params.organizationId,
+      workspaceId: params.workspaceId,
+    }),
+  ),
   requireWorkspacePermission('read'),
   async (context) => {
-    const workspace = getLoadedWorkspace(context);
+    const workspace = getWorkspaceResource(context);
     return context.json({ workspace }, StatusCodes.OK);
   },
 );
@@ -148,22 +147,22 @@ organizationWorkspacesRoute.patch(
     params: organizationWorkspaceParamsSchema,
     json: updateWorkspaceSchema,
   }),
-  loadOrganization<OrganizationWorkspaceParams>(
+  loadOrganizationResource<OrganizationWorkspaceParams>(
     ({ params }) => params.organizationId,
   ),
-  loadWorkspaceInOrganization<OrganizationWorkspaceParams>(({ params }) => ({
-    organizationId: params.organizationId,
-    workspaceId: params.workspaceId,
-  })),
+  loadWorkspaceResourceInOrganization<OrganizationWorkspaceParams>(
+    ({ params }) => ({
+      organizationId: params.organizationId,
+      workspaceId: params.workspaceId,
+    }),
+  ),
   requireWorkspacePermission('manage'),
   async (context) => {
-    const { params, json } =
-      getValidated<
-        Pick<
-          Validated<OrganizationWorkspaceParams, never, UpdateWorkspaceInput>,
-          'params' | 'json'
-        >
-      >(context);
+    const { params, json } = getValidated<
+      OrganizationWorkspaceParams,
+      never,
+      UpdateWorkspaceInput
+    >(context);
     const workspace = await workspaceService.updateWorkspace({
       workspaceId: params.workspaceId,
       data: json,
@@ -176,19 +175,18 @@ organizationWorkspacesRoute.delete(
   '/:workspaceId',
   requireAuth(),
   validateRequest({ params: organizationWorkspaceParamsSchema }),
-  loadOrganization<OrganizationWorkspaceParams>(
+  loadOrganizationResource<OrganizationWorkspaceParams>(
     ({ params }) => params.organizationId,
   ),
-  loadWorkspaceInOrganization<OrganizationWorkspaceParams>(({ params }) => ({
-    organizationId: params.organizationId,
-    workspaceId: params.workspaceId,
-  })),
+  loadWorkspaceResourceInOrganization<OrganizationWorkspaceParams>(
+    ({ params }) => ({
+      organizationId: params.organizationId,
+      workspaceId: params.workspaceId,
+    }),
+  ),
   requireWorkspacePermission('manage'),
   async (context) => {
-    const { params } =
-      getValidated<Pick<Validated<OrganizationWorkspaceParams>, 'params'>>(
-        context,
-      );
+    const { params } = getValidated<OrganizationWorkspaceParams>(context);
     const workspace = await workspaceService.deleteWorkspace(
       params.workspaceId,
     );
@@ -200,19 +198,18 @@ organizationWorkspacesRoute.get(
   '/:workspaceId/members',
   requireAuth(),
   validateRequest({ params: organizationWorkspaceParamsSchema }),
-  loadOrganization<OrganizationWorkspaceParams>(
+  loadOrganizationResource<OrganizationWorkspaceParams>(
     ({ params }) => params.organizationId,
   ),
-  loadWorkspaceInOrganization<OrganizationWorkspaceParams>(({ params }) => ({
-    organizationId: params.organizationId,
-    workspaceId: params.workspaceId,
-  })),
+  loadWorkspaceResourceInOrganization<OrganizationWorkspaceParams>(
+    ({ params }) => ({
+      organizationId: params.organizationId,
+      workspaceId: params.workspaceId,
+    }),
+  ),
   requireWorkspacePermission('read'),
   async (context) => {
-    const { params } =
-      getValidated<Pick<Validated<OrganizationWorkspaceParams>, 'params'>>(
-        context,
-      );
+    const { params } = getValidated<OrganizationWorkspaceParams>(context);
     const memberships = await workspaceRepository.listMemberships(
       params.workspaceId,
     );
@@ -227,27 +224,23 @@ organizationWorkspacesRoute.post(
     params: organizationWorkspaceParamsSchema,
     json: addWorkspaceMemberSchema,
   }),
-  loadOrganization<OrganizationWorkspaceParams>(
+  loadOrganizationResource<OrganizationWorkspaceParams>(
     ({ params }) => params.organizationId,
   ),
-  loadWorkspaceInOrganization<OrganizationWorkspaceParams>(({ params }) => ({
-    organizationId: params.organizationId,
-    workspaceId: params.workspaceId,
-  })),
+  loadWorkspaceResourceInOrganization<OrganizationWorkspaceParams>(
+    ({ params }) => ({
+      organizationId: params.organizationId,
+      workspaceId: params.workspaceId,
+    }),
+  ),
   requireWorkspacePermission('invite'),
   async (context) => {
-    const { params, json } =
-      getValidated<
-        Pick<
-          Validated<
-            OrganizationWorkspaceParams,
-            never,
-            AddWorkspaceMemberInput
-          >,
-          'params' | 'json'
-        >
-      >(context);
-    const workspace = getLoadedWorkspace(context);
+    const { params, json } = getValidated<
+      OrganizationWorkspaceParams,
+      never,
+      AddWorkspaceMemberInput
+    >(context);
+    const workspace = getWorkspaceResource(context);
     const membership = await workspaceService.addMember({
       organizationId: workspace.organizationId,
       workspaceId: params.workspaceId,
@@ -265,10 +258,10 @@ organizationWorkspacesRoute.patch(
     params: organizationWorkspaceMembershipParamsSchema,
     json: updateWorkspaceMemberSchema,
   }),
-  loadOrganization<OrganizationWorkspaceMembershipParams>(
+  loadOrganizationResource<OrganizationWorkspaceMembershipParams>(
     ({ params }) => params.organizationId,
   ),
-  loadWorkspaceInOrganization<OrganizationWorkspaceMembershipParams>(
+  loadWorkspaceResourceInOrganization<OrganizationWorkspaceMembershipParams>(
     ({ params }) => ({
       organizationId: params.organizationId,
       workspaceId: params.workspaceId,
@@ -276,17 +269,11 @@ organizationWorkspacesRoute.patch(
   ),
   requireWorkspacePermission('manage'),
   async (context) => {
-    const { params, json } =
-      getValidated<
-        Pick<
-          Validated<
-            OrganizationWorkspaceMembershipParams,
-            never,
-            UpdateWorkspaceMemberInput
-          >,
-          'params' | 'json'
-        >
-      >(context);
+    const { params, json } = getValidated<
+      OrganizationWorkspaceMembershipParams,
+      never,
+      UpdateWorkspaceMemberInput
+    >(context);
     if (json.workspaceRole === undefined) {
       throw new ApiError({
         code: 'AUTHORIZATION_CONTEXT_INVALID',
@@ -308,10 +295,10 @@ organizationWorkspacesRoute.delete(
   '/:workspaceId/members/:userId',
   requireAuth(),
   validateRequest({ params: organizationWorkspaceMembershipParamsSchema }),
-  loadOrganization<OrganizationWorkspaceMembershipParams>(
+  loadOrganizationResource<OrganizationWorkspaceMembershipParams>(
     ({ params }) => params.organizationId,
   ),
-  loadWorkspaceInOrganization<OrganizationWorkspaceMembershipParams>(
+  loadWorkspaceResourceInOrganization<OrganizationWorkspaceMembershipParams>(
     ({ params }) => ({
       organizationId: params.organizationId,
       workspaceId: params.workspaceId,
@@ -320,9 +307,7 @@ organizationWorkspacesRoute.delete(
   requireWorkspacePermission('manage'),
   async (context) => {
     const { params } =
-      getValidated<
-        Pick<Validated<OrganizationWorkspaceMembershipParams>, 'params'>
-      >(context);
+      getValidated<OrganizationWorkspaceMembershipParams>(context);
     const membership = await workspaceService.deleteMember(
       params.workspaceId,
       params.userId,

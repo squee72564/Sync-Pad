@@ -9,12 +9,8 @@ import {
 import { ApiError } from '../lib/error.js';
 import { requireAuth } from '../middleware/authentication.js';
 import { requireOrganizationPermission } from '../middleware/authorization.js';
-import { loadOrganization } from '../middleware/resource-loader.js';
-import {
-  getValidated,
-  type Validated,
-  validateRequest,
-} from '../middleware/validation.js';
+import { loadOrganizationResource } from '../middleware/resource-loader.js';
+import { getValidated, validateRequest } from '../middleware/validation.js';
 import { organizationRepository } from '../repositories/organization-repository.js';
 import {
   type AddOrganizationMemberInput,
@@ -50,7 +46,7 @@ const getCurrentUser = (
   return user;
 };
 
-const getLoadedOrganization = (
+const getOrganizationResource = (
   context: Context<{ Variables: AppVariables }, string, object>,
 ) => {
   const organization = context.get(ORGANIZATION_CONTEXT_KEY);
@@ -80,10 +76,9 @@ organizationsRoute.post(
   validateRequest({ json: createOrganizationSchema }),
   async (context) => {
     const user = getCurrentUser(context);
-    const { json } =
-      getValidated<
-        Pick<Validated<never, never, CreateOrganizationInput>, 'json'>
-      >(context);
+    const { json } = getValidated<never, never, CreateOrganizationInput>(
+      context,
+    );
     const organization = await organizationService.createOrganization({
       actorUserId: user.id,
       input: json,
@@ -96,10 +91,12 @@ organizationsRoute.get(
   '/:organizationId',
   requireAuth(),
   validateRequest({ params: organizationParamsSchema }),
-  loadOrganization<OrganizationParams>(({ params }) => params.organizationId),
+  loadOrganizationResource<OrganizationParams>(
+    ({ params }) => params.organizationId,
+  ),
   requireOrganizationPermission('read'),
   async (context) => {
-    const organization = getLoadedOrganization(context);
+    const organization = getOrganizationResource(context);
     return context.json({ organization }, StatusCodes.OK);
   },
 );
@@ -111,16 +108,16 @@ organizationsRoute.patch(
     params: organizationParamsSchema,
     json: updateOrganizationSchema,
   }),
-  loadOrganization<OrganizationParams>(({ params }) => params.organizationId),
+  loadOrganizationResource<OrganizationParams>(
+    ({ params }) => params.organizationId,
+  ),
   requireOrganizationPermission('manage'),
   async (context) => {
-    const { params, json } =
-      getValidated<
-        Pick<
-          Validated<OrganizationParams, never, UpdateOrganizationInput>,
-          'params' | 'json'
-        >
-      >(context);
+    const { params, json } = getValidated<
+      OrganizationParams,
+      never,
+      UpdateOrganizationInput
+    >(context);
     const organization = await organizationService.updateOrganization({
       organizationId: params.organizationId,
       input: json,
@@ -133,11 +130,12 @@ organizationsRoute.get(
   '/:organizationId/members',
   requireAuth(),
   validateRequest({ params: organizationParamsSchema }),
-  loadOrganization<OrganizationParams>(({ params }) => params.organizationId),
+  loadOrganizationResource<OrganizationParams>(
+    ({ params }) => params.organizationId,
+  ),
   requireOrganizationPermission('read'),
   async (context) => {
-    const { params } =
-      getValidated<Pick<Validated<OrganizationParams>, 'params'>>(context);
+    const { params } = getValidated<OrganizationParams>(context);
     const memberships = await organizationRepository.listMemberships(
       params.organizationId,
     );
@@ -152,17 +150,17 @@ organizationsRoute.post(
     params: organizationParamsSchema,
     json: addOrganizationMemberSchema,
   }),
-  loadOrganization<OrganizationParams>(({ params }) => params.organizationId),
+  loadOrganizationResource<OrganizationParams>(
+    ({ params }) => params.organizationId,
+  ),
   requireOrganizationPermission('invite'),
   async (context) => {
     const user = getCurrentUser(context);
-    const { params, json } =
-      getValidated<
-        Pick<
-          Validated<OrganizationParams, never, AddOrganizationMemberInput>,
-          'params' | 'json'
-        >
-      >(context);
+    const { params, json } = getValidated<
+      OrganizationParams,
+      never,
+      AddOrganizationMemberInput
+    >(context);
     const membership = await organizationService.addMember({
       actorUserId: user.id,
       organizationId: params.organizationId,
@@ -180,22 +178,16 @@ organizationsRoute.patch(
     params: organizationMembershipParamsSchema,
     json: updateOrganizationMemberSchema,
   }),
-  loadOrganization<OrganizationMembershipParams>(
+  loadOrganizationResource<OrganizationMembershipParams>(
     ({ params }) => params.organizationId,
   ),
   requireOrganizationPermission('manage'),
   async (context) => {
-    const { params, json } =
-      getValidated<
-        Pick<
-          Validated<
-            OrganizationMembershipParams,
-            never,
-            UpdateOrganizationMemberInput
-          >,
-          'params' | 'json'
-        >
-      >(context);
+    const { params, json } = getValidated<
+      OrganizationMembershipParams,
+      never,
+      UpdateOrganizationMemberInput
+    >(context);
     const membership = await organizationService.updateMember({
       organizationId: params.organizationId,
       userId: params.userId,
@@ -209,15 +201,12 @@ organizationsRoute.delete(
   '/:organizationId/members/:userId',
   requireAuth(),
   validateRequest({ params: organizationMembershipParamsSchema }),
-  loadOrganization<OrganizationMembershipParams>(
+  loadOrganizationResource<OrganizationMembershipParams>(
     ({ params }) => params.organizationId,
   ),
   requireOrganizationPermission('manage'),
   async (context) => {
-    const { params } =
-      getValidated<Pick<Validated<OrganizationMembershipParams>, 'params'>>(
-        context,
-      );
+    const { params } = getValidated<OrganizationMembershipParams>(context);
     const membership = await organizationService.deleteMember(
       params.organizationId,
       params.userId,

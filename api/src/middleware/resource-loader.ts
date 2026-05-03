@@ -9,15 +9,17 @@ import {
 import { ApiError } from '../lib/error.js';
 import { organizationRepository } from '../repositories/organization-repository.js';
 import { workspaceRepository } from '../repositories/workspace-repository.js';
-import { getValidated, type Validated } from './validation.js';
+import { getValidated } from './validation.js';
 
-export const loadOrganization = <TParams>(
-  selectOrganizationId: (
-    validated: Pick<Validated<TParams>, 'params'>,
-  ) => string,
+type ValidatedParams<TParams> = { params: TParams };
+
+export const loadOrganizationResource = <TParams>(
+  selectOrganizationId: (validated: { params: TParams }) => string,
 ): MiddlewareHandler<{ Variables: AppVariables }> => {
   return async (context, next) => {
-    const validated = getValidated<Pick<Validated<TParams>, 'params'>>(context);
+    const validated = getValidated<TParams>(
+      context,
+    ) as ValidatedParams<TParams>;
     const organizationId = selectOrganizationId(validated);
 
     if (organizationId.length === 0) {
@@ -47,11 +49,13 @@ export const loadOrganization = <TParams>(
   };
 };
 
-export const loadWorkspace = <TParams>(
-  selectWorkspaceId: (validated: Pick<Validated<TParams>, 'params'>) => string,
+export const loadWorkspaceResource = <TParams>(
+  selectWorkspaceId: (validated: { params: TParams }) => string,
 ): MiddlewareHandler<{ Variables: AppVariables }> => {
   return async (context, next) => {
-    const validated = getValidated<Pick<Validated<TParams>, 'params'>>(context);
+    const validated = getValidated<TParams>(
+      context,
+    ) as ValidatedParams<TParams>;
     const workspaceId = selectWorkspaceId(validated);
 
     if (workspaceId.length === 0) {
@@ -81,14 +85,16 @@ export const loadWorkspace = <TParams>(
   };
 };
 
-export const loadWorkspaceInOrganization = <TParams>(
-  selectIds: (validated: Pick<Validated<TParams>, 'params'>) => {
+export const loadWorkspaceResourceInOrganization = <TParams>(
+  selectIds: (validated: { params: TParams }) => {
     organizationId: string;
     workspaceId: string;
   },
 ): MiddlewareHandler<{ Variables: AppVariables }> => {
   return async (context, next) => {
-    const validated = getValidated<Pick<Validated<TParams>, 'params'>>(context);
+    const validated = getValidated<TParams>(
+      context,
+    ) as ValidatedParams<TParams>;
     const { organizationId, workspaceId } = selectIds(validated);
 
     if (organizationId.length === 0 || workspaceId.length === 0) {

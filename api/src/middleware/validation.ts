@@ -18,6 +18,17 @@ export type Validated<TParams = never, TQuery = never, TJson = never> = {
   json: TJson;
 };
 
+type ValidatedField<TKey extends string, TValue> = [TValue] extends [never]
+  ? object
+  : Record<TKey, TValue>;
+
+type ValidatedSelection<TParams, TQuery, TJson> = ValidatedField<
+  'params',
+  TParams
+> &
+  ValidatedField<'query', TQuery> &
+  ValidatedField<'json', TJson>;
+
 const normalizeIssues = (issues: z.core.$ZodIssue[]) =>
   issues.map((issue) => ({
     path: issue.path.join('.'),
@@ -74,6 +85,11 @@ export const validateRequest = <TParams, TQuery, TJson>(
   };
 };
 
-export const getValidated = <T>(
+export const getValidated = <TParams = never, TQuery = never, TJson = never>(
   context: Context<{ Variables: AppVariables }>,
-) => context.get(VALIDATED_CONTEXT_KEY) as T;
+) =>
+  context.get(VALIDATED_CONTEXT_KEY) as ValidatedSelection<
+    TParams,
+    TQuery,
+    TJson
+  >;
