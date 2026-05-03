@@ -1,4 +1,3 @@
-import { StatusCodes } from 'http-status-codes';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../../src/db/client.js', () => ({
@@ -116,7 +115,7 @@ describe('workspace service', () => {
       }),
     ).rejects.toMatchObject({
       code: 'PERMIFY_SYNC_FAILED',
-      status: StatusCodes.SERVICE_UNAVAILABLE,
+      kind: 'dependency_unavailable',
     });
   });
 
@@ -315,7 +314,7 @@ describe('workspace service', () => {
       }),
     ).rejects.toMatchObject({
       code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
-      status: StatusCodes.NOT_FOUND,
+      kind: 'not_found',
     });
 
     expect(insertMembership).not.toHaveBeenCalled();

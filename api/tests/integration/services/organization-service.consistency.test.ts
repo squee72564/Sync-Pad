@@ -1,6 +1,5 @@
 import { coreSchema } from '@syncpad/db';
 import { and, eq } from 'drizzle-orm';
-import { StatusCodes } from 'http-status-codes';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '../../../src/db/client.js';
 import { createOrganizationService } from '../../../src/services/organization-service.js';
@@ -38,7 +37,7 @@ describe.sequential('organization service consistency', () => {
       }),
     ).rejects.toMatchObject({
       code: 'PERMIFY_SYNC_FAILED',
-      status: StatusCodes.SERVICE_UNAVAILABLE,
+      kind: 'dependency_unavailable',
     });
 
     expect(
@@ -421,7 +420,7 @@ describe.sequential('organization service consistency', () => {
       }),
     ).rejects.toMatchObject({
       code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
-      status: StatusCodes.NOT_FOUND,
+      kind: 'not_found',
     });
   });
 });

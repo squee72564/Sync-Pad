@@ -31,7 +31,7 @@ type CreateOrganizationInput = {
 } & ActorId;
 
 type UpdateOrganizationInput = {
-  input: Pick<NewOrganization, 'name' | 'createdAt'>;
+  input: Partial<Pick<NewOrganization, 'name'>>;
 } & OrganizationId;
 
 type UpsertOrganizationMembershipInput = {

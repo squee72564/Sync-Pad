@@ -1,6 +1,5 @@
 import { coreSchema } from '@syncpad/db';
 import { and, eq } from 'drizzle-orm';
-import { StatusCodes } from 'http-status-codes';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '../../../src/db/client.js';
 import { createWorkspaceService } from '../../../src/services/workspace-service.js';
@@ -45,7 +44,7 @@ describe.sequential('workspace service consistency', () => {
       }),
     ).rejects.toMatchObject({
       code: 'PERMIFY_SYNC_FAILED',
-      status: StatusCodes.SERVICE_UNAVAILABLE,
+      kind: 'dependency_unavailable',
     });
 
     expect(
@@ -242,7 +241,7 @@ describe.sequential('workspace service consistency', () => {
       }),
     ).rejects.toMatchObject({
       code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
-      status: StatusCodes.NOT_FOUND,
+      kind: 'not_found',
     });
 
     expect(
@@ -289,7 +288,7 @@ describe.sequential('workspace service consistency', () => {
       }),
     ).rejects.toMatchObject({
       code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
-      status: StatusCodes.NOT_FOUND,
+      kind: 'not_found',
     });
 
     expect(
@@ -339,7 +338,7 @@ describe.sequential('workspace service consistency', () => {
       }),
     ).rejects.toMatchObject({
       code: 'WORKSPACE_MEMBERSHIP_NOT_FOUND',
-      status: StatusCodes.NOT_FOUND,
+      kind: 'not_found',
     });
   });
 
@@ -373,7 +372,7 @@ describe.sequential('workspace service consistency', () => {
 
     await expect(service.deleteWorkspace('ws_1')).rejects.toMatchObject({
       code: 'WORKSPACE_NOT_FOUND',
-      status: StatusCodes.NOT_FOUND,
+      kind: 'not_found',
     });
   });
 });
