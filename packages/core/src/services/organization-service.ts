@@ -6,6 +6,7 @@ import type {
   OrganizationRole,
   WorkspaceRepository,
 } from '@syncpad/db';
+import { CoreError } from '@syncpad/errors';
 import {
   type AccessGraphOperation,
   type AccessGraphSync,
@@ -138,9 +139,13 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
         );
 
         if (!existing) {
-          throw new Error(
-            `Organization membership for ${userId} in ${organizationId} was not found`,
-          );
+          throw new CoreError({
+            code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
+            expose: true,
+            kind: 'not_found',
+            message: `Organization membership for ${userId} in ${organizationId} was not found`,
+            userMessage: 'Organization membership not found.',
+          });
         }
 
         const updated = await organizationRepo.updateMembership(
@@ -158,9 +163,13 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
         );
 
         if (!updated) {
-          throw new Error(
-            `Organization membership for ${userId} in ${organizationId} disappeared during update`,
-          );
+          throw new CoreError({
+            code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
+            expose: true,
+            kind: 'not_found',
+            message: `Organization membership for ${userId} in ${organizationId} disappeared during update`,
+            userMessage: 'Organization membership not found.',
+          });
         }
 
         const shouldRevokeWorkspaceMemberships = updated.status !== 'active';

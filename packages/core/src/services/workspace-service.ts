@@ -4,6 +4,7 @@ import type {
   WorkspaceMembership,
   WorkspaceRepository,
 } from '@syncpad/db';
+import { CoreError } from '@syncpad/errors';
 import {
   type AccessGraphOperation,
   type AccessGraphSync,
@@ -46,9 +47,13 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
     );
 
     if (!membership || membership.status !== 'active') {
-      throw new Error(
-        `No active organization membership for ${userId} in ${organizationId}`,
-      );
+      throw new CoreError({
+        code: 'ORGANIZATION_MEMBERSHIP_NOT_FOUND',
+        expose: true,
+        kind: 'not_found',
+        message: `No active organization membership for ${userId} in ${organizationId}`,
+        userMessage: 'Organization membership not found.',
+      });
     }
 
     return membership;
@@ -155,7 +160,13 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
         const deleted = await workspaceRepo.deleteWorkspace(workspaceId, tx);
 
         if (existing && !deleted) {
-          throw new Error(`Workspace ${workspaceId} disappeared during delete`);
+          throw new CoreError({
+            code: 'WORKSPACE_NOT_FOUND',
+            expose: true,
+            kind: 'not_found',
+            message: `Workspace ${workspaceId} disappeared during delete`,
+            userMessage: 'Workspace not found.',
+          });
         }
 
         if (existing) {
@@ -217,9 +228,13 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
         );
 
         if (!existing) {
-          throw new Error(
-            `Workspace membership for ${input.userId} in ${input.workspaceId} was not found`,
-          );
+          throw new CoreError({
+            code: 'WORKSPACE_MEMBERSHIP_NOT_FOUND',
+            expose: true,
+            kind: 'not_found',
+            message: `Workspace membership for ${input.userId} in ${input.workspaceId} was not found`,
+            userMessage: 'Workspace membership not found.',
+          });
         }
 
         const updated = await workspaceRepo.updateMembership(
@@ -232,9 +247,13 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
         );
 
         if (!updated) {
-          throw new Error(
-            `Workspace membership for ${input.userId} in ${input.workspaceId} disappeared during update`,
-          );
+          throw new CoreError({
+            code: 'WORKSPACE_MEMBERSHIP_NOT_FOUND',
+            expose: true,
+            kind: 'not_found',
+            message: `Workspace membership for ${input.userId} in ${input.workspaceId} disappeared during update`,
+            userMessage: 'Workspace membership not found.',
+          });
         }
 
         await syncOrThrow(accessGraphSync, [
@@ -266,9 +285,13 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
         );
 
         if (existing && !deleted) {
-          throw new Error(
-            `Workspace membership for ${userId} in ${workspaceId} disappeared during delete`,
-          );
+          throw new CoreError({
+            code: 'WORKSPACE_MEMBERSHIP_NOT_FOUND',
+            expose: true,
+            kind: 'not_found',
+            message: `Workspace membership for ${userId} in ${workspaceId} disappeared during delete`,
+            userMessage: 'Workspace membership not found.',
+          });
         }
 
         if (existing) {

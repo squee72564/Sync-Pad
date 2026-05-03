@@ -14,6 +14,9 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "test": "vitest run --reporter=agent --silent=passed-only",
+    "test:verbose": "vitest run --reporter=default",
+    "test:watch": "vitest --reporter=default",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint:check": "biome check .",
     "lint": "biome check . --write",
@@ -26,9 +29,11 @@
   "license": "ISC",
   "dependencies": {
     "@syncpad/db": "workspace:*",
+    "@syncpad/errors": "workspace:*",
     "@syncpad/permify": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "vitest": "^4.1.5"
   }
 }
