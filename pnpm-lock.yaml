@@ -184,6 +184,9 @@ importers:
       '@permify/permify-node':
         specifier: ^1.6.9
         version: 1.6.9
+      '@syncpad/errors':
+        specifier: workspace:*
+        version: link:../errors
     devDependencies:
       '@syncpad/types':
         specifier: workspace:*

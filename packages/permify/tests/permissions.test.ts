@@ -2,6 +2,7 @@ import {
   CheckResult,
   type Subject,
 } from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
+import { PermifyError } from '@syncpad/errors';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PermifyInstance } from '../src/client.js';
 import { createPermissionChecker } from '../src/permissions.js';
@@ -112,7 +113,7 @@ describe('permission checker', () => {
     ).resolves.toBe(false);
   });
 
-  it('propagates Permify client errors without app-specific normalization', async () => {
+  it('normalizes Permify client errors as unavailable errors', async () => {
     const { grpc, instance } = createTestInstance();
     const clientError = new Error('transport down');
     grpc.permission.check.mockRejectedValue(clientError);
@@ -123,10 +124,15 @@ describe('permission checker', () => {
         resources.organization('org_1'),
         'read',
       ),
-    ).rejects.toBe(clientError);
+    ).rejects.toMatchObject({
+      cause: clientError,
+      code: 'PERMIFY_UNAVAILABLE',
+      kind: 'dependency_unavailable',
+      retryable: true,
+    });
   });
 
-  it('rejects invalid resource descriptors with a plain error', async () => {
+  it('rejects invalid resource descriptors with a structured error', async () => {
     const { instance } = createTestInstance();
 
     await expect(
@@ -138,6 +144,20 @@ describe('permission checker', () => {
         } as never,
         'read',
       ),
-    ).rejects.toThrow('Invalid resource descriptor for organization');
+    ).rejects.toMatchObject({
+      code: 'AUTHORIZATION_CONTEXT_INVALID',
+      kind: 'invariant_violation',
+    });
+
+    await expect(
+      createPermissionChecker(instance).checkPermission(
+        subject,
+        {
+          type: 'organization',
+          organizationId: undefined,
+        } as never,
+        'read',
+      ),
+    ).rejects.toBeInstanceOf(PermifyError);
   });
 });

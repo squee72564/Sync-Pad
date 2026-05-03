@@ -34,6 +34,7 @@
     "vitest": "^4.1.5"
   },
   "dependencies": {
+    "@syncpad/errors": "workspace:*",
     "@permify/permify-node": "^1.6.9"
   }
 }
