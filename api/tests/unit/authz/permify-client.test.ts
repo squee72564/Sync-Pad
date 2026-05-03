@@ -45,7 +45,8 @@ describe('api permify client', () => {
       await import('../../../src/authz/permify-client.js');
 
     expect(permifyMocks.createPermifyClient).toHaveBeenCalledWith({
-      endpoint: env.PERMIFY_URL,
+      endpoint: new URL(env.PERMIFY_GRPC_URL).host,
+      insecure: env.NODE_ENV !== 'production',
       schemaVersion: env.PERMIFY_SCHEMA_VERSION,
       tenantId: env.PERMIFY_TENANT_ID,
     });

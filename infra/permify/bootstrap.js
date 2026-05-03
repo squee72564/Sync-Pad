@@ -15,7 +15,7 @@ const getEnv = (name, fallback) => {
   return value;
 };
 
-const permifyUrl = getEnv('PERMIFY_URL');
+const permifyUrl = getEnv('PERMIFY_HTTP_URL');
 const tenantId = getEnv('PERMIFY_TENANT_ID', 'syncpad');
 const schemaPath = process.env.PERMIFY_SCHEMA_PATH
   ? resolve(process.cwd(), process.env.PERMIFY_SCHEMA_PATH)
