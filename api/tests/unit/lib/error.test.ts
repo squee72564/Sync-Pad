@@ -1,3 +1,4 @@
+import { SyncpadError } from '@syncpad/errors';
 import { StatusCodes } from 'http-status-codes';
 import { describe, expect, it } from 'vitest';
 
@@ -124,5 +125,42 @@ describe('toAppError', () => {
     expect(error.toProblem('production').detail).toBe(
       'An unexpected error occurred.',
     );
+  });
+
+  it.each([
+    ['validation', StatusCodes.BAD_REQUEST],
+    ['not_found', StatusCodes.NOT_FOUND],
+    ['conflict', StatusCodes.CONFLICT],
+    ['unauthorized', StatusCodes.UNAUTHORIZED],
+    ['forbidden', StatusCodes.FORBIDDEN],
+    ['dependency_unavailable', StatusCodes.SERVICE_UNAVAILABLE],
+    ['invariant_violation', StatusCodes.INTERNAL_SERVER_ERROR],
+  ] as const)('maps shared %s errors to HTTP status %s', (kind, status) => {
+    const cause = new Error('cause');
+    const source = new SyncpadError({
+      cause,
+      code: `TEST_${kind.toUpperCase()}`,
+      details: { field: 'name' },
+      expose: true,
+      kind,
+      message: 'Shared error',
+      metadata: { operation: 'test' },
+      tags: ['test'],
+      userMessage: 'Shared user message.',
+    });
+
+    const error = toAppError(source);
+
+    expect(error).toMatchObject({
+      cause,
+      code: `TEST_${kind.toUpperCase()}`,
+      details: { field: 'name' },
+      expose: true,
+      message: 'Shared error',
+      metadata: { operation: 'test' },
+      status,
+      tags: ['test'],
+      userMessage: 'Shared user message.',
+    });
   });
 });

@@ -41,6 +41,9 @@ importers:
       '@syncpad/db':
         specifier: workspace:*
         version: link:../packages/db
+      '@syncpad/errors':
+        specifier: workspace:*
+        version: link:../packages/errors
       '@syncpad/permify':
         specifier: workspace:*
         version: link:../packages/permify

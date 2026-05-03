@@ -1,3 +1,4 @@
+import { type ErrorKind, isSyncpadError } from '@syncpad/errors';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 
@@ -158,12 +159,36 @@ export class AppError extends Error {
 export const isAppError = (value: unknown): value is AppError =>
   value instanceof AppError;
 
+const syncpadStatusByKind: Record<ErrorKind, ContentfulStatusCode> = {
+  conflict: StatusCodes.CONFLICT,
+  dependency_unavailable: StatusCodes.SERVICE_UNAVAILABLE,
+  forbidden: StatusCodes.FORBIDDEN,
+  invariant_violation: StatusCodes.INTERNAL_SERVER_ERROR,
+  not_found: StatusCodes.NOT_FOUND,
+  unauthorized: StatusCodes.UNAUTHORIZED,
+  validation: StatusCodes.BAD_REQUEST,
+};
+
 export const toAppError = (
   value: unknown,
   fallback?: Partial<Omit<AppErrorOptions, 'message'>>,
 ) => {
   if (isAppError(value)) {
     return value;
+  }
+
+  if (isSyncpadError(value)) {
+    return new AppError({
+      cause: value.cause ?? value,
+      code: value.code,
+      details: value.details,
+      expose: value.expose,
+      metadata: value.metadata,
+      message: value.message,
+      status: fallback?.status ?? syncpadStatusByKind[value.kind],
+      tags: value.tags,
+      userMessage: value.userMessage,
+    });
   }
 
   const fallbackStatus = fallback?.status ?? StatusCodes.INTERNAL_SERVER_ERROR;

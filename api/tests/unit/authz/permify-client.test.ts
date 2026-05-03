@@ -1,4 +1,4 @@
-import { StatusCodes } from 'http-status-codes';
+import { PermifyError } from '@syncpad/errors';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const permifyMocks = vi.hoisted(() => {
@@ -78,8 +78,13 @@ describe('api permify client', () => {
     ).toHaveBeenCalledWith(subject, resource, 'read');
   });
 
-  it('normalizes permission check transport failures as PERMIFY_UNAVAILABLE', async () => {
-    const transportError = new Error('transport down');
+  it('bubbles package permission check errors unchanged', async () => {
+    const transportError = new PermifyError({
+      code: 'PERMIFY_UNAVAILABLE',
+      kind: 'dependency_unavailable',
+      message: 'transport down',
+      retryable: true,
+    });
     permifyMocks.rawPermissionChecker.checkPermission.mockRejectedValue(
       transportError,
     );
@@ -93,17 +98,15 @@ describe('api permify client', () => {
         { type: 'organization', organizationId: 'org_1' },
         'read',
       ),
-    ).rejects.toMatchObject({
-      cause: transportError,
-      code: 'PERMIFY_UNAVAILABLE',
-      status: StatusCodes.SERVICE_UNAVAILABLE,
-    });
+    ).rejects.toBe(transportError);
   });
 
-  it('normalizes invalid authorization descriptors as app context errors', async () => {
-    const descriptorError = new Error(
-      'Invalid resource descriptor for organization',
-    );
+  it('bubbles invalid authorization descriptor errors unchanged', async () => {
+    const descriptorError = new PermifyError({
+      code: 'AUTHORIZATION_CONTEXT_INVALID',
+      kind: 'invariant_violation',
+      message: 'Invalid resource descriptor for organization',
+    });
     permifyMocks.rawPermissionChecker.checkPermission.mockRejectedValue(
       descriptorError,
     );
@@ -117,10 +120,6 @@ describe('api permify client', () => {
         { type: 'organization', organizationId: undefined } as never,
         'read',
       ),
-    ).rejects.toMatchObject({
-      cause: descriptorError,
-      code: 'AUTHORIZATION_CONTEXT_INVALID',
-      status: StatusCodes.INTERNAL_SERVER_ERROR,
-    });
+    ).rejects.toBe(descriptorError);
   });
 });

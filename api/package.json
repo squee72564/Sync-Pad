@@ -24,6 +24,7 @@
     "@hono/node-server": "^2.0.0",
     "@syncpad/core": "workspace:*",
     "@syncpad/db": "workspace:*",
+    "@syncpad/errors": "workspace:*",
     "@syncpad/permify": "workspace:*",
     "better-auth": "^1.6.9",
     "dotenv": "^17.4.2",
