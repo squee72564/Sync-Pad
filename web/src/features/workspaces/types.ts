@@ -1,23 +1,17 @@
 import type {
-  Workspace as _Workspace,
-  WorkspaceRole as _WorkspaceRole,
+  CreateWorkspaceInput,
+  CreateWorkspaceResponse,
+  OrganizationWorkspacesResponse,
+  WorkspaceDto,
+  WorkspaceResponse,
+  WorkspaceRole,
 } from '@syncpad/types';
 
-export type Workspace = _Workspace;
-export type WorkspaceRole = _WorkspaceRole;
-export type CreateWorkspaceInput = Omit<
-  Workspace,
-  'id' | 'createdAt' | 'updatedAt' | 'organizationId'
->;
-
-export type CreateWorkspaceResponse = {
-  workspace: Workspace;
-};
-
-export type WorkspaceResponse = {
-  workspace: Workspace;
-};
-
-export type OrganizationWorkspacesResponse = {
-  workspaces: Workspace[];
+export type Workspace = WorkspaceDto;
+export type {
+  CreateWorkspaceInput,
+  CreateWorkspaceResponse,
+  OrganizationWorkspacesResponse,
+  WorkspaceResponse,
+  WorkspaceRole,
 };

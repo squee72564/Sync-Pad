@@ -1,4 +1,24 @@
 export type {
+  CreateOrganizationInput,
+  CreateOrganizationResponse,
+  CreateWorkspaceInput,
+  CreateWorkspaceResponse,
+  MeOrganizationDto,
+  MeOrganizationsResponse,
+  MeWorkspaceDto,
+  MeWorkspacesResponse,
+  OrganizationDto,
+  OrganizationMembershipDto,
+  OrganizationMembershipsResponse,
+  OrganizationResponse,
+  OrganizationsResponse,
+  OrganizationWorkspacesResponse,
+  WorkspaceDto,
+  WorkspaceMembershipDto,
+  WorkspaceMembershipsResponse,
+  WorkspaceResponse,
+} from './api.js';
+export type {
   DbClient,
   DbPool,
   NewOrganization,
@@ -11,3 +31,4 @@ export type {
   WorkspaceMembership,
   WorkspaceRole,
 } from './db.js';
+export type { JsonDate, Jsonify, JsonPrimitive } from './json.js';
