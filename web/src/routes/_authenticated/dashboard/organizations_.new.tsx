@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
@@ -36,6 +35,7 @@ function NewOrganizationPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const createOrganizationMutation = useMutation({
@@ -73,7 +73,10 @@ function NewOrganizationPage() {
       return;
     }
 
-    await createOrganizationMutation.mutateAsync({ name: trimmedName });
+    await createOrganizationMutation.mutateAsync({
+      name: trimmedName,
+      description: description,
+    });
   }
 
   return (
@@ -116,7 +119,7 @@ function NewOrganizationPage() {
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="organization-name">Name</FieldLabel>
+                  <FieldLabel htmlFor="organization-name">Name *</FieldLabel>
                   <FieldContent>
                     <Input
                       id="organization-name"
@@ -132,6 +135,25 @@ function NewOrganizationPage() {
                     />
                     <FieldDescription>
                       This is what members will see throughout Syncpad.
+                    </FieldDescription>
+                  </FieldContent>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="organization-description">
+                    Description
+                  </FieldLabel>
+                  <FieldContent>
+                    <Input
+                      id="organization-description"
+                      type="text"
+                      value={description}
+                      onChange={(event) => setDescription(event.target.value)}
+                      placeholder="Your Organization Description"
+                      aria-invalid={errorMessage ? true : undefined}
+                      disabled={createOrganizationMutation.isPending}
+                    />
+                    <FieldDescription>
+                      Input a description for this workspace
                     </FieldDescription>
                   </FieldContent>
                 </Field>
@@ -157,21 +179,6 @@ function NewOrganizationPage() {
               </div>
             </form>
           </CardContent>
-        </Card>
-
-        <Card className="border-dashed border-border/70">
-          <CardHeader>
-            <CardTitle>What comes next</CardTitle>
-            <CardDescription>
-              Keep the first step light, then deepen the flow as the product
-              adds more organization-level setup.
-            </CardDescription>
-          </CardHeader>
-          <CardFooter className="flex-col items-start gap-2 text-sm text-muted-foreground">
-            <p>Invite teammates and assign roles.</p>
-            <p>Set up default workspaces and conventions.</p>
-            <p>Capture onboarding decisions in a follow-up step.</p>
-          </CardFooter>
         </Card>
       </div>
     </div>

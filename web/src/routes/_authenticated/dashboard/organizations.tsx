@@ -72,7 +72,11 @@ function OrganizationsPage() {
                       <Building2Icon className="size-4" />
                     </div>
                     <CardTitle>{organization.name}</CardTitle>
-                    <CardDescription>{organization.id}</CardDescription>
+                    <CardDescription>
+                      {organization.description.length === 0
+                        ? 'No Description'
+                        : organization.description}
+                    </CardDescription>
                   </CardHeader>
                 </Card>
               </Link>

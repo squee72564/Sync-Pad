@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeftIcon, FolderPlusIcon } from 'lucide-react';
 import { type SubmitEvent, useState } from 'react';
+import { HexAlphaColorPicker } from 'react-colorful';
 import { toast } from 'sonner';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
@@ -9,7 +10,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
@@ -37,6 +37,8 @@ function NewWorkspacePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [color, setColor] = useState('#808080FF');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const createWorkspaceMutation = useMutation({
@@ -74,14 +76,29 @@ function NewWorkspacePage() {
     event.preventDefault();
 
     const trimmedName = name.trim();
+    const trimmedDescription = description.trim();
+    let normalizedColor = color.trim().toUpperCase();
 
     if (!trimmedName) {
       setErrorMessage('Workspace name is required.');
       return;
     }
 
+    if (/^#[0-9A-Fa-f]{6}$/.test(normalizedColor)) {
+      normalizedColor = `${normalizedColor}FF`;
+    }
+
+    if (!/^#[0-9A-Fa-f]{8}$/.test(normalizedColor)) {
+      setErrorMessage(`Invalid Color: ${normalizedColor}`);
+      return;
+    }
+
     await createWorkspaceMutation.mutateAsync({
-      input: { name: trimmedName },
+      input: {
+        name: trimmedName,
+        description: trimmedDescription,
+        color: normalizedColor,
+      },
       organizationId,
     });
   }
@@ -149,6 +166,38 @@ function NewWorkspacePage() {
                     </FieldDescription>
                   </FieldContent>
                 </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="workspace-description">
+                    Description
+                  </FieldLabel>
+                  <FieldContent>
+                    <Input
+                      id="workspace-description"
+                      type="text"
+                      value={description}
+                      onChange={(event) => setDescription(event.target.value)}
+                      placeholder="Example description"
+                      autoComplete="off"
+                      maxLength={200}
+                      aria-invalid={errorMessage ? true : undefined}
+                      disabled={createWorkspaceMutation.isPending}
+                    />
+                    <FieldDescription>
+                      Insert a description of your workspace here.
+                    </FieldDescription>
+                  </FieldContent>
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="workspace-color">Color</FieldLabel>
+                  <FieldContent>
+                    <HexAlphaColorPicker
+                      color={color}
+                      onChange={(event) => setColor(event)}
+                    />
+                  </FieldContent>
+                </Field>
               </FieldGroup>
 
               <FieldError>{errorMessage}</FieldError>
@@ -174,21 +223,6 @@ function NewWorkspacePage() {
               </div>
             </form>
           </CardContent>
-        </Card>
-
-        <Card className="border-dashed border-border/70">
-          <CardHeader>
-            <CardTitle>What comes next</CardTitle>
-            <CardDescription>
-              Workspace setup can grow into a richer onboarding flow as the
-              product adds more collaboration surfaces.
-            </CardDescription>
-          </CardHeader>
-          <CardFooter className="flex-col items-start gap-2 text-sm text-muted-foreground">
-            <p>Add workspace members and roles.</p>
-            <p>Create starter docs, sheets, or timeline views.</p>
-            <p>Configure workspace-specific settings.</p>
-          </CardFooter>
         </Card>
       </div>
     </div>

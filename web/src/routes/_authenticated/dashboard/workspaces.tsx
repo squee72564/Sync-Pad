@@ -68,7 +68,10 @@ function WorkspacesPage() {
               >
                 <Card>
                   <CardHeader>
-                    <div className="flex size-9 items-center justify-center rounded-md bg-muted">
+                    <div
+                      className="flex size-9 items-center justify-center rounded-md bg-muted"
+                      style={{ backgroundColor: workspace.color }}
+                    >
                       <BriefcaseBusinessIcon className="size-4" />
                     </div>
                     <CardTitle>{workspace.name}</CardTitle>
@@ -80,7 +83,9 @@ function WorkspacesPage() {
                     </CardAction>
                   </CardHeader>
                   <div className="px-6 text-xs text-muted-foreground">
-                    {workspace.organizationId} / {workspace.id}
+                    {workspace.description.length === 0
+                      ? 'No Description'
+                      : workspace.description}
                   </div>
                 </Card>
               </Link>
