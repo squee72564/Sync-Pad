@@ -2,7 +2,11 @@ import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError } from '../../src/lib/error.js';
-import type { AuthSession } from '../../src/types/auth.js';
+import {
+  authenticatedSession,
+  organizationRecord,
+  workspaceRecord,
+} from '../helpers/fixtures.js';
 
 vi.mock('../../src/lib/auth-session.js', () => ({
   getAuthSession: vi.fn(),
@@ -59,41 +63,6 @@ vi.mock('../../src/services/workspace-service.js', () => ({
   },
 }));
 
-const authenticatedSession: AuthSession = {
-  session: {
-    id: 'sess_1',
-    userId: 'user_1',
-    token: 'token_1',
-    createdAt: new Date('2024-01-02T03:04:05.000Z'),
-    updatedAt: new Date('2024-01-02T03:04:05.000Z'),
-    expiresAt: new Date('2024-01-02T03:04:05.000Z'),
-  },
-  user: {
-    id: 'user_1',
-    email: 'user@example.com',
-    emailVerified: true,
-    name: 'User One',
-    image: null,
-    createdAt: new Date('2024-01-02T03:04:05.000Z'),
-    updatedAt: new Date('2024-01-02T03:04:05.000Z'),
-  },
-};
-
-const organizationRecord = {
-  id: 'org_1',
-  name: 'Acme',
-  createdAt: new Date('2024-01-02T03:04:05.000Z'),
-  updatedAt: new Date('2024-01-02T03:04:05.000Z'),
-};
-
-const workspaceRecord = {
-  id: 'ws_1',
-  organizationId: 'org_1',
-  name: 'Docs',
-  createdAt: new Date('2024-01-02T03:04:05.000Z'),
-  updatedAt: new Date('2024-01-02T03:04:05.000Z'),
-};
-
 afterEach(() => {
   vi.clearAllMocks();
 });
@@ -144,7 +113,11 @@ describe('workspace routes', () => {
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ name: 'Docs' }),
+        body: JSON.stringify({
+          name: 'Docs',
+          description: 'Desc',
+          color: '#80808080',
+        }),
       },
     );
 

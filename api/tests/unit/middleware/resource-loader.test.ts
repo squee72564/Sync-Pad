@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AppVariables } from '../../../src/lib/context.js';
+import { organizationRecord } from '../../helpers/fixtures.js';
 
 vi.mock('../../../src/repositories/organization-repository.js', () => ({
   organizationRepository: {
@@ -23,12 +24,9 @@ describe('resource loader middleware', () => {
     const { organizationRepository } = await import(
       '../../../src/repositories/organization-repository.js'
     );
-    vi.mocked(organizationRepository.findById).mockResolvedValue({
-      id: 'org_1',
-      name: 'Acme',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    vi.mocked(organizationRepository.findById).mockResolvedValue(
+      organizationRecord,
+    );
 
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {
