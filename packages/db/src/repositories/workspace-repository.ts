@@ -53,7 +53,7 @@ export function createWorkspaceRepository(db: DbClient) {
     ) {
       return withDbError(
         { entity: 'workspace', operation: 'listByOrganizationReadableToUser' },
-        () => {
+        async () => {
           if (options?.includeAll) {
             return database.query.workspace.findMany({
               where: eq(workspace.organizationId, organizationId),
@@ -88,6 +88,8 @@ export function createWorkspaceRepository(db: DbClient) {
             .select({
               id: workspace.id,
               name: workspace.name,
+              description: workspace.description,
+              color: workspace.color,
               organizationId: workspace.organizationId,
               organizationName: organization.name,
               workspaceRole: workspaceMembership.workspaceRole,
@@ -156,6 +158,8 @@ export function createWorkspaceRepository(db: DbClient) {
       values: {
         id: string;
         name: string;
+        description: string | undefined;
+        color: string | undefined;
         organizationId: string;
       },
       database: DatabaseExecutor = db,

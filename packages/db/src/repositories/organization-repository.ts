@@ -56,6 +56,7 @@ export function createOrganizationRepository(db: DbClient) {
       values: {
         id: string;
         name: string;
+        description: string | undefined;
       },
       database: DatabaseExecutor = db,
     ) {

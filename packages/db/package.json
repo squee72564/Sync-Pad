@@ -13,6 +13,7 @@
     "dist"
   ],
   "scripts": {
+    "dev": "tsc -w -p tsconfig.json --preserveWatchOutput",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run --reporter=agent --silent=passed-only",
     "test:verbose": "vitest run --reporter=default",

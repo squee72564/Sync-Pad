@@ -8,6 +8,34 @@
       "when": 1777404090635,
       "tag": "0000_modern_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777865447375,
+      "tag": "0001_jazzy_jackpot",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777865684071,
+      "tag": "0002_workable_bromley",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777865920844,
+      "tag": "0003_rich_hulk",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777867674453,
+      "tag": "0004_cynical_metal_master",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,6 @@
+import { sql } from 'drizzle-orm';
 import {
+  check,
   foreignKey,
   index,
   pgEnum,
@@ -7,8 +9,8 @@ import {
   text,
   timestamp,
   unique,
+  varchar,
 } from 'drizzle-orm/pg-core';
-
 import { user } from './auth-schema.js';
 
 export const organizationRoleEnum = pgEnum('organization_role', [
@@ -33,6 +35,7 @@ export const workspaceRoleEnum = pgEnum('workspace_role', [
 export const organization = pgTable('organization', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  description: text('description').default('').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
@@ -77,6 +80,8 @@ export const workspace = pgTable(
   {
     id: text('id').primaryKey(),
     name: text('name').notNull(),
+    description: text('description').default('').notNull(),
+    color: varchar('color', { length: 9 }).default('#808080FF').notNull(),
     organizationId: text('organization_id')
       .notNull()
       .references(() => organization.id, { onDelete: 'cascade' }),
@@ -89,6 +94,7 @@ export const workspace = pgTable(
   },
   (t) => [
     unique('workspace_id_organization_id_unique').on(t.id, t.organizationId),
+    check('color_hex_value', sql`${t.color} ~ '^#[0-9A-Fa-f]{8}$'`),
   ],
 );
 
