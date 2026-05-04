@@ -8,11 +8,13 @@ export type OrganizationParams = z.infer<typeof organizationParamsSchema>;
 
 export const createOrganizationSchema = z.object({
   name: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(512).optional(),
 });
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 
 export const updateOrganizationSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
+  description: z.string().trim().max(512).optional(),
 });
 export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
 
