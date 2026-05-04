@@ -1,16 +1,14 @@
-export type WorkspaceRole = 'manager' | 'editor' | 'commenter' | 'viewer';
+import type {
+  Workspace as _Workspace,
+  WorkspaceRole as _WorkspaceRole,
+} from '@syncpad/types';
 
-export type Workspace = {
-  id: string;
-  name: string;
-  organizationId: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type CreateWorkspaceInput = {
-  name: string;
-};
+export type Workspace = _Workspace;
+export type WorkspaceRole = _WorkspaceRole;
+export type CreateWorkspaceInput = Omit<
+  Workspace,
+  'id' | 'createdAt' | 'updatedAt' | 'organizationId'
+>;
 
 export type CreateWorkspaceResponse = {
   workspace: Workspace;

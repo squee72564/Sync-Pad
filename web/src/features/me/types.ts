@@ -1,19 +1,17 @@
-export type MeOrganization = {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import type { Organization, Workspace, WorkspaceRole } from '@syncpad/types';
+import type { PickAndRenameStrict } from '#/lib/utils';
 
-export type MeWorkspace = {
-  id: string;
-  name: string;
-  organizationId: string;
-  organizationName: string;
-  workspaceRole: 'manager' | 'editor' | 'commenter' | 'viewer';
-  createdAt: string;
-  updatedAt: string;
-};
+export type MeOrganization = Organization;
+
+type OrgRenamed = PickAndRenameStrict<
+  Organization,
+  'name',
+  { name: 'organizationName' }
+>;
+
+export type MeWorkspace = Workspace & {
+  workspaceRole: WorkspaceRole;
+} & OrgRenamed;
 
 export type MeOrganizationsResponse = {
   organizations: MeOrganization[];

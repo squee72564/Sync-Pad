@@ -1,15 +1,16 @@
-export type OrganizationRole = 'owner' | 'admin' | 'member' | 'guest';
+import type {
+  Organization as _Organization,
+  OrganizationRole as _OrganizationRole,
+  NewOrganization,
+} from '@syncpad/types';
 
-export type Organization = {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-};
+export type Organization = _Organization;
+export type OrganizationRole = _OrganizationRole;
 
-export type CreateOrganizationInput = {
-  name: string;
-};
+export type CreateOrganizationInput = Omit<
+  NewOrganization,
+  'id' | 'createdAt' | 'updatedAt'
+>;
 
 export type CreateOrganizationResponse = {
   organization: Organization;
