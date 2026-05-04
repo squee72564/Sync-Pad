@@ -1,11 +1,8 @@
-import { createDbClientAndPool } from '@syncpad/db';
+import type { DbPool } from '@syncpad/db';
 import { StatusCodes } from 'http-status-codes';
-import { env } from '../lib/env.js';
 import { ApiError } from '../lib/error.js';
 
-export const { pool, client: db } = createDbClientAndPool(env.DATABASE_URL);
-
-export const checkDatabaseReadiness = async () => {
+export const checkDatabaseReadiness = async (pool: DbPool) => {
   try {
     await pool.query('select 1');
     return true;

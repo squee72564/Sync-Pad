@@ -1,22 +1,31 @@
 import { Hono } from 'hono';
-
+import type { ApiDeps } from './bootstrap/deps.js';
 import { errorHandler } from './http/error-handler.js';
 import { notFoundHandler } from './http/not-found-handler.js';
-import { auth } from './lib/auth.js';
 import type { AppVariables } from './lib/context.js';
-import { env } from './lib/env.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { requestLoggerMiddleware } from './middleware/request-logger.js';
 import {
   authSecurityMiddleware,
   securityHeaders,
 } from './middleware/security.js';
-import { healthRoute } from './routes/health.js';
-import { meRoute } from './routes/me.js';
-import { organizationsRoute } from './routes/organizations.js';
-import { organizationWorkspacesRoute } from './routes/workspaces.js';
+import { createHealthRoute } from './routes/health.js';
+import { createMeRoute } from './routes/me.js';
+import { createOrganizationsRoute } from './routes/organizations.js';
+import { createOrganizationWorkspacesRoute } from './routes/workspaces.js';
 
-export const createApp = () => {
+export const createApp = (deps: ApiDeps) => {
+  const {
+    pool,
+    workspaceRepository,
+    workspaceService,
+    organizationRepository,
+    organizationService,
+    permissionChecker,
+    auth,
+    env,
+  } = deps;
+
   const app = new Hono<{ Variables: AppVariables }>();
 
   app.use('*', securityHeaders);
@@ -30,7 +39,7 @@ export const createApp = () => {
     }),
   );
 
-  app.route('/', healthRoute);
+  app.route('/', createHealthRoute({ pool }));
 
   app.use('/api/auth/*', ...authSecurityMiddleware);
 
@@ -38,11 +47,29 @@ export const createApp = () => {
     return auth.handler(context.req.raw);
   });
 
-  app.route('/api/me', meRoute);
-  app.route('/api/organizations', organizationsRoute);
+  app.route(
+    '/api/me',
+    createMeRoute({ workspaceService, organizationService, auth }),
+  );
+  app.route(
+    '/api/organizations',
+    createOrganizationsRoute({
+      organizationService,
+      organizationRepository,
+      workspaceRepository,
+      permissionChecker,
+      auth,
+    }),
+  );
   app.route(
     '/api/organizations/:organizationId/workspaces',
-    organizationWorkspacesRoute,
+    createOrganizationWorkspacesRoute({
+      workspaceService,
+      workspaceRepository,
+      organizationRepository,
+      permissionChecker,
+      auth,
+    }),
   );
 
   app.notFound(notFoundHandler);
@@ -51,4 +78,4 @@ export const createApp = () => {
   return app;
 };
 
-export const app = createApp();
+export type ApiService = ReturnType<typeof createApp>;

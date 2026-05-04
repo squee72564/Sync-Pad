@@ -1,7 +1,7 @@
 import { type ServerType, serve } from '@hono/node-server';
-import { app } from '../app.js';
-import { pool } from '../db/client.js';
-import { env } from './env.js';
+import type { DbPool } from '@syncpad/db';
+import type { ApiService } from '../app.js';
+import type { Env } from './env.js';
 import { logger } from './logger.js';
 
 let server: ServerType | undefined;
@@ -27,6 +27,7 @@ const closeServer = (serverToClose: ServerType) =>
   });
 
 export const shutdownServer = (
+  pool: DbPool,
   reason: string,
   options?: {
     error?: unknown;
@@ -60,24 +61,24 @@ export const shutdownServer = (
   return shutdownPromise;
 };
 
-const registerProcessHandlers = () => {
+const registerProcessHandlers = (pool: DbPool) => {
   process.once('SIGINT', () => {
-    void shutdownServer('SIGINT');
+    void shutdownServer(pool, 'SIGINT');
   });
 
   process.once('SIGTERM', () => {
-    void shutdownServer('SIGTERM');
+    void shutdownServer(pool, 'SIGTERM');
   });
 
   process.once('uncaughtException', (error) => {
-    void shutdownServer('uncaughtException', {
+    void shutdownServer(pool, 'uncaughtException', {
       error,
       exitCode: 1,
     });
   });
 
   process.once('unhandledRejection', (reason) => {
-    void shutdownServer('unhandledRejection', {
+    void shutdownServer(pool, 'unhandledRejection', {
       error:
         reason instanceof Error
           ? reason
@@ -87,8 +88,16 @@ const registerProcessHandlers = () => {
   });
 };
 
-export const startServer = () => {
-  registerProcessHandlers();
+export const startServer = ({
+  app,
+  pool,
+  env,
+}: {
+  app: ApiService;
+  pool: DbPool;
+  env: Env;
+}) => {
+  registerProcessHandlers(pool);
 
   server = serve(
     {
@@ -107,7 +116,7 @@ export const startServer = () => {
   );
 
   server.once('error', (error) => {
-    void shutdownServer('server_error', {
+    void shutdownServer(pool, 'server_error', {
       error,
       exitCode: 1,
     });

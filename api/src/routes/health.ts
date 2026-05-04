@@ -1,3 +1,4 @@
+import type { DbPool } from '@syncpad/types';
 import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 
@@ -9,48 +10,50 @@ const createHealthPayload = (checks: Record<string, string>, ok: boolean) => ({
   timestamp: new Date().toISOString(),
 });
 
-export const healthRoute = new Hono()
-  .get('/health', (context) =>
-    context.json(
-      createHealthPayload(
-        {
-          process: 'ok',
-        },
-        true,
-      ),
-    ),
-  )
-  .get('/live', (context) =>
-    context.json(
-      createHealthPayload(
-        {
-          process: 'ok',
-        },
-        true,
-      ),
-    ),
-  )
-  .get('/ready', async (context) => {
-    try {
-      await checkDatabaseReadiness();
-
-      return context.json(
+export function createHealthRoute({ pool }: { pool: DbPool }) {
+  return new Hono()
+    .get('/health', (context) =>
+      context.json(
         createHealthPayload(
           {
-            database: 'ok',
+            process: 'ok',
           },
           true,
         ),
-      );
-    } catch {
-      return context.json(
+      ),
+    )
+    .get('/live', (context) =>
+      context.json(
         createHealthPayload(
           {
-            database: 'unavailable',
+            process: 'ok',
           },
-          false,
+          true,
         ),
-        StatusCodes.SERVICE_UNAVAILABLE,
-      );
-    }
-  });
+      ),
+    )
+    .get('/ready', async (context) => {
+      try {
+        await checkDatabaseReadiness(pool);
+
+        return context.json(
+          createHealthPayload(
+            {
+              database: 'ok',
+            },
+            true,
+          ),
+        );
+      } catch {
+        return context.json(
+          createHealthPayload(
+            {
+              database: 'unavailable',
+            },
+            false,
+          ),
+          StatusCodes.SERVICE_UNAVAILABLE,
+        );
+      }
+    });
+}

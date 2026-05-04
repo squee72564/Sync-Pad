@@ -1,30 +1,33 @@
-import { authSchema } from '@syncpad/db';
+import { authSchema, type DbClient } from '@syncpad/db';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { db } from '../db/client.js';
-import { env } from './env.js';
+import type { Env } from './env.js';
 
-const appOrigin = new URL(env.BETTER_AUTH_URL).origin;
+export function createAuth({ db, env }: { db: DbClient; env: Env }) {
+  const appOrigin = new URL(env.BETTER_AUTH_URL).origin;
 
-export const auth = betterAuth({
-  secret: env.BETTER_AUTH_SECRET,
-  baseURL: env.BETTER_AUTH_URL,
-  basePath: '/api/auth',
-  database: drizzleAdapter(db, {
-    provider: 'pg',
-    schema: authSchema,
-  }),
-  trustedOrigins: [appOrigin],
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: false,
-  },
-  advanced: {
-    useSecureCookies: env.NODE_ENV === 'production',
-    defaultCookieAttributes: {
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
+  return betterAuth({
+    secret: env.BETTER_AUTH_SECRET,
+    baseURL: env.BETTER_AUTH_URL,
+    basePath: '/api/auth',
+    database: drizzleAdapter(db, {
+      provider: 'pg',
+      schema: authSchema,
+    }),
+    trustedOrigins: [appOrigin],
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: false,
     },
-  },
-});
+    advanced: {
+      useSecureCookies: env.NODE_ENV === 'production',
+      defaultCookieAttributes: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+      },
+    },
+  });
+}
+
+export type Auth = ReturnType<typeof createAuth>;

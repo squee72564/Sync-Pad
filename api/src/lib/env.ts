@@ -19,7 +19,7 @@ const envSchema = z.object({
   PERMIFY_SCHEMA_VERSION: z.string().min(1),
 });
 
-type Env = z.infer<typeof envSchema>;
+export type Env = z.infer<typeof envSchema>;
 
 const exitWithValidationFailure = (): never => {
   logger.flush();

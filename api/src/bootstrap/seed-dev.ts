@@ -5,10 +5,11 @@ import {
   toWorkspaceParentTuple,
 } from '@syncpad/permify';
 import { eq } from 'drizzle-orm';
-import { permissionChecker } from '../authz/permify-client.js';
-import { auth } from '../lib/auth.js';
 import { env } from '../lib/env.js';
-import { db, pool } from './client.js';
+import { createApiDeps } from './deps.js';
+
+const deps = createApiDeps(env);
+const { auth, permissionChecker, db, pool } = deps;
 
 type SeedOptions = {
   email: string;
