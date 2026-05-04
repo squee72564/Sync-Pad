@@ -54,7 +54,7 @@ const ensureTenant = async () => {
   } catch (error) {
     if (
       error instanceof Error &&
-      /already exists|conflict|409/i.test(error.message)
+      /"message":"ERROR_CODE_UNIQUE_CONSTRAINT"/i.test(error.message)
     ) {
       console.log(`Permify tenant ${tenantId} already exists`);
       return;
