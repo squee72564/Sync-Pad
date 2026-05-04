@@ -17,8 +17,8 @@
     "format:check": "biome format .",
     "format": "biome format . --write",
     "check": "pnpm lint:check && pnpm format:check && pnpm typecheck",
-    "db:seed:dev": "tsx src/db/seed-dev.ts",
-    "auth:generate:dev": "dotenv -e .env -- auth generate --config ./src/lib/auth.ts --output ./src/db/schema/auth-schema.ts"
+    "db:seed:dev": "tsx src/bootstrap/seed-dev.ts",
+    "auth:generate:dev": "dotenv -e .env -- auth generate --config ./src/lib/auth.config.ts --output ../packages/db/src/schema/auth-schema.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.6.9",
