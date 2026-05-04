@@ -1,4 +1,6 @@
 export type {
+  DbClient,
+  DbPool,
   NewOrganization,
   NewWorkspace,
   Organization,

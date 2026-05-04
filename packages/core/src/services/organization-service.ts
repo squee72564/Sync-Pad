@@ -257,6 +257,4 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
     },
   };
 }
-export type CreateOrganizationService = ReturnType<
-  typeof createOrganizationService
->;
+export type OrganizationService = ReturnType<typeof createOrganizationService>;

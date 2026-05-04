@@ -1,8 +1,8 @@
 export {
-  type CreateOrganizationService,
   createOrganizationService,
+  type OrganizationService,
 } from './organization-service.js';
 export {
-  type CreateWorkspaceService,
   createWorkspaceService,
+  type WorkspaceService,
 } from './workspace-service.js';

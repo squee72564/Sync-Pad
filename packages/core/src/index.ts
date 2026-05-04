@@ -1,6 +1,6 @@
 export {
-  type CreateOrganizationService,
-  type CreateWorkspaceService,
   createOrganizationService,
   createWorkspaceService,
+  type OrganizationService,
+  type WorkspaceService,
 } from './services/index.js';

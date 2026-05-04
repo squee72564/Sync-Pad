@@ -308,4 +308,4 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
     },
   };
 }
-export type CreateWorkspaceService = ReturnType<typeof createWorkspaceService>;
+export type WorkspaceService = ReturnType<typeof createWorkspaceService>;
