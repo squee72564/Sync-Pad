@@ -1,5 +1,6 @@
 import type {
   DbClient,
+  NewWorkspace,
   OrganizationRepository,
   WorkspaceMembership,
   WorkspaceRepository,
@@ -26,6 +27,10 @@ export type WorkspaceServiceDeps = {
 };
 
 type WorkspaceMembershipCleanupRecord = WorkspaceMembership;
+type CreateWorkspaceInput = Pick<
+  NewWorkspace,
+  'name' | 'description' | 'color'
+>;
 
 export function createWorkspaceService(deps: WorkspaceServiceDeps) {
   const {
@@ -93,9 +98,7 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
     async createWorkspace(input: {
       actorUserId: string;
       organizationId: string;
-      input: {
-        name: string;
-      };
+      input: CreateWorkspaceInput;
     }) {
       return db.transaction(async (tx) => {
         await ensureActiveOrganizationMembership(
@@ -109,6 +112,8 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
             id: crypto.randomUUID(),
             organizationId: input.organizationId,
             name: input.input.name,
+            description: input.input.description,
+            color: input.input.color,
           },
           tx,
         );

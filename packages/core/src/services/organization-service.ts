@@ -27,11 +27,11 @@ type ActorId = { actorUserId: string };
 type OrganizationId = { organizationId: string };
 
 type CreateOrganizationInput = {
-  input: Pick<NewOrganization, 'name'>;
+  input: Pick<NewOrganization, 'name' | 'description'>;
 } & ActorId;
 
 type UpdateOrganizationInput = {
-  input: Partial<Pick<NewOrganization, 'name'>>;
+  input: Partial<Pick<NewOrganization, 'name' | 'description'>>;
 } & OrganizationId;
 
 type UpsertOrganizationMembershipInput = {
@@ -67,6 +67,7 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
           {
             id: crypto.randomUUID(),
             name: input.name,
+            description: input.description,
           },
           tx,
         );
