@@ -1,20 +1,24 @@
 import { describe, expect, it } from 'vitest';
 
-import { auth } from '../../../src/lib/auth.js';
-import { env } from '../../../src/lib/env.js';
+import { createAuth } from '../../../src/lib/auth.js';
+import { createTestDeps, testEnvFixture } from '../../helpers/test-deps.js';
 
 describe('auth config', () => {
   it('locks Better Auth to the configured single app origin', () => {
-    expect(auth.options.baseURL).toBe(env.BETTER_AUTH_URL);
+    const auth = createAuth({ db: createTestDeps().db, env: testEnvFixture });
+
+    expect(auth.options.baseURL).toBe(testEnvFixture.BETTER_AUTH_URL);
     expect(auth.options.basePath).toBe('/api/auth');
     expect(auth.options.trustedOrigins).toEqual([
-      new URL(env.BETTER_AUTH_URL).origin,
+      new URL(testEnvFixture.BETTER_AUTH_URL).origin,
     ]);
   });
 
   it('uses explicit cookie and email-password defaults for the current MVP', () => {
+    const auth = createAuth({ db: createTestDeps().db, env: testEnvFixture });
+
     expect(auth.options.advanced?.useSecureCookies).toBe(
-      env.NODE_ENV === 'production',
+      testEnvFixture.NODE_ENV === 'production',
     );
     expect(auth.options.advanced?.defaultCookieAttributes).toMatchObject({
       httpOnly: true,

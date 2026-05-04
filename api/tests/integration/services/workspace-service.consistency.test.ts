@@ -1,8 +1,8 @@
+import { createWorkspaceService } from '@syncpad/core';
 import { coreSchema } from '@syncpad/db';
+import type { AccessGraphSync } from '@syncpad/permify';
 import { and, eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { db } from '../../../src/db/client.js';
-import { createWorkspaceService } from '../../../src/services/workspace-service.js';
 import {
   resetDatabase,
   seedOrganization,
@@ -11,6 +11,33 @@ import {
   seedWorkspace,
   seedWorkspaceMembership,
 } from '../../helpers/db-fixtures.js';
+import { getIntegrationDeps } from '../../helpers/integration-deps.js';
+
+const deps = getIntegrationDeps();
+const db = deps.db;
+
+const createWorkspaceConsistencyService = ({
+  accessGraphSync,
+  organizationRepo = deps.organizationRepository,
+  permissionChecker = deps.permissionChecker,
+  workspaceRepo = deps.workspaceRepository,
+}: {
+  accessGraphSync: AccessGraphSync;
+  organizationRepo?: Parameters<
+    typeof createWorkspaceService
+  >[0]['organizationRepo'];
+  permissionChecker?: Parameters<
+    typeof createWorkspaceService
+  >[0]['permissionChecker'];
+  workspaceRepo?: Parameters<typeof createWorkspaceService>[0]['workspaceRepo'];
+}) =>
+  createWorkspaceService({
+    accessGraphSync,
+    db: deps.db,
+    organizationRepo,
+    permissionChecker,
+    workspaceRepo,
+  });
 
 describe.sequential('workspace service consistency', () => {
   beforeEach(async () => {
@@ -30,7 +57,7 @@ describe.sequential('workspace service consistency', () => {
       organizationRole: 'owner',
       status: 'active',
     });
-    const service = createWorkspaceService({
+    const service = createWorkspaceConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -75,7 +102,7 @@ describe.sequential('workspace service consistency', () => {
       status: 'active',
     });
     await seedWorkspace({ id: 'ws_1', organizationId: 'org_1', name: 'Docs' });
-    const service = createWorkspaceService({
+    const service = createWorkspaceConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -118,7 +145,7 @@ describe.sequential('workspace service consistency', () => {
       workspaceId: 'ws_1',
       workspaceRole: 'viewer',
     });
-    const service = createWorkspaceService({
+    const service = createWorkspaceConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -162,7 +189,7 @@ describe.sequential('workspace service consistency', () => {
       workspaceId: 'ws_1',
       workspaceRole: 'viewer',
     });
-    const service = createWorkspaceService({
+    const service = createWorkspaceConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -200,7 +227,7 @@ describe.sequential('workspace service consistency', () => {
       workspaceId: 'ws_1',
       workspaceRole: 'manager',
     });
-    const service = createWorkspaceService({
+    const service = createWorkspaceConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -227,7 +254,7 @@ describe.sequential('workspace service consistency', () => {
       status: 'invited',
       joinedAt: null,
     });
-    const service = createWorkspaceService({
+    const service = createWorkspaceConsistencyService({
       accessGraphSync: {
         apply: vi.fn(),
       },
@@ -273,7 +300,7 @@ describe.sequential('workspace service consistency', () => {
     });
     await seedWorkspace({ id: 'ws_1', organizationId: 'org_1', name: 'Docs' });
 
-    const service = createWorkspaceService({
+    const service = createWorkspaceConsistencyService({
       accessGraphSync: {
         apply: vi.fn(),
       },
@@ -302,7 +329,7 @@ describe.sequential('workspace service consistency', () => {
   });
 
   it('throws membership-not-found when a preloaded workspace membership disappears during update', async () => {
-    const service = createWorkspaceService({
+    const service = createWorkspaceConsistencyService({
       accessGraphSync: {
         apply: vi.fn(),
       },
@@ -343,7 +370,7 @@ describe.sequential('workspace service consistency', () => {
   });
 
   it('throws workspace-not-found when a preloaded workspace disappears during delete', async () => {
-    const service = createWorkspaceService({
+    const service = createWorkspaceConsistencyService({
       accessGraphSync: {
         apply: vi.fn(),
       },

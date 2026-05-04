@@ -2,48 +2,20 @@ import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { errorHandler } from '../../../src/http/error-handler.js';
 import type { AppVariables } from '../../../src/lib/context.js';
-
-vi.mock('../../../src/lib/auth-session.js', () => ({
-  getAuthSession: vi.fn(),
-}));
+import { createAuthenticationMiddleware } from '../../../src/middleware/authentication.js';
+import { authenticatedSession } from '../../helpers/fixtures.js';
+import { createTestAuth } from '../../helpers/test-deps.js';
 
 afterEach(() => {
   vi.clearAllMocks();
-  vi.resetModules();
 });
-
-const authMockObject = {
-  session: {
-    id: 'sess_1',
-    userId: 'user_1',
-    expiresAt: new Date(),
-    createdAt: new Date(),
-    token: 'example_token',
-    ipAddress: null,
-    userAgent: null,
-    updatedAt: new Date(),
-  },
-  user: {
-    id: 'user_1',
-    email: 'user@example.com',
-    name: 'Test User',
-    image: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    emailVerified: false,
-  },
-};
 
 describe('auth middleware', () => {
   it('requireAuth sets session and current user context when a session is present', async () => {
-    const { requireAuth } = await import(
-      '../../../src/middleware/authentication.js'
-    );
-    const { getAuthSession } = await import('../../../src/lib/auth-session.js');
-    vi.mocked(getAuthSession).mockResolvedValue({
-      session: authMockObject.session,
-      user: authMockObject.user,
+    const { requireAuth } = createAuthenticationMiddleware({
+      auth: createTestAuth(authenticatedSession),
     });
 
     const app = new Hono<{ Variables: AppVariables }>();
@@ -63,26 +35,23 @@ describe('auth middleware', () => {
     expect(response.status).toBe(StatusCodes.OK);
     expect(body).toEqual({
       session: {
-        ...authMockObject.session,
-        expiresAt: authMockObject.session.expiresAt.toISOString(),
-        createdAt: authMockObject.session.createdAt.toISOString(),
-        updatedAt: authMockObject.session.updatedAt.toISOString(),
+        ...authenticatedSession.session,
+        expiresAt: authenticatedSession.session.expiresAt.toISOString(),
+        createdAt: authenticatedSession.session.createdAt.toISOString(),
+        updatedAt: authenticatedSession.session.updatedAt.toISOString(),
       },
       currentUser: {
-        ...authMockObject.user,
-        createdAt: authMockObject.user.createdAt.toISOString(),
-        updatedAt: authMockObject.user.updatedAt.toISOString(),
+        ...authenticatedSession.user,
+        createdAt: authenticatedSession.user.createdAt.toISOString(),
+        updatedAt: authenticatedSession.user.updatedAt.toISOString(),
       },
     });
   });
 
   it('requireAuth returns a 401 ApiError when the session is missing', async () => {
-    const { requireAuth } = await import(
-      '../../../src/middleware/authentication.js'
-    );
-    const { getAuthSession } = await import('../../../src/lib/auth-session.js');
-    const { errorHandler } = await import('../../../src/http/error-handler.js');
-    vi.mocked(getAuthSession).mockResolvedValue(null);
+    const { requireAuth } = createAuthenticationMiddleware({
+      auth: createTestAuth(null),
+    });
 
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {

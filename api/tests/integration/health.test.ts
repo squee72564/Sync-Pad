@@ -9,8 +9,13 @@ vi.mock('../../src/db/client.js', () => ({
 }));
 
 const createHealthApp = async () => {
-  const { healthRoute } = await import('../../src/routes/health.js');
-  return new Hono().route('/', healthRoute);
+  const { createHealthRoute } = await import('../../src/routes/health.js');
+  return new Hono().route(
+    '/',
+    createHealthRoute({
+      pool: {} as never,
+    }),
+  );
 };
 
 afterEach(() => {

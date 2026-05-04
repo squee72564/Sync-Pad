@@ -1,14 +1,20 @@
+import { createOrganizationService as createCoreOrganizationService } from '@syncpad/core';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../../src/db/client.js', () => ({
-  db: {
-    transaction: vi.fn(async (callback) => callback({})),
-  },
-}));
-
-import { createOrganizationService } from '../../../src/services/organization-service.js';
-
 const fixtureDate = new Date('2024-01-02T03:04:05.000Z');
+const db = {
+  transaction: vi.fn(async (callback) => callback({})),
+} as never;
+
+type OrganizationServiceDeps = Parameters<
+  typeof createCoreOrganizationService
+>[0];
+
+const createOrganizationService = (deps: Omit<OrganizationServiceDeps, 'db'>) =>
+  createCoreOrganizationService({
+    ...deps,
+    db,
+  });
 
 describe('organization service', () => {
   it('bubbles repository insert errors unchanged', async () => {

@@ -6,9 +6,10 @@ import {
   type WorkspaceRole,
 } from '@syncpad/db';
 import { and, eq, sql } from 'drizzle-orm';
-import { db } from '../../src/db/client.js';
+import { getIntegrationDeps } from './integration-deps.js';
 
 const FIXED_DATE = new Date('2024-01-02T03:04:05.000Z');
+const db = getIntegrationDeps().db;
 
 export const fixtureDate = FIXED_DATE;
 

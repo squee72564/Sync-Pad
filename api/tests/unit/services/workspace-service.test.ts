@@ -1,27 +1,27 @@
+import { createWorkspaceService as createCoreWorkspaceService } from '@syncpad/core';
+import type { PermissionChecker } from '@syncpad/permify';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../../src/db/client.js', () => ({
-  db: {
-    transaction: vi.fn(async (callback) => callback({})),
-  },
-}));
-
-vi.mock('../../../src/authz/permify-client.js', () => ({
-  accessGraphSync: {
-    apply: vi.fn(),
-  },
-  permissionChecker: {
-    checkPermission: vi.fn(),
-    deleteTuples: vi.fn(),
-    writeTuples: vi.fn(),
-  },
-  permifyInstance: {},
-}));
-
-import { permissionChecker } from '../../../src/authz/permify-client.js';
-import { createWorkspaceService } from '../../../src/services/workspace-service.js';
-
 const fixtureDate = new Date('2024-01-02T03:04:05.000Z');
+const db = {
+  transaction: vi.fn(async (callback) => callback({})),
+} as never;
+const permissionChecker = {
+  checkPermission: vi.fn(),
+  writeTuples: vi.fn(),
+} as unknown as PermissionChecker;
+
+type WorkspaceServiceDeps = Parameters<typeof createCoreWorkspaceService>[0];
+
+const createWorkspaceService = (
+  deps: Omit<WorkspaceServiceDeps, 'db' | 'permissionChecker'> &
+    Partial<Pick<WorkspaceServiceDeps, 'permissionChecker'>>,
+) =>
+  createCoreWorkspaceService({
+    ...deps,
+    db,
+    permissionChecker: deps.permissionChecker ?? permissionChecker,
+  });
 
 describe('workspace service', () => {
   it('bubbles repository errors unchanged', async () => {

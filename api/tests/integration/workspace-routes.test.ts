@@ -7,61 +7,11 @@ import {
   organizationRecord,
   workspaceRecord,
 } from '../helpers/fixtures.js';
-
-vi.mock('../../src/lib/auth-session.js', () => ({
-  getAuthSession: vi.fn(),
-}));
-
-vi.mock('../../src/authz/permify-client.js', () => ({
-  accessGraphSync: {
-    apply: vi.fn(),
-  },
-  permissionChecker: {
-    checkPermission: vi.fn(),
-    deleteTuples: vi.fn(),
-    writeTuples: vi.fn(),
-  },
-  permifyInstance: {},
-}));
-
-vi.mock('../../src/repositories/organization-repository.js', () => ({
-  organizationRepository: {
-    findById: vi.fn(),
-    listMemberships: vi.fn(),
-    listOrganizationsForUser: vi.fn(),
-  },
-}));
-
-vi.mock('../../src/repositories/workspace-repository.js', () => ({
-  workspaceRepository: {
-    findById: vi.fn(),
-    listMemberships: vi.fn(),
-    listByOrganizationReadableToUser: vi.fn(),
-  },
-}));
-
-vi.mock('../../src/services/organization-service.js', () => ({
-  organizationService: {
-    listOrganizationsForUser: vi.fn(),
-    createOrganization: vi.fn(),
-    updateOrganization: vi.fn(),
-    addMember: vi.fn(),
-    updateMember: vi.fn(),
-    deleteMember: vi.fn(),
-  },
-}));
-
-vi.mock('../../src/services/workspace-service.js', () => ({
-  workspaceService: {
-    listByOrganizationReadableToUser: vi.fn(),
-    createWorkspace: vi.fn(),
-    updateWorkspace: vi.fn(),
-    deleteWorkspace: vi.fn(),
-    addMember: vi.fn(),
-    updateMember: vi.fn(),
-    deleteMember: vi.fn(),
-  },
-}));
+import {
+  createTestApp,
+  createTestAuth,
+  createTestDeps,
+} from '../helpers/test-deps.js';
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -69,34 +19,22 @@ afterEach(() => {
 
 describe('workspace routes', () => {
   it('returns 401 for nested workspace routes when unauthenticated', async () => {
-    const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    vi.mocked(getAuthSession).mockResolvedValue(null);
-    const { createApp } = await import('../../src/app.js');
-
-    const response = await createApp().request(
-      '/api/organizations/org_1/workspaces/ws_1',
-    );
+    const response = await createTestApp({
+      auth: createTestAuth(null),
+    }).request('/api/organizations/org_1/workspaces/ws_1');
 
     expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
   });
 
   it('returns canonical 503 when workspace creation sync fails', async () => {
-    const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { permissionChecker } = await import(
-      '../../src/authz/permify-client.js'
-    );
-    const { organizationRepository } = await import(
-      '../../src/repositories/organization-repository.js'
-    );
-    const { workspaceService } = await import(
-      '../../src/services/workspace-service.js'
-    );
-    vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
-    vi.mocked(organizationRepository.findById).mockResolvedValue(
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
-    vi.mocked(workspaceService.createWorkspace).mockRejectedValue(
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    vi.mocked(deps.workspaceService.createWorkspace).mockRejectedValue(
       new ApiError({
         code: 'PERMIFY_SYNC_FAILED',
         message: 'sync failed',
@@ -104,9 +42,8 @@ describe('workspace routes', () => {
         userMessage: 'Authorization updates could not be completed.',
       }),
     );
-    const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request(
+    const response = await createTestApp(deps).request(
       '/api/organizations/org_1/workspaces',
       {
         method: 'POST',
@@ -130,26 +67,17 @@ describe('workspace routes', () => {
   });
 
   it('returns canonical 503 when adding a workspace member fails during sync', async () => {
-    const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { permissionChecker } = await import(
-      '../../src/authz/permify-client.js'
-    );
-    const { organizationRepository } = await import(
-      '../../src/repositories/organization-repository.js'
-    );
-    const { workspaceRepository } = await import(
-      '../../src/repositories/workspace-repository.js'
-    );
-    const { workspaceService } = await import(
-      '../../src/services/workspace-service.js'
-    );
-    vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
-    vi.mocked(organizationRepository.findById).mockResolvedValue(
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
-    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
-    vi.mocked(workspaceService.addMember).mockRejectedValue(
+    vi.mocked(deps.workspaceRepository.findById).mockResolvedValue(
+      workspaceRecord,
+    );
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    vi.mocked(deps.workspaceService.addMember).mockRejectedValue(
       new ApiError({
         code: 'PERMIFY_SYNC_FAILED',
         message: 'sync failed',
@@ -157,9 +85,8 @@ describe('workspace routes', () => {
         userMessage: 'Authorization updates could not be completed.',
       }),
     );
-    const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request(
+    const response = await createTestApp(deps).request(
       '/api/organizations/org_1/workspaces/ws_1/members',
       {
         method: 'POST',
@@ -182,26 +109,17 @@ describe('workspace routes', () => {
   });
 
   it('returns 404 when updating a missing workspace membership', async () => {
-    const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { permissionChecker } = await import(
-      '../../src/authz/permify-client.js'
-    );
-    const { organizationRepository } = await import(
-      '../../src/repositories/organization-repository.js'
-    );
-    const { workspaceRepository } = await import(
-      '../../src/repositories/workspace-repository.js'
-    );
-    const { workspaceService } = await import(
-      '../../src/services/workspace-service.js'
-    );
-    vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
-    vi.mocked(organizationRepository.findById).mockResolvedValue(
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
-    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
-    vi.mocked(workspaceService.updateMember).mockRejectedValue(
+    vi.mocked(deps.workspaceRepository.findById).mockResolvedValue(
+      workspaceRecord,
+    );
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    vi.mocked(deps.workspaceService.updateMember).mockRejectedValue(
       new ApiError({
         code: 'WORKSPACE_MEMBERSHIP_NOT_FOUND',
         expose: true,
@@ -210,9 +128,8 @@ describe('workspace routes', () => {
         userMessage: 'Workspace membership not found.',
       }),
     );
-    const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request(
+    const response = await createTestApp(deps).request(
       '/api/organizations/org_1/workspaces/ws_1/members/user_2',
       {
         method: 'PATCH',
@@ -234,31 +151,21 @@ describe('workspace routes', () => {
   });
 
   it('returns 500 INTERNAL_ERROR when workspace deletion throws a native error', async () => {
-    const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { permissionChecker } = await import(
-      '../../src/authz/permify-client.js'
-    );
-    const { organizationRepository } = await import(
-      '../../src/repositories/organization-repository.js'
-    );
-    const { workspaceRepository } = await import(
-      '../../src/repositories/workspace-repository.js'
-    );
-    const { workspaceService } = await import(
-      '../../src/services/workspace-service.js'
-    );
-    vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
-    vi.mocked(organizationRepository.findById).mockResolvedValue(
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(workspaceRepository.findById).mockResolvedValue(workspaceRecord);
-    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
-    vi.mocked(workspaceService.deleteWorkspace).mockRejectedValue(
+    vi.mocked(deps.workspaceRepository.findById).mockResolvedValue(
+      workspaceRecord,
+    );
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    vi.mocked(deps.workspaceService.deleteWorkspace).mockRejectedValue(
       new Error('pg failure'),
     );
-    const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request(
+    const response = await createTestApp(deps).request(
       '/api/organizations/org_1/workspaces/ws_1',
       {
         method: 'DELETE',
@@ -274,23 +181,17 @@ describe('workspace routes', () => {
   });
 
   it('returns 500 INTERNAL_ERROR when workspace loading throws a native error', async () => {
-    const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { organizationRepository } = await import(
-      '../../src/repositories/organization-repository.js'
-    );
-    const { workspaceRepository } = await import(
-      '../../src/repositories/workspace-repository.js'
-    );
-    vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
-    vi.mocked(organizationRepository.findById).mockResolvedValue(
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(workspaceRepository.findById).mockRejectedValue(
+    vi.mocked(deps.workspaceRepository.findById).mockRejectedValue(
       new Error('pg failure'),
     );
-    const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request(
+    const response = await createTestApp(deps).request(
       '/api/organizations/org_1/workspaces/ws_1',
     );
 
@@ -303,24 +204,18 @@ describe('workspace routes', () => {
   });
 
   it('returns 404 when a workspace does not belong to the route organization', async () => {
-    const { getAuthSession } = await import('../../src/lib/auth-session.js');
-    const { organizationRepository } = await import(
-      '../../src/repositories/organization-repository.js'
-    );
-    const { workspaceRepository } = await import(
-      '../../src/repositories/workspace-repository.js'
-    );
-    vi.mocked(getAuthSession).mockResolvedValue(authenticatedSession);
-    vi.mocked(organizationRepository.findById).mockResolvedValue(
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(workspaceRepository.findById).mockResolvedValue({
+    vi.mocked(deps.workspaceRepository.findById).mockResolvedValue({
       ...workspaceRecord,
       organizationId: 'org_2',
     });
-    const { createApp } = await import('../../src/app.js');
 
-    const response = await createApp().request(
+    const response = await createTestApp(deps).request(
       '/api/organizations/org_1/workspaces/ws_1',
     );
 

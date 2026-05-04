@@ -1,126 +1,119 @@
-import { PermifyError } from '@syncpad/errors';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const permifyMocks = vi.hoisted(() => {
-  const permifyInstance = {
-    grpc: {},
-    schemaVersion: 'schema_1',
-    tenantId: 'tenant_1',
-  };
-  const rawPermissionChecker = {
-    bulkCheckPermission: vi.fn(),
-    checkPermission: vi.fn(),
-    deleteTuples: vi.fn(),
-    writeTuples: vi.fn(),
-  };
-  const accessGraphSync = {
-    apply: vi.fn(),
-  };
+const depsMocks = vi.hoisted(() => {
+  const db = {};
+  const pool = {};
+  const organizationRepository = {};
+  const workspaceRepository = {};
+  const organizationService = {};
+  const workspaceService = {};
+  const permifyInstance = {};
+  const permissionChecker = {};
+  const accessGraphSync = {};
 
   return {
     accessGraphSync,
+    createDbClientAndPool: vi.fn(() => ({ client: db, pool })),
+    createOrganizationRepository: vi.fn(() => organizationRepository),
+    createOrganizationService: vi.fn(() => organizationService),
     createPermifyAccessGraphSync: vi.fn(() => accessGraphSync),
     createPermifyClient: vi.fn(() => permifyInstance),
-    createPermissionChecker: vi.fn(() => rawPermissionChecker),
+    createPermissionChecker: vi.fn(() => permissionChecker),
+    createWorkspaceRepository: vi.fn(() => workspaceRepository),
+    createWorkspaceService: vi.fn(() => workspaceService),
+    db,
+    organizationRepository,
+    organizationService,
+    permissionChecker,
     permifyInstance,
-    rawPermissionChecker,
+    pool,
+    workspaceRepository,
+    workspaceService,
   };
 });
 
-vi.mock('@syncpad/permify', () => ({
-  createPermifyAccessGraphSync: permifyMocks.createPermifyAccessGraphSync,
-  createPermifyClient: permifyMocks.createPermifyClient,
-  createPermissionChecker: permifyMocks.createPermissionChecker,
+vi.mock('@syncpad/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@syncpad/db')>();
+
+  return {
+    ...actual,
+    createDbClientAndPool: depsMocks.createDbClientAndPool,
+    createOrganizationRepository: depsMocks.createOrganizationRepository,
+    createWorkspaceRepository: depsMocks.createWorkspaceRepository,
+  };
+});
+
+vi.mock('@syncpad/core', () => ({
+  createOrganizationService: depsMocks.createOrganizationService,
+  createWorkspaceService: depsMocks.createWorkspaceService,
 }));
 
-describe('api permify client', () => {
+vi.mock('@syncpad/permify', () => ({
+  createPermifyAccessGraphSync: depsMocks.createPermifyAccessGraphSync,
+  createPermifyClient: depsMocks.createPermifyClient,
+  createPermissionChecker: depsMocks.createPermissionChecker,
+}));
+
+vi.mock('../../../src/lib/auth.js', () => ({
+  createAuth: vi.fn(() => ({ handler: vi.fn(), api: { getSession: vi.fn() } })),
+}));
+
+describe('api dependency bootstrap', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
   });
 
-  it('constructs the app singleton from package factories and env config', async () => {
+  it('constructs Permify dependencies from env config', async () => {
+    const { createApiDeps } = await import('../../../src/bootstrap/deps.js');
     const { env } = await import('../../../src/lib/env.js');
-    const { accessGraphSync, permissionChecker, permifyInstance } =
-      await import('../../../src/authz/permify-client.js');
 
-    expect(permifyMocks.createPermifyClient).toHaveBeenCalledWith({
+    const deps = createApiDeps(env);
+
+    expect(depsMocks.createPermifyClient).toHaveBeenCalledWith({
       endpoint: new URL(env.PERMIFY_GRPC_URL).host,
       insecure: env.NODE_ENV !== 'production',
       schemaVersion: env.PERMIFY_SCHEMA_VERSION,
       tenantId: env.PERMIFY_TENANT_ID,
     });
-    expect(permifyMocks.createPermissionChecker).toHaveBeenCalledWith(
-      permifyMocks.permifyInstance,
+    expect(depsMocks.createPermissionChecker).toHaveBeenCalledWith(
+      depsMocks.permifyInstance,
     );
-    expect(permifyMocks.createPermifyAccessGraphSync).toHaveBeenCalledWith(
-      permissionChecker,
+    expect(depsMocks.createPermifyAccessGraphSync).toHaveBeenCalledWith(
+      depsMocks.permissionChecker,
     );
-    expect(permifyInstance).toBe(permifyMocks.permifyInstance);
-    expect(accessGraphSync).toBe(permifyMocks.accessGraphSync);
+    expect(deps.permissionChecker).toBe(depsMocks.permissionChecker);
   });
 
-  it('delegates successful permission checks to the package checker', async () => {
-    permifyMocks.rawPermissionChecker.checkPermission.mockResolvedValue(true);
-    const { permissionChecker } = await import(
-      '../../../src/authz/permify-client.js'
+  it('wires repositories and services from one database client', async () => {
+    const { createApiDeps } = await import('../../../src/bootstrap/deps.js');
+    const { env } = await import('../../../src/lib/env.js');
+
+    const deps = createApiDeps(env);
+
+    expect(depsMocks.createDbClientAndPool).toHaveBeenCalledWith(
+      env.DATABASE_URL,
     );
-    const subject = { id: 'user_1', type: 'user', relation: '' };
-    const resource = {
-      type: 'organization',
-      organizationId: 'org_1',
-    } as const;
-
-    await expect(
-      permissionChecker.checkPermission(subject, resource, 'read'),
-    ).resolves.toBe(true);
-    expect(
-      permifyMocks.rawPermissionChecker.checkPermission,
-    ).toHaveBeenCalledWith(subject, resource, 'read');
-  });
-
-  it('bubbles package permission check errors unchanged', async () => {
-    const transportError = new PermifyError({
-      code: 'PERMIFY_UNAVAILABLE',
-      kind: 'dependency_unavailable',
-      message: 'transport down',
-      retryable: true,
+    expect(depsMocks.createOrganizationRepository).toHaveBeenCalledWith(
+      depsMocks.db,
+    );
+    expect(depsMocks.createWorkspaceRepository).toHaveBeenCalledWith(
+      depsMocks.db,
+    );
+    expect(depsMocks.createOrganizationService).toHaveBeenCalledWith({
+      accessGraphSync: depsMocks.accessGraphSync,
+      db: depsMocks.db,
+      organizationRepo: depsMocks.organizationRepository,
+      workspaceRepo: depsMocks.workspaceRepository,
     });
-    permifyMocks.rawPermissionChecker.checkPermission.mockRejectedValue(
-      transportError,
-    );
-    const { permissionChecker } = await import(
-      '../../../src/authz/permify-client.js'
-    );
-
-    await expect(
-      permissionChecker.checkPermission(
-        { id: 'user_1', type: 'user', relation: '' },
-        { type: 'organization', organizationId: 'org_1' },
-        'read',
-      ),
-    ).rejects.toBe(transportError);
-  });
-
-  it('bubbles invalid authorization descriptor errors unchanged', async () => {
-    const descriptorError = new PermifyError({
-      code: 'AUTHORIZATION_CONTEXT_INVALID',
-      kind: 'invariant_violation',
-      message: 'Invalid resource descriptor for organization',
+    expect(depsMocks.createWorkspaceService).toHaveBeenCalledWith({
+      accessGraphSync: depsMocks.accessGraphSync,
+      db: depsMocks.db,
+      organizationRepo: depsMocks.organizationRepository,
+      permissionChecker: depsMocks.permissionChecker,
+      workspaceRepo: depsMocks.workspaceRepository,
     });
-    permifyMocks.rawPermissionChecker.checkPermission.mockRejectedValue(
-      descriptorError,
-    );
-    const { permissionChecker } = await import(
-      '../../../src/authz/permify-client.js'
-    );
-
-    await expect(
-      permissionChecker.checkPermission(
-        { id: 'user_1', type: 'user', relation: '' },
-        { type: 'organization', organizationId: undefined } as never,
-        'read',
-      ),
-    ).rejects.toBe(descriptorError);
+    expect(deps.db).toBe(depsMocks.db);
+    expect(deps.pool).toBe(depsMocks.pool);
   });
 });

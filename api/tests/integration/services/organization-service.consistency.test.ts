@@ -1,8 +1,8 @@
+import { createOrganizationService } from '@syncpad/core';
 import { coreSchema } from '@syncpad/db';
+import type { AccessGraphSync } from '@syncpad/permify';
 import { and, eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { db } from '../../../src/db/client.js';
-import { createOrganizationService } from '../../../src/services/organization-service.js';
 import {
   fixtureDate,
   resetDatabase,
@@ -12,6 +12,30 @@ import {
   seedWorkspace,
   seedWorkspaceMembership,
 } from '../../helpers/db-fixtures.js';
+import { getIntegrationDeps } from '../../helpers/integration-deps.js';
+
+const deps = getIntegrationDeps();
+const db = deps.db;
+
+const createOrganizationConsistencyService = ({
+  accessGraphSync,
+  organizationRepo = deps.organizationRepository,
+  workspaceRepo = deps.workspaceRepository,
+}: {
+  accessGraphSync: AccessGraphSync;
+  organizationRepo?: Parameters<
+    typeof createOrganizationService
+  >[0]['organizationRepo'];
+  workspaceRepo?: Parameters<
+    typeof createOrganizationService
+  >[0]['workspaceRepo'];
+}) =>
+  createOrganizationService({
+    accessGraphSync,
+    db: deps.db,
+    organizationRepo,
+    workspaceRepo,
+  });
 
 describe.sequential('organization service consistency', () => {
   beforeEach(async () => {
@@ -24,7 +48,7 @@ describe.sequential('organization service consistency', () => {
 
   it('rolls back organization creation when Permify sync fails', async () => {
     await seedUser({ id: 'user_owner' });
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -52,7 +76,7 @@ describe.sequential('organization service consistency', () => {
     await seedUser({ id: 'user_actor' });
     await seedUser({ id: 'user_target' });
     await seedOrganization({ id: 'org_1' });
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -84,7 +108,7 @@ describe.sequential('organization service consistency', () => {
     await seedUser({ id: 'user_actor' });
     await seedUser({ id: 'user_target' });
     await seedOrganization({ id: 'org_1' });
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: { apply: syncApply },
     });
 
@@ -121,7 +145,7 @@ describe.sequential('organization service consistency', () => {
       status: 'active',
       joinedAt: fixtureDate,
     });
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -162,7 +186,7 @@ describe.sequential('organization service consistency', () => {
       invitedBy: null,
       joinedAt: null,
     });
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -209,7 +233,7 @@ describe.sequential('organization service consistency', () => {
       workspaceId: 'ws_1',
       workspaceRole: 'editor',
     });
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -264,7 +288,7 @@ describe.sequential('organization service consistency', () => {
       workspaceId: 'ws_1',
       workspaceRole: 'viewer',
     });
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockRejectedValue(new Error('permify down')),
       },
@@ -311,7 +335,7 @@ describe.sequential('organization service consistency', () => {
       workspaceId: 'ws_1',
       workspaceRole: 'commenter',
     });
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockResolvedValue(undefined),
       },
@@ -360,7 +384,7 @@ describe.sequential('organization service consistency', () => {
       workspaceId: 'ws_1',
       workspaceRole: 'viewer',
     });
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: {
         apply: vi.fn().mockResolvedValue(undefined),
       },
@@ -387,7 +411,7 @@ describe.sequential('organization service consistency', () => {
   });
 
   it('throws membership-not-found when a preloaded membership disappears during update', async () => {
-    const service = createOrganizationService({
+    const service = createOrganizationConsistencyService({
       accessGraphSync: {
         apply: vi.fn(),
       },

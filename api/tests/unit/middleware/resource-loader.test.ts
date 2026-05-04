@@ -2,31 +2,26 @@ import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { errorHandler } from '../../../src/http/error-handler.js';
 import type { AppVariables } from '../../../src/lib/context.js';
+import { createResourceLoader } from '../../../src/middleware/resource-loader.js';
 import { organizationRecord } from '../../helpers/fixtures.js';
-
-vi.mock('../../../src/repositories/organization-repository.js', () => ({
-  organizationRepository: {
-    findById: vi.fn(),
-  },
-}));
+import { createTestDeps } from '../../helpers/test-deps.js';
 
 afterEach(() => {
   vi.clearAllMocks();
-  vi.resetModules();
 });
 
 describe('resource loader middleware', () => {
   it('loads an organization into context with a typed selector', async () => {
-    const { loadOrganizationResource } = await import(
-      '../../../src/middleware/resource-loader.js'
-    );
-    const { organizationRepository } = await import(
-      '../../../src/repositories/organization-repository.js'
-    );
-    vi.mocked(organizationRepository.findById).mockResolvedValue(
+    const deps = createTestDeps();
+    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
       organizationRecord,
     );
+    const { loadOrganizationResource } = createResourceLoader({
+      organizationRepository: deps.organizationRepository,
+      workspaceRepository: deps.workspaceRepository,
+    });
 
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {
@@ -50,6 +45,7 @@ describe('resource loader middleware', () => {
     expect(response.status).toBe(StatusCodes.OK);
     expect(await response.json()).toEqual({
       organization: {
+        description: 'example org desc',
         id: 'org_1',
         name: 'Acme',
         createdAt: expect.any(String),
@@ -59,14 +55,14 @@ describe('resource loader middleware', () => {
   });
 
   it('returns 404 when an organization is missing', async () => {
-    const { loadOrganizationResource } = await import(
-      '../../../src/middleware/resource-loader.js'
+    const deps = createTestDeps();
+    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+      undefined,
     );
-    const { errorHandler } = await import('../../../src/http/error-handler.js');
-    const { organizationRepository } = await import(
-      '../../../src/repositories/organization-repository.js'
-    );
-    vi.mocked(organizationRepository.findById).mockResolvedValue(undefined);
+    const { loadOrganizationResource } = createResourceLoader({
+      organizationRepository: deps.organizationRepository,
+      workspaceRepository: deps.workspaceRepository,
+    });
 
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {
@@ -99,10 +95,11 @@ describe('resource loader middleware', () => {
   });
 
   it('returns 404 when the validated organization id is empty', async () => {
-    const { loadOrganizationResource } = await import(
-      '../../../src/middleware/resource-loader.js'
-    );
-    const { errorHandler } = await import('../../../src/http/error-handler.js');
+    const deps = createTestDeps();
+    const { loadOrganizationResource } = createResourceLoader({
+      organizationRepository: deps.organizationRepository,
+      workspaceRepository: deps.workspaceRepository,
+    });
 
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {

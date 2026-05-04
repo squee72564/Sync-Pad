@@ -1,12 +1,12 @@
 import { StatusCodes } from 'http-status-codes';
 import { describe, expect, it } from 'vitest';
 
-import { createApp } from '../../src/app.js';
 import { ApiError } from '../../src/lib/error.js';
+import { createTestApp } from '../helpers/test-deps.js';
 
 describe('app error handling', () => {
   it('returns canonical not found responses', async () => {
-    const app = createApp();
+    const app = createTestApp();
     const response = await app.request('/missing-route');
     const body = (await response.json()) as { requestId: string };
 
@@ -23,7 +23,7 @@ describe('app error handling', () => {
   });
 
   it('normalizes thrown ApiError instances', async () => {
-    const app = createApp();
+    const app = createTestApp();
     app.get('/__test/app-error', () => {
       throw new ApiError({
         code: 'TEST_ERROR',
@@ -50,7 +50,7 @@ describe('app error handling', () => {
   });
 
   it('normalizes native thrown errors into internal errors', async () => {
-    const app = createApp();
+    const app = createTestApp();
     app.get('/__test/native-error', () => {
       throw new Error('boom');
     });
@@ -71,7 +71,7 @@ describe('app error handling', () => {
   });
 
   it('preserves incoming request ids on responses', async () => {
-    const app = createApp();
+    const app = createTestApp();
     const response = await app.request('/missing-route', {
       headers: {
         'x-request-id': 'req_from_client',

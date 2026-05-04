@@ -2,13 +2,13 @@ import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 import { describe, expect, it } from 'vitest';
 
-import { createApp } from '../../src/app.js';
 import { requestIdMiddleware } from '../../src/middleware/request-id.js';
 import { authSecurityMiddleware } from '../../src/middleware/security.js';
+import { createTestApp } from '../helpers/test-deps.js';
 
 describe('security headers', () => {
   it('applies secure baseline headers to app responses', async () => {
-    const app = createApp();
+    const app = createTestApp();
     const response = await app.request('/');
 
     expect(response.headers.get('x-content-type-options')).toBe('nosniff');

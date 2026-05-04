@@ -2,39 +2,14 @@ import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { errorHandler } from '../../../src/http/error-handler.js';
 import type { AppVariables } from '../../../src/lib/context.js';
+import { createAuthorizationMiddleware } from '../../../src/middleware/authorization.js';
 import type { AuthUser } from '../../../src/types/auth.js';
-
-vi.mock('../../../src/authz/permify-client.js', () => ({
-  accessGraphSync: {
-    apply: vi.fn(),
-  },
-  permissionChecker: {
-    checkPermission: vi.fn(),
-    deleteTuples: vi.fn(),
-    writeTuples: vi.fn(),
-  },
-  permifyInstance: {},
-}));
-
-vi.mock('@syncpad/permify', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@syncpad/permify')>();
-
-  return {
-    ...actual,
-    subjects: {
-      user: (userId: string) => ({
-        type: 'user',
-        id: userId,
-        relation: '',
-      }),
-    },
-  };
-});
+import { createTestDeps } from '../../helpers/test-deps.js';
 
 afterEach(() => {
   vi.clearAllMocks();
-  vi.resetModules();
 });
 
 const currentUser: AuthUser = {
@@ -49,14 +24,11 @@ const currentUser: AuthUser = {
 
 describe('authorization middleware', () => {
   it('returns 403 when organization permission is denied', async () => {
-    const { requireOrganizationPermission } = await import(
-      '../../../src/middleware/authorization.js'
-    );
-    const { errorHandler } = await import('../../../src/http/error-handler.js');
-    const { permissionChecker } = await import(
-      '../../../src/authz/permify-client.js'
-    );
-    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(false);
+    const deps = createTestDeps();
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(false);
+    const { requireOrganizationPermission } = createAuthorizationMiddleware({
+      permissionChecker: deps.permissionChecker,
+    });
 
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {
@@ -79,7 +51,7 @@ describe('authorization middleware', () => {
     const response = await app.request('/protected');
     const body = await response.json();
 
-    expect(permissionChecker.checkPermission).toHaveBeenCalledWith(
+    expect(deps.permissionChecker.checkPermission).toHaveBeenCalledWith(
       { type: 'user', id: currentUser.id, relation: '' },
       { type: 'organization', organizationId: 'org_1' },
       'read',
@@ -93,13 +65,11 @@ describe('authorization middleware', () => {
   });
 
   it('passes when workspace permission is allowed', async () => {
-    const { requireWorkspacePermission } = await import(
-      '../../../src/middleware/authorization.js'
-    );
-    const { permissionChecker } = await import(
-      '../../../src/authz/permify-client.js'
-    );
-    vi.mocked(permissionChecker.checkPermission).mockResolvedValue(true);
+    const deps = createTestDeps();
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    const { requireWorkspacePermission } = createAuthorizationMiddleware({
+      permissionChecker: deps.permissionChecker,
+    });
 
     const app = new Hono<{ Variables: AppVariables }>();
     app.use('*', async (context, next) => {
@@ -117,7 +87,7 @@ describe('authorization middleware', () => {
 
     const response = await app.request('/protected');
 
-    expect(permissionChecker.checkPermission).toHaveBeenCalledWith(
+    expect(deps.permissionChecker.checkPermission).toHaveBeenCalledWith(
       { type: 'user', id: currentUser.id, relation: '' },
       { type: 'workspace', workspaceId: 'ws_1' },
       'read',
