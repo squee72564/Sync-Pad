@@ -15,12 +15,12 @@ afterEach(() => {
 describe('resource loader middleware', () => {
   it('loads an organization into context with a typed selector', async () => {
     const deps = createTestDeps();
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
     const { loadOrganizationResource } = createResourceLoader({
-      organizationRepository: deps.organizationRepository,
-      workspaceRepository: deps.workspaceRepository,
+      organizationService: deps.organizationService,
+      workspaceService: deps.workspaceService,
     });
 
     const app = new Hono<{ Variables: AppVariables }>();
@@ -56,12 +56,10 @@ describe('resource loader middleware', () => {
 
   it('returns 404 when an organization is missing', async () => {
     const deps = createTestDeps();
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
-      undefined,
-    );
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(undefined);
     const { loadOrganizationResource } = createResourceLoader({
-      organizationRepository: deps.organizationRepository,
-      workspaceRepository: deps.workspaceRepository,
+      organizationService: deps.organizationService,
+      workspaceService: deps.workspaceService,
     });
 
     const app = new Hono<{ Variables: AppVariables }>();
@@ -97,8 +95,8 @@ describe('resource loader middleware', () => {
   it('returns 404 when the validated organization id is empty', async () => {
     const deps = createTestDeps();
     const { loadOrganizationResource } = createResourceLoader({
-      organizationRepository: deps.organizationRepository,
-      workspaceRepository: deps.workspaceRepository,
+      organizationService: deps.organizationService,
+      workspaceService: deps.workspaceService,
     });
 
     const app = new Hono<{ Variables: AppVariables }>();

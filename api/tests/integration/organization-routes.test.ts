@@ -50,7 +50,7 @@ describe('organization routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
     vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(false);
@@ -69,7 +69,7 @@ describe('organization routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
     vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
@@ -121,7 +121,7 @@ describe('organization routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
     vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
@@ -161,7 +161,7 @@ describe('organization routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
     vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
@@ -200,7 +200,7 @@ describe('organization routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockRejectedValue(
+    vi.mocked(deps.organizationService.findById).mockRejectedValue(
       new Error('pg failure'),
     );
 

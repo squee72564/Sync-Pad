@@ -74,8 +74,29 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
     }));
 
   return {
+    findById(workspaceId: string) {
+      return workspaceRepo.findById(workspaceId);
+    },
+
+    async findInOrganization(input: {
+      organizationId: string;
+      workspaceId: string;
+    }) {
+      const workspace = await workspaceRepo.findById(input.workspaceId);
+
+      if (!workspace || workspace.organizationId !== input.organizationId) {
+        return null;
+      }
+
+      return workspace;
+    },
+
     listReadableToUser(input: { actorUserId: string }) {
       return workspaceRepo.listReadableToUser(input.actorUserId);
+    },
+
+    listMemberships(workspaceId: string) {
+      return workspaceRepo.listMemberships(workspaceId);
     },
 
     async listByOrganizationReadableToUser(input: {

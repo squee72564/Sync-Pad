@@ -1,4 +1,4 @@
-import type { OrganizationRepository, WorkspaceRepository } from '@syncpad/db';
+import type { OrganizationService, WorkspaceService } from '@syncpad/core';
 import type { MiddlewareHandler } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 import {
@@ -12,11 +12,11 @@ import { getValidated } from './validation.js';
 type ValidatedParams<TParams> = { params: TParams };
 
 export function createResourceLoader({
-  organizationRepository,
-  workspaceRepository,
+  organizationService,
+  workspaceService,
 }: {
-  organizationRepository: OrganizationRepository;
-  workspaceRepository: WorkspaceRepository;
+  organizationService: OrganizationService;
+  workspaceService: WorkspaceService;
 }) {
   return {
     loadOrganizationResource: <TParams>(
@@ -38,8 +38,7 @@ export function createResourceLoader({
           });
         }
 
-        const organization =
-          await organizationRepository.findById(organizationId);
+        const organization = await organizationService.findById(organizationId);
 
         if (!organization) {
           throw new ApiError({
@@ -75,7 +74,7 @@ export function createResourceLoader({
           });
         }
 
-        const workspace = await workspaceRepository.findById(workspaceId);
+        const workspace = await workspaceService.findById(workspaceId);
 
         if (!workspace) {
           throw new ApiError({
@@ -115,9 +114,12 @@ export function createResourceLoader({
           });
         }
 
-        const workspace = await workspaceRepository.findById(workspaceId);
+        const workspace = await workspaceService.findInOrganization({
+          organizationId,
+          workspaceId,
+        });
 
-        if (!workspace || workspace.organizationId !== organizationId) {
+        if (!workspace) {
           throw new ApiError({
             code: 'WORKSPACE_NOT_FOUND',
             expose: true,

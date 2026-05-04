@@ -30,7 +30,7 @@ describe('workspace routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
     vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
@@ -70,10 +70,10 @@ describe('workspace routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(deps.workspaceRepository.findById).mockResolvedValue(
+    vi.mocked(deps.workspaceService.findInOrganization).mockResolvedValue(
       workspaceRecord,
     );
     vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
@@ -112,10 +112,10 @@ describe('workspace routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(deps.workspaceRepository.findById).mockResolvedValue(
+    vi.mocked(deps.workspaceService.findInOrganization).mockResolvedValue(
       workspaceRecord,
     );
     vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
@@ -154,10 +154,10 @@ describe('workspace routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(deps.workspaceRepository.findById).mockResolvedValue(
+    vi.mocked(deps.workspaceService.findInOrganization).mockResolvedValue(
       workspaceRecord,
     );
     vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
@@ -184,10 +184,10 @@ describe('workspace routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(deps.workspaceRepository.findById).mockRejectedValue(
+    vi.mocked(deps.workspaceService.findInOrganization).mockRejectedValue(
       new Error('pg failure'),
     );
 
@@ -207,13 +207,10 @@ describe('workspace routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.organizationRepository.findById).mockResolvedValue(
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
-    vi.mocked(deps.workspaceRepository.findById).mockResolvedValue({
-      ...workspaceRecord,
-      organizationId: 'org_2',
-    });
+    vi.mocked(deps.workspaceService.findInOrganization).mockResolvedValue(null);
 
     const response = await createTestApp(deps).request(
       '/api/organizations/org_1/workspaces/ws_1',

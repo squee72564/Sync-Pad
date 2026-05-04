@@ -17,9 +17,7 @@ import { createOrganizationWorkspacesRoute } from './routes/workspaces.js';
 export const createApp = (deps: ApiDeps) => {
   const {
     pool,
-    workspaceRepository,
     workspaceService,
-    organizationRepository,
     organizationService,
     permissionChecker,
     auth,
@@ -55,8 +53,7 @@ export const createApp = (deps: ApiDeps) => {
     '/api/organizations',
     createOrganizationsRoute({
       organizationService,
-      organizationRepository,
-      workspaceRepository,
+      workspaceService,
       permissionChecker,
       auth,
     }),
@@ -64,9 +61,8 @@ export const createApp = (deps: ApiDeps) => {
   app.route(
     '/api/organizations/:organizationId/workspaces',
     createOrganizationWorkspacesRoute({
+      organizationService,
       workspaceService,
-      workspaceRepository,
-      organizationRepository,
       permissionChecker,
       auth,
     }),

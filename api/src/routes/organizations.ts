@@ -1,5 +1,4 @@
-import type { OrganizationService } from '@syncpad/core';
-import type { OrganizationRepository, WorkspaceRepository } from '@syncpad/db';
+import type { OrganizationService, WorkspaceService } from '@syncpad/core';
 import type { PermissionChecker } from '@syncpad/permify';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
@@ -64,20 +63,18 @@ const getOrganizationResource = (
 
 export function createOrganizationsRoute({
   organizationService,
-  organizationRepository,
-  workspaceRepository,
+  workspaceService,
   permissionChecker,
   auth,
 }: {
   organizationService: OrganizationService;
-  organizationRepository: OrganizationRepository;
-  workspaceRepository: WorkspaceRepository;
+  workspaceService: WorkspaceService;
   permissionChecker: PermissionChecker;
   auth: Auth;
 }) {
   const { loadOrganizationResource } = createResourceLoader({
-    organizationRepository,
-    workspaceRepository,
+    organizationService,
+    workspaceService,
   });
   const { requireOrganizationPermission } = createAuthorizationMiddleware({
     permissionChecker,
@@ -161,7 +158,7 @@ export function createOrganizationsRoute({
     requireOrganizationPermission('read'),
     async (context) => {
       const { params } = getValidated<OrganizationParams>(context);
-      const memberships = await organizationRepository.listMemberships(
+      const memberships = await organizationService.listMemberships(
         params.organizationId,
       );
       return context.json({ memberships }, StatusCodes.OK);

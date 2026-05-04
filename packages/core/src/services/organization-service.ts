@@ -57,8 +57,16 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
     }));
 
   return {
+    findById(organizationId: string) {
+      return organizationRepo.findById(organizationId);
+    },
+
     listOrganizationsForUser(userId: string) {
       return organizationRepo.listOrganizationsForUser(userId);
+    },
+
+    listMemberships(organizationId: string) {
+      return organizationRepo.listMemberships(organizationId);
     },
 
     createOrganization({ actorUserId, input }: CreateOrganizationInput) {
