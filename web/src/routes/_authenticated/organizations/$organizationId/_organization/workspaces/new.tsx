@@ -106,6 +106,7 @@ function NewWorkspacePage() {
   return (
     <div className="flex flex-1 flex-col gap-8 px-4 py-6 md:px-6 md:py-8">
       <PageHeader
+        className="w-full"
         eyebrow="Create"
         title="Create workspace"
         description="Add a workspace to this organization for docs, timelines, sheets, and project-specific collaboration."
@@ -122,7 +123,7 @@ function NewWorkspacePage() {
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_20rem]">
+      <div className="grid gap-6">
         <Card className="border-border/70">
           <CardHeader>
             <div className="flex size-10 items-center justify-center rounded-md bg-muted">
@@ -136,61 +137,87 @@ function NewWorkspacePage() {
           </CardHeader>
           <CardContent>
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="workspace-name">Name</FieldLabel>
-                  <FieldContent>
-                    <Input
-                      id="workspace-name"
-                      type="text"
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                      placeholder="Product roadmap"
-                      autoComplete="off"
-                      maxLength={200}
-                      aria-invalid={errorMessage ? true : undefined}
-                      disabled={createWorkspaceMutation.isPending}
-                      required
-                    />
-                    <FieldDescription>
-                      This is what organization members will see when browsing
-                      workspaces.
-                    </FieldDescription>
-                  </FieldContent>
-                </Field>
+              <div className="mx-auto grid w-full max-w-6xl gap-8 xl:grid-cols-[minmax(28rem,2fr)_minmax(20rem,1fr)]">
+                <FieldGroup className="max-w-3xl">
+                  <Field>
+                    <FieldLabel htmlFor="workspace-name">Name</FieldLabel>
+                    <FieldContent>
+                      <Input
+                        id="workspace-name"
+                        type="text"
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        placeholder="Product roadmap"
+                        autoComplete="off"
+                        maxLength={200}
+                        aria-invalid={errorMessage ? true : undefined}
+                        disabled={createWorkspaceMutation.isPending}
+                        required
+                      />
+                      <FieldDescription>
+                        This is what organization members will see when browsing
+                        workspaces.
+                      </FieldDescription>
+                    </FieldContent>
+                  </Field>
 
-                <Field>
-                  <FieldLabel htmlFor="workspace-description">
-                    Description
-                  </FieldLabel>
-                  <FieldContent>
-                    <Input
-                      id="workspace-description"
-                      type="text"
-                      value={description}
-                      onChange={(event) => setDescription(event.target.value)}
-                      placeholder="Example description"
-                      autoComplete="off"
-                      maxLength={200}
-                      aria-invalid={errorMessage ? true : undefined}
-                      disabled={createWorkspaceMutation.isPending}
-                    />
-                    <FieldDescription>
-                      Insert a description of your workspace here.
-                    </FieldDescription>
-                  </FieldContent>
-                </Field>
+                  <Field>
+                    <FieldLabel htmlFor="workspace-description">
+                      Description
+                    </FieldLabel>
+                    <FieldContent>
+                      <Input
+                        id="workspace-description"
+                        type="text"
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                        placeholder="Example description"
+                        autoComplete="off"
+                        maxLength={200}
+                        aria-invalid={errorMessage ? true : undefined}
+                        disabled={createWorkspaceMutation.isPending}
+                      />
+                      <FieldDescription>
+                        Insert a description of your workspace here.
+                      </FieldDescription>
+                    </FieldContent>
+                  </Field>
+                </FieldGroup>
 
-                <Field>
+                <Field className="max-w-md">
                   <FieldLabel htmlFor="workspace-color">Color</FieldLabel>
                   <FieldContent>
-                    <HexAlphaColorPicker
-                      color={color}
-                      onChange={(event) => setColor(event)}
-                    />
+                    <div className="rounded-xl border border-border/70 bg-muted/25 p-4">
+                      <div className="mb-4 flex items-center gap-3">
+                        <div
+                          className="flex size-12 shrink-0 items-center justify-center rounded-lg text-sm font-semibold text-white shadow-sm"
+                          style={{ backgroundColor: color }}
+                        >
+                          {(name.trim()[0] ?? 'W').toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium">
+                            {name.trim() || 'Workspace preview'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Accent {color.toUpperCase()}
+                          </div>
+                        </div>
+                      </div>
+                      <HexAlphaColorPicker
+                        id="workspace-color"
+                        className="w-full"
+                        color={color}
+                        onChange={(event) => setColor(event)}
+                      />
+                    </div>
+                    <FieldDescription>
+                      Pick the accent color used in workspace navigation and
+                      cards.
+                    </FieldDescription>
                   </FieldContent>
                 </Field>
-              </FieldGroup>
+              </div>
 
               <FieldError>{errorMessage}</FieldError>
 

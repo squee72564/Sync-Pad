@@ -82,6 +82,7 @@ function NewOrganizationPage() {
   return (
     <div className="flex flex-1 flex-col gap-8 px-4 py-6 md:px-6 md:py-8">
       <PageHeader
+        className="w-full"
         eyebrow="Create"
         title="Create organization"
         description="Start with the organization name. This flow can expand into a fuller setup experience as organization onboarding grows."
@@ -95,7 +96,7 @@ function NewOrganizationPage() {
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_20rem]">
+      <div className="grid gap-6">
         <Card className="border-border/70">
           <CardHeader>
             <div className="flex size-10 items-center justify-center rounded-md bg-muted">
@@ -108,8 +109,11 @@ function NewOrganizationPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-              <FieldGroup>
+            <form
+              className="mx-auto flex w-full max-w-3xl flex-col gap-6"
+              onSubmit={handleSubmit}
+            >
+              <FieldGroup className="max-w-3xl">
                 <Field>
                   <FieldLabel htmlFor="organization-name">Name *</FieldLabel>
                   <FieldContent>
