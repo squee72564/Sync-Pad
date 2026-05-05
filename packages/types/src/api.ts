@@ -60,6 +60,10 @@ export type WorkspaceMembershipsResponse = {
   memberships: WorkspaceMembershipDto[];
 };
 
+export type MeUserResponse = {
+  user: UserDto;
+};
+
 export type MeOrganizationsResponse = {
   organizations: MeOrganizationDto[];
 };

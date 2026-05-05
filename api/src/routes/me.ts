@@ -40,6 +40,15 @@ export function createMeRoute({
   const { requireAuth } = createAuthenticationMiddleware({ auth });
   return new Hono<{ Variables: AppVariables }>()
     .get(
+      '/',
+      requireAuth(),
+      validateRequest({ query: meWorkspacesQuerySchema }),
+      async (context) => {
+        const user = getCurrentUser(context);
+        return context.json({ user }, StatusCodes.OK);
+      },
+    )
+    .get(
       '/workspaces',
       requireAuth(),
       validateRequest({ query: meWorkspacesQuerySchema }),
