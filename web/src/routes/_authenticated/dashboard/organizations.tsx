@@ -3,10 +3,13 @@ import {
   ArrowRightIcon,
   Building2Icon,
   CalendarClockIcon,
+  PlusCircleIcon,
   RefreshCwIcon,
 } from 'lucide-react';
+import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
+import { Button } from '#/components/ui/button';
 import {
   Card,
   CardAction,
@@ -17,6 +20,7 @@ import {
 } from '#/components/ui/card';
 import { meOrganizationsQuery } from '#/features/me/queries';
 import type { MeOrganization } from '#/features/me/types';
+import { formatShortDate } from '#/lib/utils';
 
 export const Route = createFileRoute('/_authenticated/dashboard/organizations')(
   {
@@ -59,15 +63,19 @@ function OrganizationsPage() {
           ))}
         </div>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>No organizations yet</CardTitle>
-            <CardDescription>
-              Organizations you create or join will appear here.
-            </CardDescription>
-          </CardHeader>
-          <CardContent />
-        </Card>
+        <EmptyStateCard
+          icon={Building2Icon}
+          title="No organizations yet"
+          description="Create an organization to group workspaces, members, and team settings."
+          action={
+            <Button asChild>
+              <Link to="/dashboard/organizations/new">
+                <PlusCircleIcon />
+                Create organization
+              </Link>
+            </Button>
+          }
+        />
       )}
     </div>
   );
@@ -109,12 +117,12 @@ function OrganizationCard({ organization }: { organization: MeOrganization }) {
           <OrganizationMeta
             icon={CalendarClockIcon}
             label="Created"
-            value={formatDate(organization.createdAt)}
+            value={formatShortDate(organization.createdAt)}
           />
           <OrganizationMeta
             icon={RefreshCwIcon}
             label="Updated"
-            value={formatDate(organization.updatedAt)}
+            value={formatShortDate(organization.updatedAt)}
           />
         </CardContent>
       </Card>
@@ -140,8 +148,4 @@ function OrganizationMeta({
       <span className="text-foreground">{value}</span>
     </div>
   );
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString();
 }

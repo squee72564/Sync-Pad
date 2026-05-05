@@ -1,10 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import {
-  CalendarClockIcon,
-  HashIcon,
-  PaletteIcon,
-  SparklesIcon,
-} from 'lucide-react';
+import { CalendarClockIcon, PaletteIcon, SparklesIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
@@ -80,16 +75,11 @@ function RouteComponent() {
           </CardHeader>
           <CardContent className="space-y-4">
             <DetailRow
-              icon={HashIcon}
-              label="Workspace ID"
-              value={workspace.id}
-              mono
-            />
-            <DetailRow
               icon={PaletteIcon}
               label="Accent color"
               value={workspace.color}
             />
+            <Separator />
             <DetailRow
               icon={CalendarClockIcon}
               label="Created at"
@@ -117,12 +107,6 @@ function RouteComponent() {
                   ? workspace.description
                   : 'No description provided.'
               }
-            />
-            <Separator />
-            <DetailRow
-              label="Organization"
-              value={workspace.organizationId}
-              mono
             />
           </CardContent>
         </Card>

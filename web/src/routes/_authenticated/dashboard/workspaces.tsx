@@ -1,12 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { FolderKanbanIcon } from 'lucide-react';
+import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '#/components/ui/card';
 import { WorkspaceCard } from '#/components/workspace-card';
 import { meWorkspacesQuery } from '#/features/me/queries';
 
@@ -44,14 +40,11 @@ function WorkspacesPage() {
           ))}
         </div>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>No workspaces yet</CardTitle>
-            <CardDescription>
-              Workspaces you create or join will appear here.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <EmptyStateCard
+          icon={FolderKanbanIcon}
+          title="No workspaces yet"
+          description="Workspaces you create or join will appear here, grouped across your organizations."
+        />
       )}
     </div>
   );

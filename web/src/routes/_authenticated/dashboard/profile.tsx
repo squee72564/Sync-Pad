@@ -68,7 +68,7 @@ function RouteComponent() {
               label="Email status"
               value={user.emailVerified ? 'Verified' : 'Pending verification'}
             />
-            <ProfileRow label="User ID" value={user.id} mono />
+            <ProfileRow label="Created at" value={formatDate(user.createdAt)} />
           </CardContent>
         </Card>
       </section>

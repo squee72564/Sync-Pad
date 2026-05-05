@@ -16,6 +16,7 @@ import {
 } from '#/components/ui/card';
 import { organizationQuery } from '#/features/organizations/queries';
 import { assertUuidParam } from '#/lib/route-params';
+import { formatShortDate } from '#/lib/utils';
 
 export const Route = createFileRoute(
   '/_authenticated/organizations/$organizationId/_organization/',
@@ -66,15 +67,11 @@ function OrganizationPage() {
           <CardContent className="space-y-2 text-sm">
             <div className="flex items-center justify-between gap-4">
               <span className="text-muted-foreground">Created</span>
-              <span>
-                {new Date(organization.createdAt).toLocaleDateString()}
-              </span>
+              <span>{formatShortDate(organization.createdAt)}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
               <span className="text-muted-foreground">Updated</span>
-              <span>
-                {new Date(organization.updatedAt).toLocaleDateString()}
-              </span>
+              <span>{formatShortDate(organization.updatedAt)}</span>
             </div>
           </CardContent>
         </Card>

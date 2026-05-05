@@ -24,3 +24,15 @@ export function formatDate(value: string) {
     timeStyle: 'short',
   }).format(new Date(value));
 }
+
+export function formatShortDate(value: string | number | Date) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    dateStyle: 'medium',
+  }).format(date);
+}

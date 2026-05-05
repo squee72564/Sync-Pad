@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
+import { formatShortDate } from '#/lib/utils';
 
 type WorkspaceCardWorkspace = {
   id: string;
@@ -79,7 +80,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
           <WorkspaceMeta
             icon={CalendarClockIcon}
             label="Created"
-            value={new Date(workspace.createdAt).toLocaleDateString()}
+            value={formatShortDate(workspace.createdAt)}
           />
           {workspace.workspaceRole ? (
             <div className="flex items-center justify-between gap-3">

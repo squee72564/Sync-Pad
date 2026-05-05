@@ -4,8 +4,10 @@ import {
   Clock3Icon,
   MailIcon,
   ShieldCheckIcon,
+  UsersIcon,
   XCircleIcon,
 } from 'lucide-react';
+import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar';
@@ -21,7 +23,7 @@ import {
 import { organizationMembersQuery } from '#/features/organizations/queries';
 import type { OrganizationMembersDetailedDto } from '#/features/organizations/types';
 import { assertUuidParam } from '#/lib/route-params';
-import { getInitials } from '#/lib/utils';
+import { formatShortDate, getInitials } from '#/lib/utils';
 
 export const Route = createFileRoute(
   '/_authenticated/organizations/$organizationId/_organization/members',
@@ -72,14 +74,11 @@ function RouteComponent() {
           ))}
         </div>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>No members yet</CardTitle>
-            <CardDescription>
-              Members invited to this organization will appear here.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <EmptyStateCard
+          icon={UsersIcon}
+          title="No members yet"
+          description="Members invited to this organization will appear here with their role and access status."
+        />
       )}
     </div>
   );
@@ -122,7 +121,7 @@ function MemberCard({
         <StatusBadge status={membership.status} />
         <div className="text-xs text-muted-foreground">
           {membership.joinedAt
-            ? `Joined ${new Date(membership.joinedAt).toLocaleDateString()}`
+            ? `Joined ${formatShortDate(membership.joinedAt)}`
             : 'Not joined yet'}
         </div>
       </CardContent>
