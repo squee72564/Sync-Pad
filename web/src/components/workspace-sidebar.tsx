@@ -190,6 +190,31 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {organizationId ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Organization</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {organizationWorkspaceRouteItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <Link
+                        to={item.to}
+                        params={{ organizationId }}
+                        activeOptions={{ exact: true }}
+                        activeProps={{ 'data-active': true }}
+                      >
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
+
         {organizationId && workspaceId ? (
           <SidebarGroup>
             <SidebarGroupLabel>Workspace</SidebarGroupLabel>
@@ -201,21 +226,6 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
                       <Link
                         to={item.to}
                         params={{ organizationId, workspaceId }}
-                        activeOptions={{ exact: true }}
-                        activeProps={{ 'data-active': true }}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-                {organizationWorkspaceRouteItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <Link
-                        to={item.to}
-                        params={{ organizationId }}
                         activeOptions={{ exact: true }}
                         activeProps={{ 'data-active': true }}
                       >
