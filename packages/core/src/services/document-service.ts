@@ -118,7 +118,7 @@ export function createDocumentService(deps: DocumentServiceDeps) {
       const includeAll = await permissionChecker.checkPermission(
         subjects.user(input.actorUserId),
         resources.workspace(input.workspaceId),
-        'manage',
+        'read',
       );
 
       return documentRepo.listByWorkspaceReadableToUser(
@@ -216,7 +216,7 @@ export function createDocumentService(deps: DocumentServiceDeps) {
       await ensureDocumentPermission(
         input.actorUserId,
         input.documentId,
-        'write',
+        'manage',
       );
 
       return documentRepo.updateDocument(input.documentId, input.data);
