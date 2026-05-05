@@ -2,6 +2,8 @@ import { relations } from 'drizzle-orm';
 
 import { account, session, user } from './auth-schema.js';
 import {
+  document,
+  documentState,
   organization,
   organizationMembership,
   workspace,
@@ -62,6 +64,7 @@ export const workspaceRelations = relations(workspace, ({ one, many }) => ({
     fields: [workspace.organizationId],
     references: [organization.id],
   }),
+  documents: many(document),
   memberships: many(workspaceMembership),
 }));
 
@@ -82,3 +85,21 @@ export const workspaceMembershipRelations = relations(
     }),
   }),
 );
+
+export const documentRelations = relations(document, ({ one }) => ({
+  workspace: one(workspace, {
+    fields: [document.workspaceId],
+    references: [workspace.id],
+  }),
+  state: one(documentState, {
+    fields: [document.id],
+    references: [documentState.documentId],
+  }),
+}));
+
+export const documentStateRelations = relations(documentState, ({ one }) => ({
+  document: one(document, {
+    fields: [documentState.documentId],
+    references: [document.id],
+  }),
+}));

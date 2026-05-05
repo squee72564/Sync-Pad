@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   check,
+  customType,
   foreignKey,
   index,
   pgEnum,
@@ -12,6 +13,24 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema.js';
+
+export const bytea = customType<{
+  data: Buffer;
+  driverData: Buffer;
+}>({
+  dataType() {
+    return 'bytea';
+  },
+  toDriver(value) {
+    return value;
+  },
+  fromDriver(value) {
+    return value;
+  },
+});
+
+const colorColumn = () =>
+  varchar('color', { length: 9 }).default('#808080FF').notNull();
 
 export const organizationRoleEnum = pgEnum('organization_role', [
   'owner',
@@ -81,7 +100,7 @@ export const workspace = pgTable(
     id: text('id').primaryKey(),
     name: text('name').notNull(),
     description: text('description').default('').notNull(),
-    color: varchar('color', { length: 9 }).default('#808080FF').notNull(),
+    color: colorColumn(),
     organizationId: text('organization_id')
       .notNull()
       .references(() => organization.id, { onDelete: 'cascade' }),
@@ -94,7 +113,7 @@ export const workspace = pgTable(
   },
   (t) => [
     unique('workspace_id_organization_id_unique').on(t.id, t.organizationId),
-    check('color_hex_value', sql`${t.color} ~ '^#[0-9A-Fa-f]{8}$'`),
+    check('workspace_color_hex_value', sql`${t.color} ~ '^#[0-9A-Fa-f]{8}$'`),
   ],
 );
 
@@ -139,3 +158,37 @@ export const workspaceMembership = pgTable(
     index('workspace_membership_organization_id_idx').on(t.organizationId),
   ],
 );
+
+export const document = pgTable(
+  'document',
+  {
+    id: text('id').primaryKey(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspace.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    color: colorColumn(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    deletedAt: timestamp('deleted_at'),
+  },
+  (t) => [
+    index('document_workspace_id_idx').on(t.workspaceId),
+    index('document_workspace_id_deleted_at_idx').on(
+      t.workspaceId,
+      t.deletedAt,
+    ),
+    check('document_color_hex_value', sql`${t.color} ~ '^#[0-9A-Fa-f]{8}$'`),
+  ],
+);
+
+export const documentState = pgTable('document_state', {
+  documentId: text('document_id')
+    .primaryKey()
+    .references(() => document.id, { onDelete: 'cascade' }),
+  yjsState: bytea('yjs_state').default(sql`decode('0000', 'hex')`).notNull(),
+  persistedAt: timestamp('persisted_at').defaultNow().notNull(),
+});

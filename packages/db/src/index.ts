@@ -8,4 +8,5 @@ export {
 } from './repositories/index.js';
 export * as authSchema from './schema/auth-schema.js';
 export * as coreSchema from './schema/core.js';
+export * as relationsSchema from './schema/relations.js';
 export type * from './types.js';

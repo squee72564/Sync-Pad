@@ -32,3 +32,10 @@ export type NewWorkspaceMembership = InferInsertModel<
   typeof coreSchema.workspaceMembership
 >;
 export type WorkspaceRole = InferEnum<typeof coreSchema.workspaceRoleEnum>;
+
+export type Document = InferSelectModel<typeof coreSchema.document>;
+export type NewDocument = InferInsertModel<typeof coreSchema.document>;
+export type DocumentState = InferSelectModel<typeof coreSchema.documentState>;
+export type NewDocumentState = InferInsertModel<
+  typeof coreSchema.documentState
+>;

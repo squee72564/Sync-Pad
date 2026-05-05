@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as authSchema from './schema/auth-schema.js';
 import * as coreSchema from './schema/core.js';
+import * as relationsSchema from './schema/relations.js';
 
 export function createDbClientAndPool(connectionString: string) {
   const pool = new Pool({
@@ -11,6 +12,7 @@ export function createDbClientAndPool(connectionString: string) {
     schema: {
       ...authSchema,
       ...coreSchema,
+      ...relationsSchema,
     },
   });
 
