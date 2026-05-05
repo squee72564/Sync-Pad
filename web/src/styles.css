@@ -147,3 +147,66 @@ body {
     @apply font-sans;
   }
 }
+
+@layer components {
+  .tiptap {
+    @apply text-sm leading-7 text-foreground;
+  }
+
+  .tiptap :first-child {
+    @apply mt-0;
+  }
+
+  .tiptap p {
+    @apply my-3;
+  }
+
+  .tiptap h1 {
+    @apply mt-8 mb-4 font-heading text-3xl font-semibold leading-tight;
+  }
+
+  .tiptap h2 {
+    @apply mt-7 mb-3 font-heading text-2xl font-semibold leading-tight;
+  }
+
+  .tiptap h3 {
+    @apply mt-6 mb-2 font-heading text-xl font-semibold leading-snug;
+  }
+
+  .tiptap ul,
+  .tiptap ol {
+    @apply my-3 pl-6;
+  }
+
+  .tiptap ul {
+    @apply list-disc;
+  }
+
+  .tiptap ol {
+    @apply list-decimal;
+  }
+
+  .tiptap li {
+    @apply my-1;
+  }
+
+  .tiptap blockquote {
+    @apply my-4 border-border border-l-2 pl-4 text-muted-foreground;
+  }
+
+  .tiptap code {
+    @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.85em];
+  }
+
+  .tiptap pre {
+    @apply my-4 overflow-x-auto rounded-md bg-muted p-4;
+  }
+
+  .tiptap pre code {
+    @apply bg-transparent p-0 text-sm;
+  }
+
+  .tiptap hr {
+    @apply my-6 border-border;
+  }
+}
