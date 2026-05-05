@@ -1,4 +1,4 @@
-import type { OrganizationService, WorkspaceService } from '@syncpad/core';
+import type { OrganizationService } from '@syncpad/core';
 import type { PermissionChecker } from '@syncpad/permify';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
@@ -12,7 +12,7 @@ import {
 import { ApiError } from '../lib/error.js';
 import { createAuthenticationMiddleware } from '../middleware/authentication.js';
 import { createAuthorizationMiddleware } from '../middleware/authorization.js';
-import { createResourceLoader } from '../middleware/resource-loader.js';
+import { createOrganizationResourceLoader } from '../middleware/resource-loader.js';
 import { getValidated, validateRequest } from '../middleware/validation.js';
 import {
   type AddOrganizationMemberInput,
@@ -63,18 +63,15 @@ const getOrganizationResource = (
 
 export function createOrganizationsRoute({
   organizationService,
-  workspaceService,
   permissionChecker,
   auth,
 }: {
   organizationService: OrganizationService;
-  workspaceService: WorkspaceService;
   permissionChecker: PermissionChecker;
   auth: Auth;
 }) {
-  const { loadOrganizationResource } = createResourceLoader({
+  const { loadOrganizationResource } = createOrganizationResourceLoader({
     organizationService,
-    workspaceService,
   });
   const { requireOrganizationPermission } = createAuthorizationMiddleware({
     permissionChecker,

@@ -16,14 +16,10 @@ import { getValidated } from './validation.js';
 
 type ValidatedParams<TParams> = { params: TParams };
 
-export function createResourceLoader({
-  documentService,
+export function createOrganizationResourceLoader({
   organizationService,
-  workspaceService,
 }: {
-  documentService?: DocumentService;
   organizationService: OrganizationService;
-  workspaceService: WorkspaceService;
 }) {
   return {
     loadOrganizationResource: <TParams>(
@@ -61,7 +57,15 @@ export function createResourceLoader({
         await next();
       };
     },
+  };
+}
 
+export function createWorkspaceResourceLoader({
+  workspaceService,
+}: {
+  workspaceService: WorkspaceService;
+}) {
+  return {
     loadWorkspaceResource: <TParams>(
       selectWorkspaceId: (validated: { params: TParams }) => string,
     ): MiddlewareHandler<{ Variables: AppVariables }> => {
@@ -140,7 +144,28 @@ export function createResourceLoader({
         await next();
       };
     },
+  };
+}
 
+export function createOrganizationWorkspaceResourceLoader({
+  organizationService,
+  workspaceService,
+}: {
+  organizationService: OrganizationService;
+  workspaceService: WorkspaceService;
+}) {
+  return {
+    ...createOrganizationResourceLoader({ organizationService }),
+    ...createWorkspaceResourceLoader({ workspaceService }),
+  };
+}
+
+export function createDocumentResourceLoader({
+  documentService,
+}: {
+  documentService: DocumentService;
+}) {
+  return {
     loadDocumentResourceInWorkspace: <TParams>(
       selectIds: (validated: { params: TParams }) => {
         workspaceId: string;
@@ -149,14 +174,6 @@ export function createResourceLoader({
       options?: { includeDeleted?: boolean },
     ): MiddlewareHandler<{ Variables: AppVariables }> => {
       return async (context, next) => {
-        if (!documentService) {
-          throw new ApiError({
-            code: 'RESOURCE_LOADER_MISCONFIGURED',
-            message: 'Document service is required to load document resources',
-            status: StatusCodes.INTERNAL_SERVER_ERROR,
-          });
-        }
-
         const validated = getValidated<TParams>(
           context,
         ) as ValidatedParams<TParams>;

@@ -55,7 +55,6 @@ export const createApp = (deps: ApiDeps) => {
     '/api/organizations',
     createOrganizationsRoute({
       organizationService,
-      workspaceService,
       permissionChecker,
       auth,
     }),

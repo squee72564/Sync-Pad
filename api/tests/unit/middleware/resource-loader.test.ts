@@ -4,7 +4,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createErrorHandler } from '../../../src/http/error-handler.js';
 import type { AppVariables } from '../../../src/lib/context.js';
-import { createResourceLoader } from '../../../src/middleware/resource-loader.js';
+import {
+  createDocumentResourceLoader,
+  createOrganizationResourceLoader,
+} from '../../../src/middleware/resource-loader.js';
 import { documentRecord, organizationRecord } from '../../helpers/fixtures.js';
 import { createTestDeps, testEnvFixture } from '../../helpers/test-deps.js';
 
@@ -20,10 +23,8 @@ describe('resource loader middleware', () => {
     vi.mocked(deps.organizationService.findById).mockResolvedValue(
       organizationRecord,
     );
-    const { loadOrganizationResource } = createResourceLoader({
+    const { loadOrganizationResource } = createOrganizationResourceLoader({
       organizationService: deps.organizationService,
-      workspaceService: deps.workspaceService,
-      documentService: deps.documentService,
     });
 
     const app = new Hono<{ Variables: AppVariables }>();
@@ -60,10 +61,8 @@ describe('resource loader middleware', () => {
   it('returns 404 when an organization is missing', async () => {
     const deps = createTestDeps();
     vi.mocked(deps.organizationService.findById).mockResolvedValue(undefined);
-    const { loadOrganizationResource } = createResourceLoader({
+    const { loadOrganizationResource } = createOrganizationResourceLoader({
       organizationService: deps.organizationService,
-      workspaceService: deps.workspaceService,
-      documentService: deps.documentService,
     });
 
     const app = new Hono<{ Variables: AppVariables }>();
@@ -98,10 +97,8 @@ describe('resource loader middleware', () => {
 
   it('returns 404 when the validated organization id is empty', async () => {
     const deps = createTestDeps();
-    const { loadOrganizationResource } = createResourceLoader({
+    const { loadOrganizationResource } = createOrganizationResourceLoader({
       organizationService: deps.organizationService,
-      workspaceService: deps.workspaceService,
-      documentService: deps.documentService,
     });
 
     const app = new Hono<{ Variables: AppVariables }>();
@@ -139,9 +136,7 @@ describe('resource loader middleware', () => {
     vi.mocked(deps.documentService.findInWorkspace).mockResolvedValue(
       documentRecord,
     );
-    const { loadDocumentResourceInWorkspace } = createResourceLoader({
-      organizationService: deps.organizationService,
-      workspaceService: deps.workspaceService,
+    const { loadDocumentResourceInWorkspace } = createDocumentResourceLoader({
       documentService: deps.documentService,
     });
 
@@ -193,9 +188,7 @@ describe('resource loader middleware', () => {
     vi.mocked(deps.documentService.findInWorkspace).mockResolvedValue(
       undefined,
     );
-    const { loadDocumentResourceInWorkspace } = createResourceLoader({
-      organizationService: deps.organizationService,
-      workspaceService: deps.workspaceService,
+    const { loadDocumentResourceInWorkspace } = createDocumentResourceLoader({
       documentService: deps.documentService,
     });
 
@@ -239,9 +232,7 @@ describe('resource loader middleware', () => {
       ...documentRecord,
       deletedAt: new Date('2024-01-04T03:04:05.000Z'),
     });
-    const { loadDocumentResourceInWorkspace } = createResourceLoader({
-      organizationService: deps.organizationService,
-      workspaceService: deps.workspaceService,
+    const { loadDocumentResourceInWorkspace } = createDocumentResourceLoader({
       documentService: deps.documentService,
     });
 

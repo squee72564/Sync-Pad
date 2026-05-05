@@ -12,7 +12,7 @@ import {
 import { ApiError } from '../lib/error.js';
 import { createAuthenticationMiddleware } from '../middleware/authentication.js';
 import { createAuthorizationMiddleware } from '../middleware/authorization.js';
-import { createResourceLoader } from '../middleware/resource-loader.js';
+import { createOrganizationWorkspaceResourceLoader } from '../middleware/resource-loader.js';
 import { getValidated, validateRequest } from '../middleware/validation.js';
 import {
   type OrganizationParams,
@@ -80,7 +80,10 @@ export function createOrganizationWorkspacesRoute({
     Variables: AppVariables;
   }>();
   const { loadOrganizationResource, loadWorkspaceResourceInOrganization } =
-    createResourceLoader({ organizationService, workspaceService });
+    createOrganizationWorkspaceResourceLoader({
+      organizationService,
+      workspaceService,
+    });
   const { requireOrganizationPermission, requireWorkspacePermission } =
     createAuthorizationMiddleware({
       permissionChecker,

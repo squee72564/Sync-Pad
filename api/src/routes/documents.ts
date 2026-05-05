@@ -16,7 +16,10 @@ import {
 import { ApiError } from '../lib/error.js';
 import { createAuthenticationMiddleware } from '../middleware/authentication.js';
 import { createAuthorizationMiddleware } from '../middleware/authorization.js';
-import { createResourceLoader } from '../middleware/resource-loader.js';
+import {
+  createDocumentResourceLoader,
+  createOrganizationWorkspaceResourceLoader,
+} from '../middleware/resource-loader.js';
 import { getValidated, validateRequest } from '../middleware/validation.js';
 import {
   type CreateDocumentInput,
@@ -79,13 +82,12 @@ export function createOrganizationWorkspaceDocumentsRoute({
   const organizationWorkspaceDocumentsRoute = new Hono<{
     Variables: AppVariables;
   }>();
-  const {
-    loadOrganizationResource,
-    loadWorkspaceResourceInOrganization,
-    loadDocumentResourceInWorkspace,
-  } = createResourceLoader({
-    organizationService,
-    workspaceService,
+  const { loadOrganizationResource, loadWorkspaceResourceInOrganization } =
+    createOrganizationWorkspaceResourceLoader({
+      organizationService,
+      workspaceService,
+    });
+  const { loadDocumentResourceInWorkspace } = createDocumentResourceLoader({
     documentService,
   });
   const { requireWorkspacePermission, requireDocumentPermission } =
