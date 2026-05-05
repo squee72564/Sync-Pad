@@ -1,6 +1,10 @@
 export type {
   DbClient,
   DbPool,
+  Document,
+  DocumentState,
+  NewDocument,
+  NewDocumentState,
   NewOrganization,
   NewWorkspace,
   Organization,
