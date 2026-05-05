@@ -1,5 +1,6 @@
 import type { Tuple } from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
 import type {
+  Document,
   OrganizationMembership,
   Workspace,
   WorkspaceMembership,
@@ -8,6 +9,7 @@ import type { PermissionChecker } from './index.js';
 import { subjects } from './types.js';
 
 export const PERMIFY_RELATIONS = {
+  documentParent: 'parent',
   workspaceParent: 'parent',
 } as const;
 
@@ -52,6 +54,19 @@ export const toWorkspaceParentTuple = (record: Workspace): Tuple => ({
   subject: {
     type: 'organization',
     id: record.organizationId,
+    relation: '',
+  },
+});
+
+export const toDocumentParentTuple = (record: Document): Tuple => ({
+  entity: {
+    type: 'document',
+    id: record.id,
+  },
+  relation: PERMIFY_RELATIONS.documentParent,
+  subject: {
+    type: 'workspace',
+    id: record.workspaceId,
     relation: '',
   },
 });

@@ -98,6 +98,30 @@ describe('permission checker', () => {
     );
   });
 
+  it('serializes document resources using the registry id key', async () => {
+    const { grpc, instance } = createTestInstance();
+    grpc.permission.check.mockResolvedValue({
+      can: CheckResult.CHECK_RESULT_ALLOWED,
+    });
+
+    const allowed = await createPermissionChecker(instance).checkPermission(
+      subject,
+      resources.document('doc_1'),
+      'write',
+    );
+
+    expect(allowed).toBe(true);
+    expect(grpc.permission.check).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entity: {
+          type: 'document',
+          id: 'doc_1',
+        },
+        permission: 'write',
+      }),
+    );
+  });
+
   it('returns false when Permify denies the permission', async () => {
     const { grpc, instance } = createTestInstance();
     grpc.permission.check.mockResolvedValue({

@@ -30,3 +30,20 @@ entity workspace {
     permission invite = manage
     permission run_ai = manage or editor or bot or parent.run_ai
 }
+
+entity document {
+    relation parent @workspace
+    relation owner @user
+    relation editor @user
+    relation commenter @user
+    relation viewer @user
+    relation bot @user
+
+    permission govern = parent.manage
+    permission manage = owner or govern
+    permission read = manage or editor or commenter or viewer or bot or parent.read
+    permission comment = manage or editor or commenter or parent.comment
+    permission write = manage or editor or parent.write
+    permission invite = manage
+    permission run_ai = manage or editor or bot or parent.run_ai
+}

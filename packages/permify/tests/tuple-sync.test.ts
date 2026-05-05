@@ -3,6 +3,7 @@ import type { PermissionChecker } from '../src/permissions.js';
 import {
   createPermifyAccessGraphSync,
   PERMIFY_RELATIONS,
+  toDocumentParentTuple,
   toOrganizationMembershipTuple,
   toWorkspaceMembershipTuple,
   toWorkspaceParentTuple,
@@ -170,6 +171,22 @@ describe('tuple sync', () => {
       entity: { type: 'workspace', id: 'ws_1' },
       relation: PERMIFY_RELATIONS.workspaceParent,
       subject: { type: 'organization', id: 'org_1', relation: '' },
+    });
+
+    expect(
+      toDocumentParentTuple({
+        id: 'doc_1',
+        workspaceId: 'ws_1',
+        title: 'Launch notes',
+        color: '#808080FF',
+        createdAt: new Date('2024-01-02T03:04:05.000Z'),
+        updatedAt: new Date('2024-01-02T03:04:05.000Z'),
+        deletedAt: null,
+      }),
+    ).toMatchObject({
+      entity: { type: 'document', id: 'doc_1' },
+      relation: PERMIFY_RELATIONS.documentParent,
+      subject: { type: 'workspace', id: 'ws_1', relation: '' },
     });
   });
 });

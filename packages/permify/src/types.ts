@@ -13,6 +13,10 @@ export const resourceDefinitions = {
     idKey: 'workspaceId',
     permissions: ['read', 'comment', 'write', 'manage', 'invite', 'run_ai'],
   },
+  document: {
+    idKey: 'documentId',
+    permissions: ['read', 'comment', 'write', 'manage', 'invite', 'run_ai'],
+  },
 } as const;
 
 type ResourceDefinitions = typeof resourceDefinitions;
@@ -24,6 +28,7 @@ export type PermissionFor<TType extends ResourceType> =
 
 export type OrganizationPermission = PermissionFor<'organization'>;
 export type WorkspacePermission = PermissionFor<'workspace'>;
+export type DocumentPermission = PermissionFor<'document'>;
 
 type ResourceIdKey<TType extends ResourceType> =
   ResourceDefinitions[TType]['idKey'];
@@ -36,6 +41,7 @@ export type ResourceDescriptorMap = {
 
 export type OrganizationResource = ResourceDescriptorMap['organization'];
 export type WorkspaceResource = ResourceDescriptorMap['workspace'];
+export type DocumentResource = ResourceDescriptorMap['document'];
 export type ResourceDescriptor = ResourceDescriptorMap[ResourceType];
 
 export type PermissionCheckItem<TType extends ResourceType = ResourceType> = {
@@ -58,6 +64,10 @@ export const resources: ResourceBuilderMap = {
   workspace: (workspaceId) => ({
     type: 'workspace',
     workspaceId,
+  }),
+  document: (documentId) => ({
+    type: 'document',
+    documentId,
   }),
 };
 
