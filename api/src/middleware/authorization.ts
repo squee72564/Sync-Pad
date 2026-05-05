@@ -19,6 +19,17 @@ import {
 } from '../lib/context.js';
 import { ApiError } from '../lib/error.js';
 
+const getValidatedParam = (
+  context: Context<{ Variables: AppVariables }, string, object>,
+  paramName: string,
+): string | null => {
+  const validated = context.get(VALIDATED_CONTEXT_KEY);
+  const params = validated?.params as
+    | Record<string, string | undefined>
+    | undefined;
+  return params?.[paramName] ?? null;
+};
+
 const getCurrentUserAndFail = (
   context: Context<{ Variables: AppVariables }, string, object>,
 ) => {
@@ -47,17 +58,13 @@ export function createAuthorizationMiddleware({
       return async (context, next) => {
         const user = getCurrentUserAndFail(context);
         const organization = context.get(ORGANIZATION_CONTEXT_KEY);
-        const validated = context.get(VALIDATED_CONTEXT_KEY);
         const organizationId =
-          organization?.id ??
-          (validated.params as { organizationId?: string } | undefined)
-            ?.organizationId ??
-          null;
+          organization?.id ?? getValidatedParam(context, 'organizationId');
 
         if (!organizationId) {
           throw new ApiError({
             code: 'AUTHORIZATION_CONTEXT_INVALID',
-            message: 'Missing organization id for authorization check',
+            message: 'Missing organizationId for authorization check',
             status: StatusCodes.INTERNAL_SERVER_ERROR,
           });
         }
@@ -93,17 +100,13 @@ export function createAuthorizationMiddleware({
       return async (context, next) => {
         const user = getCurrentUserAndFail(context);
         const workspace = context.get(WORKSPACE_CONTEXT_KEY);
-        const validated = context.get(VALIDATED_CONTEXT_KEY);
         const workspaceId =
-          workspace?.id ??
-          (validated.params as { workspaceId?: string } | undefined)
-            ?.workspaceId ??
-          null;
+          workspace?.id ?? getValidatedParam(context, 'workspaceId');
 
         if (!workspaceId) {
           throw new ApiError({
             code: 'AUTHORIZATION_CONTEXT_INVALID',
-            message: 'Missing workspace id for authorization check',
+            message: 'Missing workspaceId for authorization check',
             status: StatusCodes.INTERNAL_SERVER_ERROR,
           });
         }
@@ -139,17 +142,13 @@ export function createAuthorizationMiddleware({
       return async (context, next) => {
         const user = getCurrentUserAndFail(context);
         const document = context.get(DOCUMENT_CONTEXT_KEY);
-        const validated = context.get(VALIDATED_CONTEXT_KEY);
         const documentId =
-          document?.id ??
-          (validated.params as { documentId?: string } | undefined)
-            ?.documentId ??
-          null;
+          document?.id ?? getValidatedParam(context, 'documentId');
 
         if (!documentId) {
           throw new ApiError({
             code: 'AUTHORIZATION_CONTEXT_INVALID',
-            message: 'Missing document id for authorization check',
+            message: 'Missing documentId for authorization check',
             status: StatusCodes.INTERNAL_SERVER_ERROR,
           });
         }
