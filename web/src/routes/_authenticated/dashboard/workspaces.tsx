@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import {
   Card,
@@ -27,14 +28,15 @@ function WorkspacesPage() {
   const { workspaces } = Route.useLoaderData();
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
-      <div className="space-y-1">
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">
-          Workspaces
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Workspaces you can access across your organizations.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Workspaces"
+        title="Workspaces"
+        description="Workspaces you can access across your organizations."
+      >
+        <div className="grid min-w-40 grid-cols-1 gap-2">
+          <PageHeaderStat label="Total" value={workspaces.length} />
+        </div>
+      </PageHeader>
       {workspaces.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {workspaces.map((workspace) => (

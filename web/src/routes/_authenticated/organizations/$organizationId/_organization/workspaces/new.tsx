@@ -4,7 +4,7 @@ import { ArrowLeftIcon, FolderPlusIcon } from 'lucide-react';
 import { type SubmitEvent, useState } from 'react';
 import { HexAlphaColorPicker } from 'react-colorful';
 import { toast } from 'sonner';
-import { Badge } from '#/components/ui/badge';
+import { PageHeader } from '#/components/page-header';
 import { Button } from '#/components/ui/button';
 import {
   Card,
@@ -105,30 +105,22 @@ function NewWorkspacePage() {
 
   return (
     <div className="flex flex-1 flex-col gap-8 px-4 py-6 md:px-6 md:py-8">
-      <div className="flex items-center justify-between gap-4">
-        <div className="space-y-2">
-          <Badge variant="secondary">Create</Badge>
-          <div className="space-y-1">
-            <h1 className="font-heading text-2xl font-semibold tracking-tight">
-              Create workspace
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              Add a workspace to this organization for docs, timelines, sheets,
-              and project-specific collaboration.
-            </p>
-          </div>
-        </div>
-
-        <Button variant="ghost" asChild>
-          <Link
-            to="/organizations/$organizationId/workspaces"
-            params={{ organizationId }}
-          >
-            <ArrowLeftIcon />
-            Back to workspaces
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Create"
+        title="Create workspace"
+        description="Add a workspace to this organization for docs, timelines, sheets, and project-specific collaboration."
+        actions={
+          <Button variant="ghost" asChild>
+            <Link
+              to="/organizations/$organizationId/workspaces"
+              params={{ organizationId }}
+            >
+              <ArrowLeftIcon />
+              Back to workspaces
+            </Link>
+          </Button>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_20rem]">
         <Card className="border-border/70">

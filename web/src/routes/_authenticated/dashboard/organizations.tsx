@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Building2Icon } from 'lucide-react';
+import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import {
   Card,
@@ -31,14 +32,15 @@ function OrganizationsPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
-      <div className="space-y-1">
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">
-          Organizations
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Organizations you belong to across Syncpad.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Organizations"
+        title="Organizations"
+        description="Organizations you belong to across Syncpad."
+      >
+        <div className="grid min-w-40 grid-cols-1 gap-2">
+          <PageHeaderStat label="Total" value={organizations.length} />
+        </div>
+      </PageHeader>
 
       {organizations.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

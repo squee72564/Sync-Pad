@@ -6,6 +6,7 @@ import {
   SparklesIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
+import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { Avatar, AvatarFallback } from '#/components/ui/avatar';
 import { Badge } from '#/components/ui/badge';
@@ -50,45 +51,25 @@ function RouteComponent() {
   return (
     <div className="flex flex-1 flex-col gap-8 px-4 py-6 md:px-6 md:py-8">
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(22rem,0.7fr)]">
-        <Card className="border-border/70 bg-gradient-to-br from-background via-background to-muted/35">
-          <CardHeader className="gap-5">
-            <div className="flex items-center gap-4">
-              <Avatar size="lg" className="size-14 border border-border/70">
-                <AvatarFallback
-                  className="text-base font-semibold text-white"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-
-              <div className="space-y-1">
-                <Badge variant="secondary" className="w-fit">
-                  Workspace
-                </Badge>
-                <CardTitle className="text-3xl tracking-tight">
-                  {workspace.name}
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Organized under a workspace-specific home for docs, timelines,
-                  and future content.
-                </CardDescription>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="gap-1.5">
-                <span
-                  aria-hidden="true"
-                  className="size-2 rounded-full"
-                  style={{ backgroundColor: accentColor }}
-                />
-                Accent {workspace.color}
-              </Badge>
-              <Badge variant="outline">Workspace ID: {workspace.id}</Badge>
-            </div>
-          </CardHeader>
-        </Card>
+        <PageHeader
+          eyebrow="Workspace"
+          title={workspace.name}
+          description="Organized under a workspace-specific home for docs, timelines, and future content."
+          leading={
+            <Avatar size="lg" className="size-14 border border-border/70">
+              <AvatarFallback
+                className="text-base font-semibold text-white"
+                style={{ backgroundColor: accentColor }}
+              >
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          }
+        >
+          <div className="grid min-w-40 grid-cols-1 gap-2">
+            <PageHeaderStat label="Accent" value={workspace.color} />
+          </div>
+        </PageHeader>
 
         <Card className="border-border/70">
           <CardHeader>

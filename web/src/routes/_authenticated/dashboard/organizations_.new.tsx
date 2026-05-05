@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeftIcon, Building2Icon } from 'lucide-react';
 import { type SubmitEvent, useState } from 'react';
 import { toast } from 'sonner';
-import { Badge } from '#/components/ui/badge';
+import { PageHeader } from '#/components/page-header';
 import { Button } from '#/components/ui/button';
 import {
   Card,
@@ -81,27 +81,19 @@ function NewOrganizationPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-8 px-4 py-6 md:px-6 md:py-8">
-      <div className="flex items-center justify-between gap-4">
-        <div className="space-y-2">
-          <Badge variant="secondary">Create</Badge>
-          <div className="space-y-1">
-            <h1 className="font-heading text-2xl font-semibold tracking-tight">
-              Create organization
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              Start with the organization name. This flow can expand into a
-              fuller setup experience as organization onboarding grows.
-            </p>
-          </div>
-        </div>
-
-        <Button variant="ghost" asChild>
-          <Link to="/dashboard/organizations">
-            <ArrowLeftIcon />
-            Back to organizations
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="Create"
+        title="Create organization"
+        description="Start with the organization name. This flow can expand into a fuller setup experience as organization onboarding grows."
+        actions={
+          <Button variant="ghost" asChild>
+            <Link to="/dashboard/organizations">
+              <ArrowLeftIcon />
+              Back to organizations
+            </Link>
+          </Button>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_20rem]">
         <Card className="border-border/70">

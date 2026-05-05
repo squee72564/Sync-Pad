@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { PageHeader } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar';
 import { Badge } from '#/components/ui/badge';
@@ -34,37 +35,25 @@ function RouteComponent() {
   return (
     <div className="flex flex-1 flex-col gap-8 px-4 py-6 md:px-6 md:py-8">
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(22rem,0.7fr)]">
-        <Card className="border-border/70 bg-gradient-to-br from-background via-background to-muted/35">
-          <CardHeader className="gap-5">
-            <div className="flex items-center gap-4">
-              <Avatar size="lg" className="size-14 border border-border/70">
-                <AvatarImage src={user.image ?? undefined} alt={user.name} />
-                <AvatarFallback className="text-base font-semibold">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-
-              <div className="space-y-1">
-                <Badge variant="secondary" className="w-fit">
-                  Profile
-                </Badge>
-                <CardTitle className="text-3xl tracking-tight">
-                  {user.name}
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Signed in as {user.email}
-                </CardDescription>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={user.emailVerified ? 'default' : 'outline'}>
-                {user.emailVerified ? 'Email verified' : 'Email unverified'}
-              </Badge>
-              <Badge variant="outline">User ID: {user.id}</Badge>
-            </div>
-          </CardHeader>
-        </Card>
+        <PageHeader
+          eyebrow="Profile"
+          title={user.name}
+          description={`Signed in as ${user.email}`}
+          leading={
+            <Avatar size="lg" className="size-14 border border-border/70">
+              <AvatarImage src={user.image ?? undefined} alt={user.name} />
+              <AvatarFallback className="text-base font-semibold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          }
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={user.emailVerified ? 'default' : 'outline'}>
+              {user.emailVerified ? 'Email verified' : 'Email unverified'}
+            </Badge>
+          </div>
+        </PageHeader>
 
         <Card className="border-border/70">
           <CardHeader>
