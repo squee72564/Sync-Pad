@@ -97,8 +97,12 @@ describe('authorization middleware', () => {
     expect(response.status).toBe(StatusCodes.OK);
     expect(await response.json()).toEqual({
       checked: true,
-      permission: 'read',
-      resource: 'workspace:ws_1',
+      checks: [
+        {
+          permission: 'read',
+          resource: 'workspace:ws_1',
+        },
+      ],
     });
   });
 
@@ -142,8 +146,56 @@ describe('authorization middleware', () => {
     expect(response.status).toBe(StatusCodes.OK);
     expect(await response.json()).toEqual({
       checked: true,
-      permission: 'manage',
-      resource: 'document:doc_1',
+      checks: [
+        {
+          permission: 'manage',
+          resource: 'document:doc_1',
+        },
+      ],
+    });
+  });
+
+  it('keeps every successful permission check on the request context', async () => {
+    const deps = createTestDeps();
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    const { requireWorkspacePermission, requireDocumentPermission } =
+      createAuthorizationMiddleware({
+        permissionChecker: deps.permissionChecker,
+      });
+
+    const app = new Hono<{ Variables: AppVariables }>();
+    app.use('*', async (context, next) => {
+      context.set('currentUser', currentUser);
+      context.set('validated', {
+        params: {
+          workspaceId: 'ws_1',
+          documentId: 'doc_1',
+        },
+      });
+      await next();
+    });
+    app.get(
+      '/protected',
+      requireWorkspacePermission('read'),
+      requireDocumentPermission('manage'),
+      (context) => context.json(context.get('authorization'), StatusCodes.OK),
+    );
+
+    const response = await app.request('/protected');
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(await response.json()).toEqual({
+      checked: true,
+      checks: [
+        {
+          permission: 'read',
+          resource: 'workspace:ws_1',
+        },
+        {
+          permission: 'manage',
+          resource: 'document:doc_1',
+        },
+      ],
     });
   });
 });

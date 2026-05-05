@@ -14,6 +14,16 @@ export const DOCUMENT_CONTEXT_KEY = 'document';
 export const VALIDATED_CONTEXT_KEY = 'validated';
 export const AUTHORIZATION_CONTEXT_KEY = 'authorization';
 
+export type AuthorizationCheck = {
+  permission: string;
+  resource: string;
+};
+
+export type AuthorizationContext = {
+  checked: boolean;
+  checks: AuthorizationCheck[];
+};
+
 export type AppVariables = {
   requestId: string;
   session: AuthSessionInfo | null;
@@ -22,9 +32,5 @@ export type AppVariables = {
   workspace: Workspace | null;
   document: Document | null;
   validated: ValidatedRequestData;
-  authorization?: {
-    checked: boolean;
-    permission: string;
-    resource: string;
-  };
+  authorization?: AuthorizationContext;
 };

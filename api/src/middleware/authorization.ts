@@ -62,6 +62,18 @@ const getCurrentUserAndFail = (
   return user;
 };
 
+const appendAuthorizationCheck = (
+  context: Context<{ Variables: AppVariables }, string, object>,
+  check: { permission: string; resource: string },
+) => {
+  const current = context.get(AUTHORIZATION_CONTEXT_KEY);
+
+  context.set(AUTHORIZATION_CONTEXT_KEY, {
+    checked: true,
+    checks: [...(current?.checks ?? []), check],
+  });
+};
+
 export function createAuthorizationMiddleware({
   permissionChecker,
 }: {
@@ -98,8 +110,7 @@ export function createAuthorizationMiddleware({
           });
         }
 
-        context.set(AUTHORIZATION_CONTEXT_KEY, {
-          checked: true,
+        appendAuthorizationCheck(context, {
           permission,
           resource: `organization:${organizationId}`,
         });
@@ -137,8 +148,7 @@ export function createAuthorizationMiddleware({
           });
         }
 
-        context.set(AUTHORIZATION_CONTEXT_KEY, {
-          checked: true,
+        appendAuthorizationCheck(context, {
           permission,
           resource: `workspace:${workspaceId}`,
         });
@@ -176,8 +186,7 @@ export function createAuthorizationMiddleware({
           });
         }
 
-        context.set(AUTHORIZATION_CONTEXT_KEY, {
-          checked: true,
+        appendAuthorizationCheck(context, {
           permission,
           resource: `document:${documentId}`,
         });
