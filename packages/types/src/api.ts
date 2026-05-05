@@ -4,12 +4,15 @@ import type {
   Organization,
   OrganizationMembership,
   OrganizationRole,
+  User,
   Workspace,
   WorkspaceMembership,
   WorkspaceRole,
 } from './db.js';
 import type { Jsonify } from './json.js';
+import type { PickAndRenameStrict } from './utils.js';
 
+export type UserDto = Jsonify<User>;
 export type OrganizationDto = Jsonify<Organization>;
 export type WorkspaceDto = Jsonify<Workspace>;
 export type OrganizationMembershipDto = Jsonify<OrganizationMembership>;
@@ -66,3 +69,17 @@ export type MeWorkspacesResponse = {
 };
 
 export type { OrganizationRole, WorkspaceRole };
+
+export type OrganizationMembersDetailedDto = Pick<
+  OrganizationMembershipDto,
+  'organizationId' | 'userId' | 'organizationRole' | 'status' | 'joinedAt'
+> &
+  PickAndRenameStrict<
+    UserDto,
+    'name' | 'email' | 'image',
+    { name: 'userName'; email: 'userEmail'; image: 'userImage' }
+  >;
+
+export type OrganizationMembersDetailedResponse = {
+  memberships: OrganizationMembersDetailedDto[];
+};

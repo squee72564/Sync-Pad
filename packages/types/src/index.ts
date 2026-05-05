@@ -8,11 +8,14 @@ export type {
   MeWorkspaceDto,
   MeWorkspacesResponse,
   OrganizationDto,
+  OrganizationMembersDetailedDto,
+  OrganizationMembersDetailedResponse,
   OrganizationMembershipDto,
   OrganizationMembershipsResponse,
   OrganizationResponse,
   OrganizationsResponse,
   OrganizationWorkspacesResponse,
+  UserDto,
   WorkspaceDto,
   WorkspaceMembershipDto,
   WorkspaceMembershipsResponse,
@@ -27,8 +30,10 @@ export type {
   OrganizationMembership,
   OrganizationMembershipStatus,
   OrganizationRole,
+  User,
   Workspace,
   WorkspaceMembership,
   WorkspaceRole,
 } from './db.js';
 export type { JsonDate, Jsonify, JsonPrimitive } from './json.js';
+export type { PickAndRenameStrict } from './utils.js';

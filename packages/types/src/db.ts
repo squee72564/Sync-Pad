@@ -7,6 +7,7 @@ export type {
   OrganizationMembership,
   OrganizationMembershipStatus,
   OrganizationRole,
+  User,
   Workspace,
   WorkspaceMembership,
   WorkspaceRole,
