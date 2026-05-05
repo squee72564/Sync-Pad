@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { BriefcaseBusinessIcon } from 'lucide-react';
-
+import { ScopeRouteError } from '#/components/scope-route-error';
 import { Badge } from '#/components/ui/badge';
 import {
   Card,
@@ -10,22 +9,24 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
-import { Skeleton } from '#/components/ui/skeleton';
 import { meWorkspacesQuery } from '#/features/me/queries';
 
-const workspaceSkeletonIds = [
-  'workspace-skeleton-1',
-  'workspace-skeleton-2',
-  'workspace-skeleton-3',
-];
-
 export const Route = createFileRoute('/_authenticated/dashboard/workspaces')({
+  loader: ({ context }) => {
+    return context.queryClient.ensureQueryData(meWorkspacesQuery());
+  },
+  errorComponent: ({ error }) => (
+    <ScopeRouteError
+      error={error}
+      fallbackTitle="Workspaces not found"
+      fallbackDescription="Unable to get workspaces."
+    />
+  ),
   component: WorkspacesPage,
 });
 
 function WorkspacesPage() {
-  const workspacesQuery = useQuery(meWorkspacesQuery());
-
+  const { workspaces } = Route.useLoaderData();
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
       <div className="space-y-1">
@@ -36,72 +37,52 @@ function WorkspacesPage() {
           Workspaces you can access across your organizations.
         </p>
       </div>
-
-      {workspacesQuery.isLoading ? (
+      {workspaces.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {workspaceSkeletonIds.map((skeletonId) => (
-            <Skeleton key={skeletonId} className="h-36" />
+          {workspaces.map((workspace) => (
+            <Link
+              key={workspace.id}
+              to="/organizations/$organizationId/workspaces/$workspaceId"
+              params={{
+                organizationId: workspace.organizationId,
+                workspaceId: workspace.id,
+              }}
+            >
+              <Card>
+                <CardHeader>
+                  <div
+                    className="flex size-9 items-center justify-center rounded-md bg-muted"
+                    style={{ backgroundColor: workspace.color }}
+                  >
+                    <BriefcaseBusinessIcon className="size-4" />
+                  </div>
+                  <CardTitle>{workspace.name}</CardTitle>
+                  <CardDescription>
+                    {workspace.organizationName}
+                  </CardDescription>
+                  <CardAction>
+                    <Badge variant="outline">{workspace.workspaceRole}</Badge>
+                  </CardAction>
+                </CardHeader>
+                <div className="px-6 text-xs text-muted-foreground">
+                  {workspace.description.length === 0
+                    ? 'No Description'
+                    : workspace.description}
+                </div>
+              </Card>
+            </Link>
           ))}
         </div>
-      ) : null}
-
-      {workspacesQuery.isError ? (
+      ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Unable to load workspaces</CardTitle>
-            <CardDescription>{workspacesQuery.error.message}</CardDescription>
+            <CardTitle>No workspaces yet</CardTitle>
+            <CardDescription>
+              Workspaces you create or join will appear here.
+            </CardDescription>
           </CardHeader>
         </Card>
-      ) : null}
-
-      {workspacesQuery.isSuccess ? (
-        workspacesQuery.data.workspaces.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {workspacesQuery.data.workspaces.map((workspace) => (
-              <Link
-                key={workspace.id}
-                to="/organizations/$organizationId/workspaces/$workspaceId"
-                params={{
-                  organizationId: workspace.organizationId,
-                  workspaceId: workspace.id,
-                }}
-              >
-                <Card>
-                  <CardHeader>
-                    <div
-                      className="flex size-9 items-center justify-center rounded-md bg-muted"
-                      style={{ backgroundColor: workspace.color }}
-                    >
-                      <BriefcaseBusinessIcon className="size-4" />
-                    </div>
-                    <CardTitle>{workspace.name}</CardTitle>
-                    <CardDescription>
-                      {workspace.organizationName}
-                    </CardDescription>
-                    <CardAction>
-                      <Badge variant="outline">{workspace.workspaceRole}</Badge>
-                    </CardAction>
-                  </CardHeader>
-                  <div className="px-6 text-xs text-muted-foreground">
-                    {workspace.description.length === 0
-                      ? 'No Description'
-                      : workspace.description}
-                  </div>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>No workspaces yet</CardTitle>
-              <CardDescription>
-                Workspaces you create or join will appear here.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        )
-      ) : null}
+      )}
     </div>
   );
 }

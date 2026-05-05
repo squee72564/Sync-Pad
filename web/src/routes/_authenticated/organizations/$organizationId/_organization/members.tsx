@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { ScopeRouteError } from '#/components/scope-route-error';
 import { Badge } from '#/components/ui/badge';
 import {
   Card,
@@ -9,26 +9,30 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
-import { Skeleton } from '#/components/ui/skeleton';
 import { organizationMembersQuery } from '#/features/organizations/queries';
+import { assertUuidParam } from '#/lib/route-params';
 
 export const Route = createFileRoute(
   '/_authenticated/organizations/$organizationId/_organization/members',
 )({
+  loader: ({ context, params }) => {
+    assertUuidParam('OrganizationMemberships', params.organizationId);
+    return context.queryClient.ensureQueryData(
+      organizationMembersQuery(params.organizationId),
+    );
+  },
+  errorComponent: ({ error }) => (
+    <ScopeRouteError
+      error={error}
+      fallbackTitle="Organization members not found"
+      fallbackDescription="Unable to load organization members."
+    />
+  ),
   component: RouteComponent,
 });
 
-const organizationMemberSkeletonIds = [
-  'organization-skeleton-1',
-  'organization-skeleton-2',
-  'organization-skeleton-3',
-];
-
 function RouteComponent() {
-  const { organizationId } = Route.useParams();
-  const organizationMembershipsQuery = useQuery(
-    organizationMembersQuery(organizationId),
-  );
+  const { memberships } = Route.useLoaderData();
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -41,59 +45,36 @@ function RouteComponent() {
         </p>
       </div>
 
-      {organizationMembershipsQuery.isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {organizationMemberSkeletonIds.map((skeletonId) => (
-            <Skeleton key={skeletonId} className="h-32" />
+      {memberships.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          {memberships.map((organizationMembership) => (
+            <Card key={organizationMembership.userId}>
+              <CardHeader>
+                <CardAction>
+                  <Badge>{organizationMembership.organizationRole}</Badge>
+                </CardAction>
+                <CardTitle>{organizationMembership.userName}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col">
+                  <span>{organizationMembership.userEmail}</span>
+                  <span>{organizationMembership.status}</span>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
-      ) : null}
-
-      {organizationMembershipsQuery.isError ? (
+      ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Unable to load organization members.</CardTitle>
+            <CardTitle>No organizations yet</CardTitle>
             <CardDescription>
-              {organizationMembershipsQuery.error.message}
+              Organizations you create or join will appear here.
             </CardDescription>
           </CardHeader>
+          <CardContent />
         </Card>
-      ) : null}
-
-      {organizationMembershipsQuery.isSuccess ? (
-        organizationMembershipsQuery.data.memberships.length > 0 ? (
-          <div className="">
-            {organizationMembershipsQuery.data.memberships.map(
-              (organizationMembership) => (
-                <Card key={organizationMembership.userId}>
-                  <CardHeader>
-                    <CardAction>
-                      <Badge>{organizationMembership.organizationRole}</Badge>
-                    </CardAction>
-                    <CardTitle>{organizationMembership.userName}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col">
-                      <span>{organizationMembership.userEmail}</span>
-                      <span>{organizationMembership.status}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ),
-            )}
-          </div>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>No organizations yet</CardTitle>
-              <CardDescription>
-                Organizations you create or join will appear here.
-              </CardDescription>
-            </CardHeader>
-            <CardContent />
-          </Card>
-        )
-      ) : null}
+      )}
     </div>
   );
 }
