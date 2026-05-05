@@ -33,9 +33,13 @@ import { authClient } from '#/lib/auth-client';
 type WorkspaceRouteItem = {
   title: string;
   icon: LucideIcon;
-  to:
-    | '/dashboard/workspaces'
-    | '/organizations/$organizationId/workspaces/$workspaceId';
+  to: '/organizations/$organizationId/workspaces/$workspaceId';
+};
+
+type OrganizationWorkspaceRouteItem = {
+  title: string;
+  icon: LucideIcon;
+  to: '/organizations/$organizationId/workspaces';
 };
 
 type PendingWorkspaceItem = {
@@ -69,10 +73,13 @@ const workspaceRouteItems: WorkspaceRouteItem[] = [
     icon: HomeIcon,
     to: '/organizations/$organizationId/workspaces/$workspaceId',
   },
+];
+
+const organizationWorkspaceRouteItems: OrganizationWorkspaceRouteItem[] = [
   {
-    title: 'All workspaces',
+    title: 'Organization workspaces',
     icon: FolderKanbanIcon,
-    to: '/dashboard/workspaces',
+    to: '/organizations/$organizationId/workspaces',
   },
 ];
 
@@ -194,6 +201,21 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
                       <Link
                         to={item.to}
                         params={{ organizationId, workspaceId }}
+                        activeOptions={{ exact: true }}
+                        activeProps={{ 'data-active': true }}
+                      >
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+                {organizationWorkspaceRouteItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <Link
+                        to={item.to}
+                        params={{ organizationId }}
                         activeOptions={{ exact: true }}
                         activeProps={{ 'data-active': true }}
                       >
