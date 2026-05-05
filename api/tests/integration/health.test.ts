@@ -2,24 +2,22 @@ import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const checkDatabaseReadiness = vi.fn();
-
-vi.mock('../../src/db/client.js', () => ({
-  checkDatabaseReadiness,
-}));
+const query = vi.fn();
 
 const createHealthApp = async () => {
   const { createHealthRoute } = await import('../../src/routes/health.js');
   return new Hono().route(
     '/',
     createHealthRoute({
-      pool: {} as never,
+      pool: {
+        query,
+      } as never,
     }),
   );
 };
 
 afterEach(() => {
-  checkDatabaseReadiness.mockReset();
+  query.mockReset();
   vi.resetModules();
 });
 
@@ -55,13 +53,13 @@ describe('health routes', () => {
   });
 
   it('returns readiness success when the database is available', async () => {
-    checkDatabaseReadiness.mockResolvedValue(true);
+    query.mockResolvedValue({} as never);
 
     const app = await createHealthApp();
     const response = await app.request('/ready');
     const body = await response.json();
 
-    expect(checkDatabaseReadiness).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledTimes(1);
     expect(response.status).toBe(StatusCodes.OK);
     expect(body).toEqual({
       checks: {
@@ -73,13 +71,13 @@ describe('health routes', () => {
   });
 
   it('returns readiness failure when the database is unavailable', async () => {
-    checkDatabaseReadiness.mockRejectedValue(new Error('db unavailable'));
+    query.mockRejectedValue(new Error('db unavailable'));
 
     const app = await createHealthApp();
     const response = await app.request('/ready');
     const body = await response.json();
 
-    expect(checkDatabaseReadiness).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledTimes(1);
     expect(response.status).toBe(StatusCodes.SERVICE_UNAVAILABLE);
     expect(body).toEqual({
       checks: {
