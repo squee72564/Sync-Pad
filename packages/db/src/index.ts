@@ -3,6 +3,7 @@ export { type DbErrorContext, toDbError, withDbError } from './errors.js';
 export {
   createOrganizationRepository,
   createWorkspaceRepository,
+  type DocumentRepository,
   type OrganizationRepository,
   type WorkspaceRepository,
 } from './repositories/index.js';
