@@ -226,6 +226,19 @@ body {
     @apply rounded bg-primary/10 px-1 py-0.5 font-medium text-primary;
   }
 
+  .tiptap .is-empty::before {
+    @apply pointer-events-none float-left h-0 text-muted-foreground/60;
+    content: attr(data-placeholder);
+  }
+
+  .tiptap .has-focus {
+    @apply rounded-sm outline outline-2 outline-primary/15;
+  }
+
+  .tiptap .selection {
+    @apply bg-primary/15;
+  }
+
   .tiptap hr {
     @apply my-6 border-border;
   }

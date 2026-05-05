@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as DocumentTestRouteImport } from './routes/document-test'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -43,6 +44,11 @@ const SignupRoute = SignupRouteImport.update({
 const SigninRoute = SigninRouteImport.update({
   id: '/signin',
   path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentTestRoute = DocumentTestRouteImport.update({
+  id: '/document-test',
+  path: '/document-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsRoute = DocsRouteImport.update({
@@ -207,6 +213,7 @@ const AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
+  '/document-test': typeof DocumentTestRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
@@ -232,6 +239,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
+  '/document-test': typeof DocumentTestRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/organizations': typeof AuthenticatedOrganizationsRouteRouteWithChildren
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/docs': typeof DocsRoute
+  '/document-test': typeof DocumentTestRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/docs'
+    | '/document-test'
     | '/signin'
     | '/signup'
     | '/dashboard'
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/docs'
+    | '/document-test'
     | '/signin'
     | '/signup'
     | '/organizations'
@@ -330,6 +341,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/docs'
+    | '/document-test'
     | '/signin'
     | '/signup'
     | '/_authenticated/dashboard'
@@ -358,6 +370,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   DocsRoute: typeof DocsRoute
+  DocumentTestRoute: typeof DocumentTestRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
 }
@@ -376,6 +389,13 @@ declare module '@tanstack/react-router' {
       path: '/signin'
       fullPath: '/signin'
       preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/document-test': {
+      id: '/document-test'
+      path: '/document-test'
+      fullPath: '/document-test'
+      preLoaderRoute: typeof DocumentTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs': {
@@ -684,6 +704,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   DocsRoute: DocsRoute,
+  DocumentTestRoute: DocumentTestRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
 }
