@@ -4,14 +4,32 @@ import type { DbClient } from '../index.js';
 import { user } from '../schema/auth-schema.js';
 import { organization, organizationMembership } from '../schema/core.js';
 
-import type {
-  OrganizationMembershipStatus,
-  OrganizationRole,
-} from '../types.js';
+import type { NewOrganization, NewOrganizationMembership } from '../types.js';
 
 type DatabaseExecutor = Pick<
   DbClient,
   'query' | 'insert' | 'update' | 'delete' | 'select'
+>;
+
+type InsertOrganizationValues = Pick<
+  NewOrganization,
+  'id' | 'name' | 'description'
+>;
+type UpdateOrganizationValues = Partial<Pick<NewOrganization, 'name'>>;
+type InsertOrganizationMembershipValues = Pick<
+  NewOrganizationMembership,
+  | 'userId'
+  | 'organizationId'
+  | 'organizationRole'
+  | 'status'
+  | 'invitedBy'
+  | 'joinedAt'
+>;
+type UpdateOrganizationMembershipValues = Partial<
+  Pick<
+    NewOrganizationMembership,
+    'organizationRole' | 'status' | 'invitedBy' | 'joinedAt'
+  >
 >;
 
 export function createOrganizationRepository(db: DbClient) {
@@ -82,11 +100,7 @@ export function createOrganizationRepository(db: DbClient) {
     },
 
     async insertOrganization(
-      values: {
-        id: string;
-        name: string;
-        description: string | undefined;
-      },
+      values: InsertOrganizationValues,
       database: DatabaseExecutor = db,
     ) {
       return withDbError(
@@ -103,9 +117,7 @@ export function createOrganizationRepository(db: DbClient) {
 
     async updateOrganization(
       organizationId: string,
-      values: {
-        name?: string;
-      },
+      values: UpdateOrganizationValues,
       database: DatabaseExecutor = db,
     ) {
       return withDbError(
@@ -122,14 +134,7 @@ export function createOrganizationRepository(db: DbClient) {
     },
 
     async insertMembership(
-      values: {
-        userId: string;
-        organizationId: string;
-        organizationRole: OrganizationRole;
-        status: OrganizationMembershipStatus;
-        invitedBy?: string | null;
-        joinedAt?: Date | null;
-      },
+      values: InsertOrganizationMembershipValues,
       database: DatabaseExecutor = db,
     ) {
       return withDbError(
@@ -147,12 +152,7 @@ export function createOrganizationRepository(db: DbClient) {
     async updateMembership(
       organizationId: string,
       userId: string,
-      values: {
-        organizationRole?: OrganizationRole;
-        status?: OrganizationMembershipStatus;
-        invitedBy?: string | null;
-        joinedAt?: Date | null;
-      },
+      values: UpdateOrganizationMembershipValues,
       database: DatabaseExecutor = db,
     ) {
       return withDbError(

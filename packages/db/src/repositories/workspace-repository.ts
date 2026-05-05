@@ -9,11 +9,26 @@ import {
   workspaceMembership,
 } from '../schema/core.js';
 
-import type { WorkspaceRole } from '../types.js';
+import type { NewWorkspace, NewWorkspaceMembership } from '../types.js';
 
 type DatabaseExecutor = Pick<
   DbClient,
   'query' | 'insert' | 'update' | 'delete' | 'select'
+>;
+
+type InsertWorkspaceValues = Pick<
+  NewWorkspace,
+  'id' | 'name' | 'description' | 'color' | 'organizationId'
+>;
+type UpdateWorkspaceValues = Partial<
+  Pick<NewWorkspace, 'name' | 'organizationId'>
+>;
+type InsertWorkspaceMembershipValues = Pick<
+  NewWorkspaceMembership,
+  'userId' | 'workspaceId' | 'organizationId' | 'workspaceRole'
+>;
+type UpdateWorkspaceMembershipValues = Partial<
+  Pick<NewWorkspaceMembership, 'workspaceRole'>
 >;
 
 export function createWorkspaceRepository(db: DbClient) {
@@ -155,13 +170,7 @@ export function createWorkspaceRepository(db: DbClient) {
     },
 
     async insertWorkspace(
-      values: {
-        id: string;
-        name: string;
-        description: string | undefined;
-        color: string | undefined;
-        organizationId: string;
-      },
+      values: InsertWorkspaceValues,
       database: DatabaseExecutor = db,
     ) {
       return withDbError(
@@ -178,10 +187,7 @@ export function createWorkspaceRepository(db: DbClient) {
 
     async updateWorkspace(
       workspaceId: string,
-      values: {
-        name?: string;
-        organizationId?: string;
-      },
+      values: UpdateWorkspaceValues,
       database: DatabaseExecutor = db,
     ) {
       return withDbError(
@@ -214,12 +220,7 @@ export function createWorkspaceRepository(db: DbClient) {
     },
 
     async insertMembership(
-      values: {
-        userId: string;
-        workspaceId: string;
-        organizationId: string;
-        workspaceRole: WorkspaceRole;
-      },
+      values: InsertWorkspaceMembershipValues,
       database: DatabaseExecutor = db,
     ) {
       return withDbError(
@@ -237,9 +238,7 @@ export function createWorkspaceRepository(db: DbClient) {
     async updateMembership(
       workspaceId: string,
       userId: string,
-      values: {
-        workspaceRole?: WorkspaceRole;
-      },
+      values: UpdateWorkspaceMembershipValues,
       database: DatabaseExecutor = db,
     ) {
       return withDbError(
