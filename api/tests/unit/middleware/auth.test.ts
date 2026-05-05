@@ -2,11 +2,13 @@ import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { errorHandler } from '../../../src/http/error-handler.js';
+import { createErrorHandler } from '../../../src/http/error-handler.js';
 import type { AppVariables } from '../../../src/lib/context.js';
 import { createAuthenticationMiddleware } from '../../../src/middleware/authentication.js';
 import { authenticatedSession } from '../../helpers/fixtures.js';
-import { createTestAuth } from '../../helpers/test-deps.js';
+import { createTestAuth, testEnvFixture } from '../../helpers/test-deps.js';
+
+const errorHandler = createErrorHandler(testEnvFixture);
 
 afterEach(() => {
   vi.clearAllMocks();

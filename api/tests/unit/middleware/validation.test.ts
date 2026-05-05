@@ -2,12 +2,15 @@ import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { errorHandler } from '../../../src/http/error-handler.js';
+import { createErrorHandler } from '../../../src/http/error-handler.js';
 import type { AppVariables } from '../../../src/lib/context.js';
 import {
   getValidated,
   validateRequest,
 } from '../../../src/middleware/validation.js';
+import { testEnvFixture } from '../../helpers/test-deps.js';
+
+const errorHandler = createErrorHandler(testEnvFixture);
 
 describe('validation middleware', () => {
   it('stores parsed request data in context', async () => {

@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import type { ApiDeps } from './bootstrap/deps.js';
-import { errorHandler } from './http/error-handler.js';
-import { notFoundHandler } from './http/not-found-handler.js';
+import { createErrorHandler } from './http/error-handler.js';
+import { createNotFoundHandler } from './http/not-found-handler.js';
 import type { AppVariables } from './lib/context.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { requestLoggerMiddleware } from './middleware/request-logger.js';
 import {
-  authSecurityMiddleware,
-  securityHeaders,
+  createAuthSecurityMiddleware,
+  createSecurityHeaders,
 } from './middleware/security.js';
 import { createOrganizationWorkspaceDocumentsRoute } from './routes/documents.js';
 import { createHealthRoute } from './routes/health.js';
@@ -28,7 +28,7 @@ export const createApp = (deps: ApiDeps) => {
 
   const app = new Hono<{ Variables: AppVariables }>();
 
-  app.use('*', securityHeaders);
+  app.use('*', createSecurityHeaders(env));
   app.use('*', requestIdMiddleware);
   app.use('*', requestLoggerMiddleware);
 
@@ -41,7 +41,7 @@ export const createApp = (deps: ApiDeps) => {
 
   app.route('/', createHealthRoute({ pool }));
 
-  app.use('/api/auth/*', ...authSecurityMiddleware);
+  app.use('/api/auth/*', ...createAuthSecurityMiddleware(env));
 
   app.on(['POST', 'GET'], '/api/auth/*', async (context) => {
     return auth.handler(context.req.raw);
@@ -80,8 +80,8 @@ export const createApp = (deps: ApiDeps) => {
     }),
   );
 
-  app.notFound(notFoundHandler);
-  app.onError(errorHandler);
+  app.notFound(createNotFoundHandler(env));
+  app.onError(createErrorHandler(env));
 
   return app;
 };

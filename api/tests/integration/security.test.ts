@@ -3,8 +3,10 @@ import { StatusCodes } from 'http-status-codes';
 import { describe, expect, it } from 'vitest';
 
 import { requestIdMiddleware } from '../../src/middleware/request-id.js';
-import { authSecurityMiddleware } from '../../src/middleware/security.js';
-import { createTestApp } from '../helpers/test-deps.js';
+import { createAuthSecurityMiddleware } from '../../src/middleware/security.js';
+import { createTestApp, testEnvFixture } from '../helpers/test-deps.js';
+
+const authSecurityMiddleware = createAuthSecurityMiddleware(testEnvFixture);
 
 describe('security headers', () => {
   it('applies secure baseline headers to app responses', async () => {
