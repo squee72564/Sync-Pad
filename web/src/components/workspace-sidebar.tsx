@@ -1,11 +1,11 @@
 import { Link, useParams } from '@tanstack/react-router';
 import {
   BotIcon,
+  BriefcaseBusinessIcon,
   CalendarClockIcon,
   FileTextIcon,
   FolderKanbanIcon,
   HomeIcon,
-  LayoutGridIcon,
   LogOutIcon,
   type LucideIcon,
   Settings2Icon,
@@ -44,7 +44,9 @@ type PendingWorkspaceItem = {
 };
 
 type WorkspaceSidebarProps = {
-  workspace?: Workspace;
+  workspace?: Workspace & {
+    organizationName?: string;
+  };
 };
 
 type PrimaryNavItem = {
@@ -103,6 +105,11 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
   const workspaceId =
     typeof params.workspaceId === 'string' ? params.workspaceId : null;
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const workspaceSubline =
+    workspace?.organizationName ??
+    (workspace?.description.trim().length
+      ? workspace.description
+      : 'Workspace overview');
 
   async function handleSignOut() {
     await authClient.signOut({
@@ -126,16 +133,26 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="gap-3 px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <div className="flex items-start gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/40 px-3 py-3 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-9">
-            <LayoutGridIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
+        <div className="flex items-start gap-3 rounded-lg border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 shadow-sm group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
+          <div
+            className="flex size-10 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-9"
+            style={
+              workspace?.color
+                ? { backgroundColor: workspace.color }
+                : undefined
+            }
+          >
+            <BriefcaseBusinessIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-sm font-semibold">
+            <p className="text-[0.68rem] font-medium uppercase tracking-wide text-sidebar-foreground/60">
+              Workspace
+            </p>
+            <p className="truncate text-sm font-semibold leading-5">
               {workspace?.name ?? 'Workspace'}
             </p>
-            <p className="truncate text-xs text-sidebar-foreground/70">
-              {workspace?.id ?? workspaceId ?? 'Workspace overview'}
+            <p className="line-clamp-2 text-xs leading-4 text-sidebar-foreground/70">
+              {workspaceSubline}
             </p>
           </div>
         </div>

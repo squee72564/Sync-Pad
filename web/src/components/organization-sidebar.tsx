@@ -9,7 +9,6 @@ import {
   LogOutIcon,
   type LucideIcon,
   Settings2Icon,
-  SparklesIcon,
   UserRoundPlusIcon,
   UsersIcon,
 } from 'lucide-react';
@@ -121,6 +120,9 @@ export function OrganizationSidebar({
   const organizationId =
     typeof params.organizationId === 'string' ? params.organizationId : null;
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const organizationDescription = organization?.description.trim().length
+    ? organization.description
+    : 'Organization overview';
 
   async function handleSignOut() {
     await authClient.signOut({
@@ -144,16 +146,19 @@ export function OrganizationSidebar({
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="gap-3 px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <div className="flex items-start gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/40 px-3 py-3 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-9">
-            <SparklesIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
+        <div className="flex items-start gap-3 rounded-lg border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 shadow-sm group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-9">
+            <Building2Icon className="size-4 group-data-[collapsible=icon]:size-3.5" />
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-sm font-semibold">
+            <p className="text-[0.68rem] font-medium uppercase tracking-wide text-sidebar-foreground/60">
+              Organization
+            </p>
+            <p className="truncate text-sm font-semibold leading-5">
               {organization?.name ?? 'Syncpad'}
             </p>
-            <p className="text-xs text-sidebar-foreground/70">
-              Organization Overview
+            <p className="line-clamp-2 text-xs leading-4 text-sidebar-foreground/70">
+              {organizationDescription}
             </p>
           </div>
         </div>

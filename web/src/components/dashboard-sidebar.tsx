@@ -7,11 +7,11 @@ import {
   LogOutIcon,
   PlusCircleIcon,
   Settings2Icon,
-  SparklesIcon,
   UserIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar';
 import {
   Sidebar,
   SidebarContent,
@@ -27,6 +27,7 @@ import {
   SidebarSeparator,
 } from '#/components/ui/sidebar';
 import { authClient } from '#/lib/auth-client';
+import { getInitials } from '#/lib/utils';
 
 type PrimaryNavItem = {
   title: string;
@@ -42,6 +43,16 @@ type SidebarNavItem = {
   title: string;
   to: '/dashboard/profile' | '/dashboard/settings';
   icon: typeof UserIcon;
+};
+
+type DashboardSidebarUser = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+};
+
+type DashboardSidebarProps = {
+  user?: DashboardSidebarUser;
 };
 
 const primaryNavItems: PrimaryNavItem[] = [
@@ -86,8 +97,11 @@ const createNavItems: PrimaryNavItem[] = [
   },
 ];
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ user }: DashboardSidebarProps) {
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const userName = user?.name?.trim() || 'Syncpad';
+  const userEmail = user?.email?.trim() || 'Dashboard';
+  const initials = getInitials(userName);
 
   async function handleSignOut() {
     await authClient.signOut({
@@ -111,13 +125,26 @@ export function DashboardSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="gap-3 px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <div className="flex items-start gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/40 px-3 py-3 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-9">
-            <SparklesIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
-          </div>
+        <div className="flex items-start gap-3 rounded-lg border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 shadow-sm group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
+          <Avatar
+            size="lg"
+            className="size-10 group-data-[collapsible=icon]:size-9"
+          >
+            <AvatarImage src={user?.image ?? undefined} alt={userName} />
+            <AvatarFallback className="rounded-md bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <p className="truncate text-sm font-semibold">Syncpad</p>
-            <p className="text-xs text-sidebar-foreground/70">Dashboard</p>
+            <p className="text-[0.68rem] font-medium uppercase tracking-wide text-sidebar-foreground/60">
+              Dashboard
+            </p>
+            <p className="truncate text-sm font-semibold leading-5">
+              {userName}
+            </p>
+            <p className="truncate text-xs leading-4 text-sidebar-foreground/70">
+              {userEmail}
+            </p>
           </div>
         </div>
       </SidebarHeader>
