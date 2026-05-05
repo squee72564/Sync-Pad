@@ -19,6 +19,7 @@ import {
 import { Separator } from '#/components/ui/separator';
 import { workspaceQuery } from '#/features/workspaces/queries';
 import { assertUuidParam } from '#/lib/route-params';
+import { formatDate, getInitials } from '#/lib/utils';
 
 export const Route = createFileRoute(
   '/_authenticated/organizations/$organizationId/workspaces/$workspaceId/',
@@ -43,7 +44,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const { workspace } = Route.useLoaderData();
-  const accentColor = normalizeColor(workspace.color);
+  const accentColor = workspace.color;
   const initials = getInitials(workspace.name);
 
   return (
@@ -217,28 +218,4 @@ function DetailRow({
       </div>
     </div>
   );
-}
-
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) {
-    return 'W';
-  }
-
-  if (parts.length === 1) {
-    return parts[0]!.slice(0, 2).toUpperCase();
-  }
-
-  return `${parts[0]![0] ?? ''}${parts[parts.length - 1]![0] ?? ''}`.toUpperCase();
-}
-
-function normalizeColor(value: string) {
-  return value.startsWith('#') ? value : `#${value}`;
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
 }

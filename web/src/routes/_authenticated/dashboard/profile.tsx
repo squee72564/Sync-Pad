@@ -11,6 +11,7 @@ import {
 } from '#/components/ui/card';
 import { Separator } from '#/components/ui/separator';
 import { meUserQuery } from '#/features/me/queries';
+import { formatDate, getInitials } from '#/lib/utils';
 
 export const Route = createFileRoute('/_authenticated/dashboard/profile')({
   loader: ({ context }) => {
@@ -28,7 +29,7 @@ export const Route = createFileRoute('/_authenticated/dashboard/profile')({
 
 function RouteComponent() {
   const { user } = Route.useLoaderData();
-  const initials = getInitials(user.name, user.email);
+  const initials = getInitials(user.name);
 
   return (
     <div className="flex flex-1 flex-col gap-8 px-4 py-6 md:px-6 md:py-8">
@@ -142,24 +143,4 @@ function ProfileRow({
       </div>
     </div>
   );
-}
-
-function getInitials(name: string, email: string) {
-  const cleaned = name.trim();
-  if (cleaned) {
-    const parts = cleaned.split(/\s+/).filter(Boolean);
-    if (parts.length === 1) {
-      return parts[0]!.slice(0, 2).toUpperCase();
-    }
-    return `${parts[0]![0] ?? ''}${parts[parts.length - 1]![0] ?? ''}`.toUpperCase();
-  }
-
-  return email.slice(0, 2).toUpperCase();
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
 }
