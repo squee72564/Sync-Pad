@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { errorHandler } from '../../../src/http/error-handler.js';
 import type { AppVariables } from '../../../src/lib/context.js';
 import { createResourceLoader } from '../../../src/middleware/resource-loader.js';
-import { organizationRecord } from '../../helpers/fixtures.js';
+import { documentRecord, organizationRecord } from '../../helpers/fixtures.js';
 import { createTestDeps } from '../../helpers/test-deps.js';
 
 afterEach(() => {
@@ -21,6 +21,7 @@ describe('resource loader middleware', () => {
     const { loadOrganizationResource } = createResourceLoader({
       organizationService: deps.organizationService,
       workspaceService: deps.workspaceService,
+      documentService: deps.documentService,
     });
 
     const app = new Hono<{ Variables: AppVariables }>();
@@ -60,6 +61,7 @@ describe('resource loader middleware', () => {
     const { loadOrganizationResource } = createResourceLoader({
       organizationService: deps.organizationService,
       workspaceService: deps.workspaceService,
+      documentService: deps.documentService,
     });
 
     const app = new Hono<{ Variables: AppVariables }>();
@@ -97,6 +99,7 @@ describe('resource loader middleware', () => {
     const { loadOrganizationResource } = createResourceLoader({
       organizationService: deps.organizationService,
       workspaceService: deps.workspaceService,
+      documentService: deps.documentService,
     });
 
     const app = new Hono<{ Variables: AppVariables }>();
@@ -126,6 +129,152 @@ describe('resource loader middleware', () => {
       code: 'ORGANIZATION_NOT_FOUND',
       detail: 'Organization not found.',
       status: StatusCodes.NOT_FOUND,
+    });
+  });
+
+  it('loads a document in a workspace into context', async () => {
+    const deps = createTestDeps();
+    vi.mocked(deps.documentService.findInWorkspace).mockResolvedValue(
+      documentRecord,
+    );
+    const { loadDocumentResourceInWorkspace } = createResourceLoader({
+      organizationService: deps.organizationService,
+      workspaceService: deps.workspaceService,
+      documentService: deps.documentService,
+    });
+
+    const app = new Hono<{ Variables: AppVariables }>();
+    app.use('*', async (context, next) => {
+      context.set('validated', {
+        params: {
+          workspaceId: 'ws_1',
+          documentId: 'doc_1',
+        },
+      });
+      await next();
+    });
+    app.get(
+      '/protected',
+      loadDocumentResourceInWorkspace<{
+        workspaceId: string;
+        documentId: string;
+      }>(({ params }) => ({
+        workspaceId: params.workspaceId,
+        documentId: params.documentId,
+      })),
+      (context) => context.json({ document: context.get('document') }),
+    );
+
+    const response = await app.request('/protected');
+
+    expect(deps.documentService.findInWorkspace).toHaveBeenCalledWith({
+      workspaceId: 'ws_1',
+      documentId: 'doc_1',
+      includeDeleted: undefined,
+    });
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(await response.json()).toEqual({
+      document: {
+        id: 'doc_1',
+        workspaceId: 'ws_1',
+        title: 'Planning',
+        color: '#336699FF',
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+        deletedAt: null,
+      },
+    });
+  });
+
+  it('returns 404 when a document is missing from a workspace', async () => {
+    const deps = createTestDeps();
+    vi.mocked(deps.documentService.findInWorkspace).mockResolvedValue(
+      undefined,
+    );
+    const { loadDocumentResourceInWorkspace } = createResourceLoader({
+      organizationService: deps.organizationService,
+      workspaceService: deps.workspaceService,
+      documentService: deps.documentService,
+    });
+
+    const app = new Hono<{ Variables: AppVariables }>();
+    app.use('*', async (context, next) => {
+      context.set('requestId', 'req_test');
+      context.set('validated', {
+        params: {
+          workspaceId: 'ws_1',
+          documentId: 'doc_missing',
+        },
+      });
+      await next();
+    });
+    app.get(
+      '/protected',
+      loadDocumentResourceInWorkspace<{
+        workspaceId: string;
+        documentId: string;
+      }>(({ params }) => ({
+        workspaceId: params.workspaceId,
+        documentId: params.documentId,
+      })),
+      () => new Response(null),
+    );
+    app.onError(errorHandler);
+
+    const response = await app.request('/protected');
+
+    expect(response.status).toBe(StatusCodes.NOT_FOUND);
+    expect(await response.json()).toMatchObject({
+      code: 'DOCUMENT_NOT_FOUND',
+      detail: 'Document not found.',
+      status: StatusCodes.NOT_FOUND,
+    });
+  });
+
+  it('passes includeDeleted when loading a document for hard delete', async () => {
+    const deps = createTestDeps();
+    vi.mocked(deps.documentService.findInWorkspace).mockResolvedValue({
+      ...documentRecord,
+      deletedAt: new Date('2024-01-04T03:04:05.000Z'),
+    });
+    const { loadDocumentResourceInWorkspace } = createResourceLoader({
+      organizationService: deps.organizationService,
+      workspaceService: deps.workspaceService,
+      documentService: deps.documentService,
+    });
+
+    const app = new Hono<{ Variables: AppVariables }>();
+    app.use('*', async (context, next) => {
+      context.set('validated', {
+        params: {
+          workspaceId: 'ws_1',
+          documentId: 'doc_1',
+        },
+      });
+      await next();
+    });
+    app.get(
+      '/protected',
+      loadDocumentResourceInWorkspace<{
+        workspaceId: string;
+        documentId: string;
+      }>(
+        ({ params }) => ({
+          workspaceId: params.workspaceId,
+          documentId: params.documentId,
+        }),
+        { includeDeleted: true },
+      ),
+      () => new Response(null),
+    );
+
+    const response = await app.request('/protected');
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(deps.documentService.findInWorkspace).toHaveBeenCalledWith({
+      workspaceId: 'ws_1',
+      documentId: 'doc_1',
+      includeDeleted: true,
     });
   });
 });

@@ -18,6 +18,16 @@ export const workspaceRecord = {
   updatedAt: new Date('2024-01-02T03:04:05.000Z'),
 };
 
+export const documentRecord = {
+  id: 'doc_1',
+  workspaceId: workspaceRecord.id,
+  title: 'Planning',
+  color: '#336699FF',
+  createdAt: new Date('2024-01-02T03:04:05.000Z'),
+  updatedAt: new Date('2024-01-02T03:04:05.000Z'),
+  deletedAt: null,
+};
+
 export const workspaceSummary = {
   ...workspaceRecord,
   organizationName: organizationRecord.name,

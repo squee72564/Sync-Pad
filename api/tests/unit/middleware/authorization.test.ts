@@ -99,4 +99,49 @@ describe('authorization middleware', () => {
       resource: 'workspace:ws_1',
     });
   });
+
+  it('passes when document permission is allowed', async () => {
+    const deps = createTestDeps();
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    const { requireDocumentPermission } = createAuthorizationMiddleware({
+      permissionChecker: deps.permissionChecker,
+    });
+
+    const app = new Hono<{ Variables: AppVariables }>();
+    app.use('*', async (context, next) => {
+      context.set('currentUser', currentUser);
+      context.set('document', {
+        id: 'doc_1',
+        workspaceId: 'ws_1',
+        title: 'Planning',
+        color: '#336699FF',
+        createdAt: new Date('2024-01-02T03:04:05.000Z'),
+        updatedAt: new Date('2024-01-02T03:04:05.000Z'),
+        deletedAt: null,
+      });
+      context.set('validated', {
+        params: {
+          documentId: 'doc_from_params',
+        },
+      });
+      await next();
+    });
+    app.get('/protected', requireDocumentPermission('manage'), (context) =>
+      context.json(context.get('authorization'), StatusCodes.OK),
+    );
+
+    const response = await app.request('/protected');
+
+    expect(deps.permissionChecker.checkPermission).toHaveBeenCalledWith(
+      { type: 'user', id: currentUser.id, relation: '' },
+      { type: 'document', documentId: 'doc_1' },
+      'manage',
+    );
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(await response.json()).toEqual({
+      checked: true,
+      permission: 'manage',
+      resource: 'document:doc_1',
+    });
+  });
 });

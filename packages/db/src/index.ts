@@ -1,6 +1,7 @@
 export { createDbClientAndPool, type DbClient, type DbPool } from './client.js';
 export { type DbErrorContext, toDbError, withDbError } from './errors.js';
 export {
+  createDocumentRepository,
   createOrganizationRepository,
   createWorkspaceRepository,
   type DocumentRepository,

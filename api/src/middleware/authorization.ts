@@ -1,4 +1,5 @@
 import {
+  type DocumentPermission,
   type OrganizationPermission,
   type PermissionChecker,
   resources,
@@ -11,6 +12,7 @@ import {
   type AppVariables,
   AUTHORIZATION_CONTEXT_KEY,
   CURRENT_USER_CONTEXT_KEY,
+  DOCUMENT_CONTEXT_KEY,
   ORGANIZATION_CONTEXT_KEY,
   VALIDATED_CONTEXT_KEY,
   WORKSPACE_CONTEXT_KEY,
@@ -126,6 +128,52 @@ export function createAuthorizationMiddleware({
           checked: true,
           permission,
           resource: `workspace:${workspaceId}`,
+        });
+        await next();
+      };
+    },
+
+    requireDocumentPermission: (
+      permission: DocumentPermission,
+    ): MiddlewareHandler<{ Variables: AppVariables }> => {
+      return async (context, next) => {
+        const user = getCurrentUserAndFail(context);
+        const document = context.get(DOCUMENT_CONTEXT_KEY);
+        const validated = context.get(VALIDATED_CONTEXT_KEY);
+        const documentId =
+          document?.id ??
+          (validated.params as { documentId?: string } | undefined)
+            ?.documentId ??
+          null;
+
+        if (!documentId) {
+          throw new ApiError({
+            code: 'AUTHORIZATION_CONTEXT_INVALID',
+            message: 'Missing document id for authorization check',
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+          });
+        }
+
+        const allowed = await permissionChecker.checkPermission(
+          subjects.user(user.id),
+          resources.document(documentId),
+          permission,
+        );
+
+        if (!allowed) {
+          throw new ApiError({
+            code: 'FORBIDDEN',
+            expose: true,
+            message: `Permission denied for document:${documentId} ${permission}`,
+            status: StatusCodes.FORBIDDEN,
+            userMessage: 'You do not have permission to perform this action.',
+          });
+        }
+
+        context.set(AUTHORIZATION_CONTEXT_KEY, {
+          checked: true,
+          permission,
+          resource: `document:${documentId}`,
         });
         await next();
       };

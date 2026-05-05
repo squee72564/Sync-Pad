@@ -1,9 +1,11 @@
 import {
+  createDocumentService,
   createOrganizationService,
   createWorkspaceService,
 } from '@syncpad/core';
 import {
   createDbClientAndPool,
+  createDocumentRepository,
   createOrganizationRepository,
   createWorkspaceRepository,
 } from '@syncpad/db';
@@ -19,6 +21,7 @@ export const createApiDeps = (env: Env) => {
   const { client: db, pool } = createDbClientAndPool(env.DATABASE_URL);
   const organizationRepository = createOrganizationRepository(db);
   const workspaceRepository = createWorkspaceRepository(db);
+  const documentRepository = createDocumentRepository(db);
 
   const toGrpcEndpoint = (value: string) => {
     try {
@@ -54,6 +57,14 @@ export const createApiDeps = (env: Env) => {
     db,
   });
 
+  const documentService = createDocumentService({
+    accessGraphSync,
+    documentRepo: documentRepository,
+    workspaceRepo: workspaceRepository,
+    permissionChecker,
+    db,
+  });
+
   const auth = createAuth({ db, env });
 
   return {
@@ -64,6 +75,8 @@ export const createApiDeps = (env: Env) => {
     organizationRepository,
     workspaceService,
     workspaceRepository,
+    documentService,
+    documentRepository,
     permissionChecker,
     auth,
   };

@@ -5,8 +5,10 @@ const depsMocks = vi.hoisted(() => {
   const pool = {};
   const organizationRepository = {};
   const workspaceRepository = {};
+  const documentRepository = {};
   const organizationService = {};
   const workspaceService = {};
+  const documentService = {};
   const permifyInstance = {};
   const permissionChecker = {};
   const accessGraphSync = {};
@@ -14,6 +16,8 @@ const depsMocks = vi.hoisted(() => {
   return {
     accessGraphSync,
     createDbClientAndPool: vi.fn(() => ({ client: db, pool })),
+    createDocumentRepository: vi.fn(() => documentRepository),
+    createDocumentService: vi.fn(() => documentService),
     createOrganizationRepository: vi.fn(() => organizationRepository),
     createOrganizationService: vi.fn(() => organizationService),
     createPermifyAccessGraphSync: vi.fn(() => accessGraphSync),
@@ -22,6 +26,8 @@ const depsMocks = vi.hoisted(() => {
     createWorkspaceRepository: vi.fn(() => workspaceRepository),
     createWorkspaceService: vi.fn(() => workspaceService),
     db,
+    documentRepository,
+    documentService,
     organizationRepository,
     organizationService,
     permissionChecker,
@@ -38,12 +44,14 @@ vi.mock('@syncpad/db', async (importOriginal) => {
   return {
     ...actual,
     createDbClientAndPool: depsMocks.createDbClientAndPool,
+    createDocumentRepository: depsMocks.createDocumentRepository,
     createOrganizationRepository: depsMocks.createOrganizationRepository,
     createWorkspaceRepository: depsMocks.createWorkspaceRepository,
   };
 });
 
 vi.mock('@syncpad/core', () => ({
+  createDocumentService: depsMocks.createDocumentService,
   createOrganizationService: depsMocks.createOrganizationService,
   createWorkspaceService: depsMocks.createWorkspaceService,
 }));
@@ -100,6 +108,9 @@ describe('api dependency bootstrap', () => {
     expect(depsMocks.createWorkspaceRepository).toHaveBeenCalledWith(
       depsMocks.db,
     );
+    expect(depsMocks.createDocumentRepository).toHaveBeenCalledWith(
+      depsMocks.db,
+    );
     expect(depsMocks.createOrganizationService).toHaveBeenCalledWith({
       accessGraphSync: depsMocks.accessGraphSync,
       db: depsMocks.db,
@@ -110,6 +121,13 @@ describe('api dependency bootstrap', () => {
       accessGraphSync: depsMocks.accessGraphSync,
       db: depsMocks.db,
       organizationRepo: depsMocks.organizationRepository,
+      permissionChecker: depsMocks.permissionChecker,
+      workspaceRepo: depsMocks.workspaceRepository,
+    });
+    expect(depsMocks.createDocumentService).toHaveBeenCalledWith({
+      accessGraphSync: depsMocks.accessGraphSync,
+      db: depsMocks.db,
+      documentRepo: depsMocks.documentRepository,
       permissionChecker: depsMocks.permissionChecker,
       workspaceRepo: depsMocks.workspaceRepository,
     });

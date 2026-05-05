@@ -1,4 +1,6 @@
 import type {
+  Document,
+  NewDocument,
   NewOrganization,
   NewWorkspace,
   Organization,
@@ -15,6 +17,7 @@ import type { PickAndRenameStrict } from './utils.js';
 export type UserDto = Jsonify<User>;
 export type OrganizationDto = Jsonify<Organization>;
 export type WorkspaceDto = Jsonify<Workspace>;
+export type DocumentDto = Jsonify<Document>;
 export type OrganizationMembershipDto = Jsonify<OrganizationMembership>;
 export type WorkspaceMembershipDto = Jsonify<WorkspaceMembership>;
 
@@ -31,6 +34,10 @@ export type CreateOrganizationInput = Pick<
 export type CreateWorkspaceInput = Required<
   Pick<NewWorkspace, 'name' | 'description' | 'color'>
 >;
+export type CreateDocumentInput = Required<
+  Pick<NewDocument, 'title' | 'color'>
+>;
+export type UpdateDocumentInput = Partial<Pick<NewDocument, 'title' | 'color'>>;
 
 export type OrganizationResponse = {
   organization: OrganizationDto;
@@ -55,6 +62,16 @@ export type OrganizationWorkspacesResponse = {
 };
 
 export type CreateWorkspaceResponse = WorkspaceResponse;
+
+export type DocumentResponse = {
+  document: DocumentDto;
+};
+
+export type OrganizationWorkspaceDocumentsResponse = {
+  documents: DocumentDto[];
+};
+
+export type CreateDocumentResponse = DocumentResponse;
 
 export type WorkspaceMembershipsResponse = {
   memberships: WorkspaceMembershipDto[];

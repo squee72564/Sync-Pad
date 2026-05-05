@@ -102,8 +102,12 @@ export function createDocumentService(deps: DocumentServiceDeps) {
       return documentRepo.findById(documentId);
     },
 
-    async findInWorkspace(input: WorkspaceId & DocumentId) {
-      return documentRepo.findInWorkspace(input.workspaceId, input.documentId);
+    async findInWorkspace(
+      input: WorkspaceId & DocumentId & { includeDeleted?: boolean },
+    ) {
+      return documentRepo.findInWorkspace(input.workspaceId, input.documentId, {
+        includeDeleted: input.includeDeleted,
+      });
     },
 
     listReadableToUser(input: ActorId) {

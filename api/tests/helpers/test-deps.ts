@@ -1,7 +1,12 @@
-import type { OrganizationService, WorkspaceService } from '@syncpad/core';
+import type {
+  DocumentService,
+  OrganizationService,
+  WorkspaceService,
+} from '@syncpad/core';
 import type {
   DbClient,
   DbPool,
+  DocumentRepository,
   OrganizationRepository,
   WorkspaceRepository,
 } from '@syncpad/db';
@@ -55,6 +60,19 @@ export const createTestDeps = (overrides: Partial<ApiDeps> = {}): ApiDeps => {
   const deps = {
     auth: createTestAuth(),
     db: {} as DbClient,
+    documentRepository: {
+      findById: vi.fn(),
+      findInWorkspace: vi.fn(),
+      listByWorkspaceReadableToUser: vi.fn(),
+    } as unknown as DocumentRepository,
+    documentService: {
+      createDocument: vi.fn(),
+      deleteDocument: vi.fn(),
+      findInWorkspace: vi.fn(),
+      listByWorkspaceReadableToUser: vi.fn(),
+      softDeleteDocument: vi.fn(),
+      updateDocument: vi.fn(),
+    } as unknown as DocumentService,
     env: testEnvFixture,
     organizationRepository: {
       findById: vi.fn(),

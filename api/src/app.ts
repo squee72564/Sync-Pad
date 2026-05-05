@@ -9,6 +9,7 @@ import {
   authSecurityMiddleware,
   securityHeaders,
 } from './middleware/security.js';
+import { createOrganizationWorkspaceDocumentsRoute } from './routes/documents.js';
 import { createHealthRoute } from './routes/health.js';
 import { createMeRoute } from './routes/me.js';
 import { createOrganizationsRoute } from './routes/organizations.js';
@@ -17,6 +18,7 @@ import { createOrganizationWorkspacesRoute } from './routes/workspaces.js';
 export const createApp = (deps: ApiDeps) => {
   const {
     pool,
+    documentService,
     workspaceService,
     organizationService,
     permissionChecker,
@@ -63,6 +65,16 @@ export const createApp = (deps: ApiDeps) => {
     createOrganizationWorkspacesRoute({
       organizationService,
       workspaceService,
+      permissionChecker,
+      auth,
+    }),
+  );
+  app.route(
+    '/api/organizations/:organizationId/workspaces/:workspaceId/documents',
+    createOrganizationWorkspaceDocumentsRoute({
+      organizationService,
+      workspaceService,
+      documentService,
       permissionChecker,
       auth,
     }),
