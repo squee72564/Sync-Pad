@@ -15,6 +15,16 @@ import Mention from '@tiptap/extension-mention';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import Underline from '@tiptap/extension-underline';
+import {
+  CharacterCount,
+  Dropcursor,
+  Focus,
+  Gapcursor,
+  Placeholder,
+  Selection,
+  TrailingNode,
+  UndoRedo,
+} from '@tiptap/extensions';
 import type { Content, Editor } from '@tiptap/react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import {
@@ -29,7 +39,9 @@ import {
   ListOrdered,
   PanelTopOpen,
   Quote,
+  Redo2,
   Underline as UnderlineIcon,
+  Undo2,
 } from 'lucide-react';
 
 import { Button } from '#/components/ui/button';
@@ -63,7 +75,10 @@ const defaultToolbarState = {
   canCode: false,
   canHighlight: false,
   canItalic: false,
+  canRedo: false,
+  canUndo: false,
   canUnderline: false,
+  characters: 0,
   isBold: false,
   isBulletList: false,
   isCode: false,
@@ -76,6 +91,7 @@ const defaultToolbarState = {
   isUnderline: false,
   isOrderedList: false,
   isBlockquote: false,
+  words: 0,
 };
 
 export function TiptapEditor({
@@ -96,6 +112,25 @@ export function TiptapEditor({
       Highlight,
       Italic,
       Underline,
+      UndoRedo,
+      Dropcursor.configure({
+        color: 'var(--primary)',
+        width: 2,
+      }),
+      Focus.configure({
+        className: 'has-focus',
+        mode: 'deepest',
+      }),
+      Gapcursor,
+      Placeholder.configure({
+        placeholder: 'Start writing...',
+      }),
+      Selection,
+      TrailingNode.configure({
+        node: 'paragraph',
+        notAfter: ['paragraph'],
+      }),
+      CharacterCount,
       Heading.configure({
         levels: [1, 2, 3],
       }),
@@ -153,8 +188,11 @@ function TiptapToolbar({ editor, editable }: TiptapToolbarProps) {
         canHighlight:
           editor?.can().chain().focus().toggleHighlight().run() ?? false,
         canItalic: editor?.can().chain().focus().toggleItalic().run() ?? false,
+        canRedo: editor?.can().chain().focus().redo().run() ?? false,
+        canUndo: editor?.can().chain().focus().undo().run() ?? false,
         canUnderline:
           editor?.can().chain().focus().toggleUnderline().run() ?? false,
+        characters: editor?.storage.characterCount.characters() ?? 0,
         isBold: editor?.isActive('bold') ?? false,
         isBulletList: editor?.isActive('bulletList') ?? false,
         isCode: editor?.isActive('code') ?? false,
@@ -167,6 +205,7 @@ function TiptapToolbar({ editor, editable }: TiptapToolbarProps) {
         isUnderline: editor?.isActive('underline') ?? false,
         isOrderedList: editor?.isActive('orderedList') ?? false,
         isBlockquote: editor?.isActive('blockquote') ?? false,
+        words: editor?.storage.characterCount.words() ?? 0,
       }),
     }) ?? defaultToolbarState;
 
@@ -174,6 +213,31 @@ function TiptapToolbar({ editor, editable }: TiptapToolbarProps) {
 
   return (
     <div className="flex min-h-12 flex-wrap items-center gap-1 border-border border-b bg-muted/20 px-2 py-2">
+      <Button
+        aria-label="Undo"
+        className="size-8 p-0"
+        disabled={disabled || !state.canUndo}
+        onClick={() => editor?.chain().focus().undo().run()}
+        size="icon-sm"
+        type="button"
+        variant="ghost"
+      >
+        <Undo2 className="size-4" />
+      </Button>
+      <Button
+        aria-label="Redo"
+        className="size-8 p-0"
+        disabled={disabled || !state.canRedo}
+        onClick={() => editor?.chain().focus().redo().run()}
+        size="icon-sm"
+        type="button"
+        variant="ghost"
+      >
+        <Redo2 className="size-4" />
+      </Button>
+
+      <ToolbarSeparator />
+
       <Toggle
         aria-label="Heading 1"
         className="size-8 p-0"
@@ -339,6 +403,12 @@ function TiptapToolbar({ editor, editable }: TiptapToolbarProps) {
       >
         <AtSign className="size-4" />
       </Button>
+
+      <div className="ml-auto flex items-center gap-2 px-2 text-muted-foreground text-xs">
+        <span>{state.words} words</span>
+        <span aria-hidden="true">/</span>
+        <span>{state.characters} chars</span>
+      </div>
     </div>
   );
 }
