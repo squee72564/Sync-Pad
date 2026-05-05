@@ -19,6 +19,22 @@ import {
 } from '../lib/context.js';
 import { ApiError } from '../lib/error.js';
 
+const forbiddenPermissionError = ({
+  resource,
+  permission,
+}: {
+  resource: string;
+  permission: string;
+}) => {
+  return new ApiError({
+    code: 'FORBIDDEN',
+    expose: true,
+    message: `Permission denied for ${resource} ${permission}`,
+    status: StatusCodes.FORBIDDEN,
+    userMessage: 'You do not have permission to perform this action.',
+  });
+};
+
 const getValidatedParam = (
   context: Context<{ Variables: AppVariables }, string, object>,
   paramName: string,
@@ -76,12 +92,9 @@ export function createAuthorizationMiddleware({
         );
 
         if (!allowed) {
-          throw new ApiError({
-            code: 'FORBIDDEN',
-            expose: true,
-            message: `Permission denied for organization:${organizationId} ${permission}`,
-            status: StatusCodes.FORBIDDEN,
-            userMessage: 'You do not have permission to perform this action.',
+          throw forbiddenPermissionError({
+            resource: `organization:${organizationId}`,
+            permission,
           });
         }
 
@@ -118,12 +131,9 @@ export function createAuthorizationMiddleware({
         );
 
         if (!allowed) {
-          throw new ApiError({
-            code: 'FORBIDDEN',
-            expose: true,
-            message: `Permission denied for workspace:${workspaceId} ${permission}`,
-            status: StatusCodes.FORBIDDEN,
-            userMessage: 'You do not have permission to perform this action.',
+          throw forbiddenPermissionError({
+            resource: `workspace:${workspaceId}`,
+            permission,
           });
         }
 
@@ -160,12 +170,9 @@ export function createAuthorizationMiddleware({
         );
 
         if (!allowed) {
-          throw new ApiError({
-            code: 'FORBIDDEN',
-            expose: true,
-            message: `Permission denied for document:${documentId} ${permission}`,
-            status: StatusCodes.FORBIDDEN,
-            userMessage: 'You do not have permission to perform this action.',
+          throw forbiddenPermissionError({
+            resource: `document:${documentId}`,
+            permission,
           });
         }
 
