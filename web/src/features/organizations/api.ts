@@ -2,6 +2,7 @@ import { apiGet, apiPost } from '#/lib/api/client';
 import type {
   CreateOrganizationInput,
   CreateOrganizationResponse,
+  OrganizationMembersDetailedResponse,
   OrganizationResponse,
   OrganizationsResponse,
 } from './types';
@@ -18,5 +19,11 @@ export function createOrganization(input: CreateOrganizationInput) {
   return apiPost<CreateOrganizationResponse, CreateOrganizationInput>(
     '/api/organizations',
     input,
+  );
+}
+
+export function getOrganizationMembers(organizationId: string) {
+  return apiGet<OrganizationMembersDetailedResponse>(
+    `/api/organizations/${organizationId}/members`,
   );
 }
