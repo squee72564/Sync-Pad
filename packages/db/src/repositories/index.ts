@@ -1,4 +1,8 @@
 export {
+  createDocumentRepository,
+  type DocumentRepository,
+} from './document-repository.js';
+export {
   createOrganizationRepository,
   type OrganizationRepository,
 } from './organization-repository.js';

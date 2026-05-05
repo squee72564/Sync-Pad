@@ -53,14 +53,14 @@ export function createOrganizationRepository(db: DbClient) {
       );
     },
 
-    listMembershipsReadableToUser(
+    listMembershipsWithUserProfiles(
       organizationId: string,
       database: DatabaseExecutor = db,
     ) {
       return withDbError(
         {
           entity: 'organizationMembership',
-          operation: 'listMembershipsReadableToUser',
+          operation: 'listMembershipsWithUserProfiles',
         },
         () =>
           database

@@ -159,7 +159,7 @@ export function createOrganizationsRoute({
     async (context) => {
       const { params } = getValidated<OrganizationParams>(context);
       const memberships =
-        await organizationService.listMembershipsReadableToUser(
+        await organizationService.listMembershipsWithUserProfiles(
           params.organizationId,
         );
       return context.json({ memberships }, StatusCodes.OK);

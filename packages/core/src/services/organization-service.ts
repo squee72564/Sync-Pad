@@ -69,8 +69,8 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
       return organizationRepo.listMemberships(organizationId);
     },
 
-    listMembershipsReadableToUser(organizationId: string) {
-      return organizationRepo.listMembershipsReadableToUser(organizationId);
+    listMembershipsWithUserProfiles(organizationId: string) {
+      return organizationRepo.listMembershipsWithUserProfiles(organizationId);
     },
 
     createOrganization({ actorUserId, input }: CreateOrganizationInput) {
