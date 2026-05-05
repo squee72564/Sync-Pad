@@ -1,18 +1,35 @@
+import Blockquote from '@tiptap/extension-blockquote';
+import Bold from '@tiptap/extension-bold';
+import InlineCode from '@tiptap/extension-code';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import Details, {
+  DetailsContent,
+  DetailsSummary,
+} from '@tiptap/extension-details';
+import Document from '@tiptap/extension-document';
+import Heading from '@tiptap/extension-heading';
+import Highlight from '@tiptap/extension-highlight';
+import Italic from '@tiptap/extension-italic';
+import { ListKit } from '@tiptap/extension-list';
+import Mention from '@tiptap/extension-mention';
+import Paragraph from '@tiptap/extension-paragraph';
+import Text from '@tiptap/extension-text';
+import Underline from '@tiptap/extension-underline';
 import type { Content, Editor } from '@tiptap/react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import {
-  Bold,
+  AtSign,
+  Bold as BoldIcon,
   Code,
   Heading1,
   Heading2,
-  Italic,
+  Highlighter,
+  Italic as ItalicIcon,
   List,
   ListOrdered,
+  PanelTopOpen,
   Quote,
-  Redo2,
-  Strikethrough,
-  Undo2,
+  Underline as UnderlineIcon,
 } from 'lucide-react';
 
 import { Button } from '#/components/ui/button';
@@ -31,21 +48,33 @@ type TiptapEditorProps = {
 
 const defaultContent = '<p>Start writing...</p>';
 
+const plainLowlight = {
+  highlight: (_language: string, value: string) => ({
+    children: [{ type: 'text', value }],
+  }),
+  highlightAuto: (value: string) => ({
+    children: [{ type: 'text', value }],
+  }),
+  listLanguages: () => [],
+};
+
 const defaultToolbarState = {
   canBold: false,
-  canItalic: false,
-  canStrike: false,
   canCode: false,
-  canUndo: false,
-  canRedo: false,
+  canHighlight: false,
+  canItalic: false,
+  canUnderline: false,
   isBold: false,
   isBulletList: false,
   isCode: false,
+  isCodeBlock: false,
+  isDetails: false,
   isHeading1: false,
   isHeading2: false,
+  isHighlight: false,
   isItalic: false,
+  isUnderline: false,
   isOrderedList: false,
-  isStrike: false,
   isBlockquote: false,
 };
 
@@ -59,11 +88,26 @@ export function TiptapEditor({
 }: TiptapEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
+      Document,
+      Text,
+      Paragraph,
+      Bold,
+      InlineCode,
+      Highlight,
+      Italic,
+      Underline,
+      Heading.configure({
+        levels: [1, 2, 3],
       }),
+      ListKit,
+      CodeBlockLowlight.configure({
+        lowlight: plainLowlight,
+      }),
+      Blockquote,
+      Details,
+      DetailsSummary,
+      DetailsContent,
+      Mention,
     ],
     content,
     editable,
@@ -105,19 +149,23 @@ function TiptapToolbar({ editor, editable }: TiptapToolbarProps) {
       editor,
       selector: ({ editor }) => ({
         canBold: editor?.can().chain().focus().toggleBold().run() ?? false,
-        canItalic: editor?.can().chain().focus().toggleItalic().run() ?? false,
-        canStrike: editor?.can().chain().focus().toggleStrike().run() ?? false,
         canCode: editor?.can().chain().focus().toggleCode().run() ?? false,
-        canUndo: editor?.can().chain().focus().undo().run() ?? false,
-        canRedo: editor?.can().chain().focus().redo().run() ?? false,
+        canHighlight:
+          editor?.can().chain().focus().toggleHighlight().run() ?? false,
+        canItalic: editor?.can().chain().focus().toggleItalic().run() ?? false,
+        canUnderline:
+          editor?.can().chain().focus().toggleUnderline().run() ?? false,
         isBold: editor?.isActive('bold') ?? false,
         isBulletList: editor?.isActive('bulletList') ?? false,
         isCode: editor?.isActive('code') ?? false,
+        isCodeBlock: editor?.isActive('codeBlock') ?? false,
+        isDetails: editor?.isActive('details') ?? false,
         isHeading1: editor?.isActive('heading', { level: 1 }) ?? false,
         isHeading2: editor?.isActive('heading', { level: 2 }) ?? false,
+        isHighlight: editor?.isActive('highlight') ?? false,
         isItalic: editor?.isActive('italic') ?? false,
+        isUnderline: editor?.isActive('underline') ?? false,
         isOrderedList: editor?.isActive('orderedList') ?? false,
-        isStrike: editor?.isActive('strike') ?? false,
         isBlockquote: editor?.isActive('blockquote') ?? false,
       }),
     }) ?? defaultToolbarState;
@@ -161,7 +209,7 @@ function TiptapToolbar({ editor, editable }: TiptapToolbarProps) {
         pressed={state.isBold}
         size="sm"
       >
-        <Bold className="size-4" />
+        <BoldIcon className="size-4" />
       </Toggle>
       <Toggle
         aria-label="Italic"
@@ -171,24 +219,47 @@ function TiptapToolbar({ editor, editable }: TiptapToolbarProps) {
         pressed={state.isItalic}
         size="sm"
       >
-        <Italic className="size-4" />
+        <ItalicIcon className="size-4" />
       </Toggle>
       <Toggle
-        aria-label="Strikethrough"
+        aria-label="Underline"
         className="size-8 p-0"
-        disabled={disabled || !state.canStrike}
-        onPressedChange={() => editor?.chain().focus().toggleStrike().run()}
-        pressed={state.isStrike}
+        disabled={disabled || !state.canUnderline}
+        onPressedChange={() => editor?.chain().focus().toggleUnderline().run()}
+        pressed={state.isUnderline}
         size="sm"
       >
-        <Strikethrough className="size-4" />
+        <UnderlineIcon className="size-4" />
       </Toggle>
       <Toggle
-        aria-label="Code"
+        aria-label="Inline code"
         className="size-8 p-0"
         disabled={disabled || !state.canCode}
         onPressedChange={() => editor?.chain().focus().toggleCode().run()}
         pressed={state.isCode}
+        size="sm"
+      >
+        <Code className="size-4" />
+      </Toggle>
+      <Toggle
+        aria-label="Highlight"
+        className="size-8 p-0"
+        disabled={disabled || !state.canHighlight}
+        onPressedChange={() => editor?.chain().focus().toggleHighlight().run()}
+        pressed={state.isHighlight}
+        size="sm"
+      >
+        <Highlighter className="size-4" />
+      </Toggle>
+
+      <ToolbarSeparator />
+
+      <Toggle
+        aria-label="Code block"
+        className="size-8 p-0"
+        disabled={disabled}
+        onPressedChange={() => editor?.chain().focus().toggleCodeBlock().run()}
+        pressed={state.isCodeBlock}
         size="sm"
       >
         <Code className="size-4" />
@@ -228,30 +299,45 @@ function TiptapToolbar({ editor, editable }: TiptapToolbarProps) {
       >
         <Quote className="size-4" />
       </Toggle>
+      <Toggle
+        aria-label="Details"
+        className="size-8 p-0"
+        disabled={disabled}
+        onPressedChange={() =>
+          state.isDetails
+            ? editor?.chain().focus().unsetDetails().run()
+            : editor?.chain().focus().setDetails().run()
+        }
+        pressed={state.isDetails}
+        size="sm"
+      >
+        <PanelTopOpen className="size-4" />
+      </Toggle>
 
       <ToolbarSeparator />
 
       <Button
-        aria-label="Undo"
+        aria-label="Mention"
         className="size-8 p-0"
-        disabled={disabled || !state.canUndo}
-        onClick={() => editor?.chain().focus().undo().run()}
+        disabled={disabled}
+        onClick={() =>
+          editor
+            ?.chain()
+            .focus()
+            .insertContent({
+              type: 'mention',
+              attrs: {
+                id: 'mention',
+                label: 'mention',
+              },
+            })
+            .run()
+        }
         size="icon-sm"
         type="button"
         variant="ghost"
       >
-        <Undo2 className="size-4" />
-      </Button>
-      <Button
-        aria-label="Redo"
-        className="size-8 p-0"
-        disabled={disabled || !state.canRedo}
-        onClick={() => editor?.chain().focus().redo().run()}
-        size="icon-sm"
-        type="button"
-        variant="ghost"
-      >
-        <Redo2 className="size-4" />
+        <AtSign className="size-4" />
       </Button>
     </div>
   );

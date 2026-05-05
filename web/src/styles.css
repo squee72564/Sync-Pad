@@ -198,12 +198,32 @@ body {
     @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.85em];
   }
 
+  .tiptap mark {
+    @apply rounded bg-yellow-200/80 px-0.5 text-foreground dark:bg-yellow-500/30;
+  }
+
   .tiptap pre {
     @apply my-4 overflow-x-auto rounded-md bg-muted p-4;
   }
 
   .tiptap pre code {
     @apply bg-transparent p-0 text-sm;
+  }
+
+  .tiptap details {
+    @apply my-4 rounded-md border border-border bg-muted/20 px-4 py-3;
+  }
+
+  .tiptap summary {
+    @apply cursor-pointer font-medium;
+  }
+
+  .tiptap details > *:not(summary) {
+    @apply mt-3;
+  }
+
+  .tiptap [data-type="mention"] {
+    @apply rounded bg-primary/10 px-1 py-0.5 font-medium text-primary;
   }
 
   .tiptap hr {
