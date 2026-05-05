@@ -1,14 +1,12 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { Badge, BriefcaseBusinessIcon } from 'lucide-react';
+import { createFileRoute } from '@tanstack/react-router';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import {
   Card,
-  CardAction,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
+import { WorkspaceCard } from '#/components/workspace-card';
 import { organizationWorkspacesQuery } from '#/features/workspaces/queries';
 import { assertUuidParam } from '#/lib/route-params';
 
@@ -49,32 +47,7 @@ function OrganizationWorkspaceListPage() {
       {workspaces.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {workspaces.map((workspace) => (
-            <Link
-              key={workspace.id}
-              to="/organizations/$organizationId/workspaces/$workspaceId"
-              params={{
-                organizationId: workspace.organizationId,
-                workspaceId: workspace.id,
-              }}
-            >
-              <Card>
-                <CardHeader>
-                  <div className="flex size-9 items-center justify-center rounded-md bg-muted">
-                    <BriefcaseBusinessIcon className="size-4" />
-                  </div>
-                  <CardTitle>{workspace.name}</CardTitle>
-                  <CardAction>
-                    <Badge>{}</Badge>
-                  </CardAction>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xs text-muted-foreground">
-                    Created at:{' '}
-                    {new Date(workspace.createdAt).toLocaleDateString()}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+            <WorkspaceCard key={workspace.id} workspace={workspace} />
           ))}
         </div>
       ) : (

@@ -1,14 +1,12 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { BriefcaseBusinessIcon } from 'lucide-react';
+import { createFileRoute } from '@tanstack/react-router';
 import { ScopeRouteError } from '#/components/scope-route-error';
-import { Badge } from '#/components/ui/badge';
 import {
   Card,
-  CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
+import { WorkspaceCard } from '#/components/workspace-card';
 import { meWorkspacesQuery } from '#/features/me/queries';
 
 export const Route = createFileRoute('/_authenticated/dashboard/workspaces')({
@@ -40,37 +38,7 @@ function WorkspacesPage() {
       {workspaces.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {workspaces.map((workspace) => (
-            <Link
-              key={workspace.id}
-              to="/organizations/$organizationId/workspaces/$workspaceId"
-              params={{
-                organizationId: workspace.organizationId,
-                workspaceId: workspace.id,
-              }}
-            >
-              <Card>
-                <CardHeader>
-                  <div
-                    className="flex size-9 items-center justify-center rounded-md bg-muted"
-                    style={{ backgroundColor: workspace.color }}
-                  >
-                    <BriefcaseBusinessIcon className="size-4" />
-                  </div>
-                  <CardTitle>{workspace.name}</CardTitle>
-                  <CardDescription>
-                    {workspace.organizationName}
-                  </CardDescription>
-                  <CardAction>
-                    <Badge variant="outline">{workspace.workspaceRole}</Badge>
-                  </CardAction>
-                </CardHeader>
-                <div className="px-6 text-xs text-muted-foreground">
-                  {workspace.description.length === 0
-                    ? 'No Description'
-                    : workspace.description}
-                </div>
-              </Card>
-            </Link>
+            <WorkspaceCard key={workspace.id} workspace={workspace} />
           ))}
         </div>
       ) : (
