@@ -158,9 +158,10 @@ export function createOrganizationsRoute({
     requireOrganizationPermission('read'),
     async (context) => {
       const { params } = getValidated<OrganizationParams>(context);
-      const memberships = await organizationService.listMemberships(
-        params.organizationId,
-      );
+      const memberships =
+        await organizationService.listMembershipsReadableToUser(
+          params.organizationId,
+        );
       return context.json({ memberships }, StatusCodes.OK);
     },
   );

@@ -3,7 +3,10 @@ import type {
   InferInsertModel,
   InferSelectModel,
 } from 'drizzle-orm';
+import type * as authSchema from './schema/auth-schema.js';
 import type * as coreSchema from './schema/core.js';
+
+export type User = InferSelectModel<typeof authSchema.user>;
 
 export type Organization = InferSelectModel<typeof coreSchema.organization>;
 export type NewOrganization = InferInsertModel<typeof coreSchema.organization>;
