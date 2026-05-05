@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import { withDbError } from '../errors.js';
 import type { DbClient } from '../index.js';
+import { user } from '../schema/auth-schema.js';
 import { organization, organizationMembership } from '../schema/core.js';
 
 import type {
@@ -49,6 +50,34 @@ export function createOrganizationRepository(db: DbClient) {
           database.query.organizationMembership.findMany({
             where: eq(organizationMembership.organizationId, organizationId),
           }),
+      );
+    },
+
+    listMembershipsReadableToUser(
+      organizationId: string,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'organizationMembership',
+          operation: 'listMembershipsReadableToUser',
+        },
+        () =>
+          database
+            .select({
+              userId: organizationMembership.userId,
+              organizationId: organizationMembership.organizationId,
+              organizationRole: organizationMembership.organizationRole,
+              status: organizationMembership.status,
+              joinedAt: organizationMembership.joinedAt,
+
+              userName: user.name,
+              userEmail: user.email,
+              userImage: user.image,
+            })
+            .from(organizationMembership)
+            .innerJoin(user, eq(organizationMembership.userId, user.id))
+            .where(eq(organizationMembership.organizationId, organizationId)),
       );
     },
 

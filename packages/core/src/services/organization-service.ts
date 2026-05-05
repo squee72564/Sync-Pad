@@ -69,6 +69,10 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
       return organizationRepo.listMemberships(organizationId);
     },
 
+    listMembershipsReadableToUser(organizationId: string) {
+      return organizationRepo.listMembershipsReadableToUser(organizationId);
+    },
+
     createOrganization({ actorUserId, input }: CreateOrganizationInput) {
       return db.transaction(async (tx) => {
         const createdOrganization = await organizationRepo.insertOrganization(
