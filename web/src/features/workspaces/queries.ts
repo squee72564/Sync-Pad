@@ -1,6 +1,10 @@
 import { queryOptions } from '@tanstack/react-query';
 
-import { getOrganizationWorkspaces, getWorkspace } from './api';
+import {
+  getOrganizationWorkspaces,
+  getWorkspace,
+  getWorkspaceMembers,
+} from './api';
 
 export const workspaceQueryKeys = {
   all: ['workspaces'] as const,
@@ -8,6 +12,13 @@ export const workspaceQueryKeys = {
     [...workspaceQueryKeys.all, 'byOrganization', organizationId] as const,
   detail: (organizationId: string, workspaceId: string) =>
     [...workspaceQueryKeys.all, 'detail', workspaceId, organizationId] as const,
+  members: (organizationId: string, workspaceId: string) =>
+    [
+      ...workspaceQueryKeys.all,
+      'members',
+      workspaceId,
+      organizationId,
+    ] as const,
 };
 
 export const organizationWorkspacesQuery = (organizationId: string) =>
@@ -21,5 +32,15 @@ export const workspaceQuery = (organizationId: string, workspaceId: string) =>
   queryOptions({
     queryFn: () => getWorkspace({ organizationId, workspaceId }),
     queryKey: workspaceQueryKeys.detail(organizationId, workspaceId),
+    staleTime: 60_000,
+  });
+
+export const workspaceMembersQuery = (
+  organizationId: string,
+  workspaceId: string,
+) =>
+  queryOptions({
+    queryFn: () => getWorkspaceMembers({ organizationId, workspaceId }),
+    queryKey: workspaceQueryKeys.members(organizationId, workspaceId),
     staleTime: 60_000,
   });

@@ -3,6 +3,7 @@ import type {
   CreateWorkspaceInput,
   CreateWorkspaceResponse,
   OrganizationWorkspacesResponse,
+  WorkspaceMembersDetailedResponse,
   WorkspaceResponse,
 } from './types';
 
@@ -28,6 +29,15 @@ export function getWorkspace({
 }: GetWorkspaceVariables) {
   return apiGet<WorkspaceResponse>(
     `/api/organizations/${organizationId}/workspaces/${workspaceId}`,
+  );
+}
+
+export function getWorkspaceMembers({
+  organizationId,
+  workspaceId,
+}: GetWorkspaceVariables) {
+  return apiGet<WorkspaceMembersDetailedResponse>(
+    `/api/organizations/${organizationId}/workspaces/${workspaceId}/members`,
   );
 }
 

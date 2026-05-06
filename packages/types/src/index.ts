@@ -23,6 +23,8 @@ export type {
   UpdateDocumentInput,
   UserDto,
   WorkspaceDto,
+  WorkspaceMembersDetailedResponse,
+  WorkspaceMembershipDetailedDto,
   WorkspaceMembershipDto,
   WorkspaceMembershipsResponse,
   WorkspaceResponse,

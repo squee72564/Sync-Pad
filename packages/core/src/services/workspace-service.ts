@@ -99,6 +99,10 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       return workspaceRepo.listMemberships(workspaceId);
     },
 
+    listMembershipsWithUserProfiles(workspaceId: string) {
+      return workspaceRepo.listMembershipsWithUserProfiles(workspaceId);
+    },
+
     async listByOrganizationReadableToUser(input: {
       actorUserId: string;
       organizationId: string;

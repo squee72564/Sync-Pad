@@ -2,13 +2,13 @@ import { and, eq } from 'drizzle-orm';
 
 import type { DbClient } from '../client.js';
 import { withDbError } from '../errors.js';
+import { user } from '../schema/auth-schema.js';
 import {
   organization,
   organizationMembership,
   workspace,
   workspaceMembership,
 } from '../schema/core.js';
-
 import type { NewWorkspace, NewWorkspaceMembership } from '../types.js';
 
 type DatabaseExecutor = Pick<
@@ -146,6 +146,33 @@ export function createWorkspaceRepository(db: DbClient) {
           database.query.workspaceMembership.findMany({
             where: eq(workspaceMembership.workspaceId, workspaceId),
           }),
+      );
+    },
+
+    listMembershipsWithUserProfiles(
+      workspaceId: string,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'workspaceMembership',
+          operation: 'listMembershipsWithUserProfiles',
+        },
+        () =>
+          database
+            .select({
+              userId: workspaceMembership.userId,
+              workspaceId: workspaceMembership.workspaceId,
+              organizationId: workspaceMembership.organizationId,
+              workspaceRole: workspaceMembership.workspaceRole,
+
+              userName: user.name,
+              userEmail: user.email,
+              userImage: user.image,
+            })
+            .from(workspaceMembership)
+            .innerJoin(user, eq(workspaceMembership.userId, user.id))
+            .where(eq(workspaceMembership.workspaceId, workspaceId)),
       );
     },
 

@@ -227,9 +227,10 @@ export function createOrganizationWorkspacesRoute({
     requireWorkspacePermission('read'),
     async (context) => {
       const { params } = getValidated<OrganizationWorkspaceParams>(context);
-      const memberships = await workspaceService.listMemberships(
-        params.workspaceId,
-      );
+      const memberships =
+        await workspaceService.listMembershipsWithUserProfiles(
+          params.workspaceId,
+        );
       return context.json({ memberships }, StatusCodes.OK);
     },
   );

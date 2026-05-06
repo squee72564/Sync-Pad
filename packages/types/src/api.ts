@@ -104,3 +104,17 @@ export type OrganizationMembersDetailedDto = Pick<
 export type OrganizationMembersDetailedResponse = {
   memberships: OrganizationMembersDetailedDto[];
 };
+
+export type WorkspaceMembershipDetailedDto = Pick<
+  WorkspaceMembership,
+  'organizationId' | 'workspaceId' | 'workspaceRole' | 'userId'
+> &
+  PickAndRenameStrict<
+    UserDto,
+    'name' | 'email' | 'image',
+    { name: 'userName'; email: 'userEmail'; image: 'userImage' }
+  >;
+
+export type WorkspaceMembersDetailedResponse = {
+  memberships: WorkspaceMembershipDetailedDto[];
+};

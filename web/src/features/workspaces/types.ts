@@ -3,6 +3,8 @@ import type {
   CreateWorkspaceResponse,
   OrganizationWorkspacesResponse,
   WorkspaceDto,
+  WorkspaceMembersDetailedResponse,
+  WorkspaceMembershipDetailedDto,
   WorkspaceResponse,
   WorkspaceRole,
 } from '@syncpad/types';
@@ -12,6 +14,8 @@ export type {
   CreateWorkspaceInput,
   CreateWorkspaceResponse,
   OrganizationWorkspacesResponse,
+  WorkspaceMembersDetailedResponse,
+  WorkspaceMembershipDetailedDto,
   WorkspaceResponse,
   WorkspaceRole,
 };
