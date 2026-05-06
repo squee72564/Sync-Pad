@@ -14,6 +14,7 @@ import type {
 import type { Jsonify } from './json.js';
 import type { PickAndRenameStrict } from './utils.js';
 
+export type { OrganizationRole, WorkspaceRole };
 export type UserDto = Jsonify<User>;
 export type OrganizationDto = Jsonify<Organization>;
 export type WorkspaceDto = Jsonify<Workspace>;
@@ -26,6 +27,24 @@ export type MeWorkspaceDto = WorkspaceDto & {
   organizationName: OrganizationDto['name'];
   workspaceRole: WorkspaceRole;
 };
+
+type UserDetailRenamed = PickAndRenameStrict<
+  UserDto,
+  'name' | 'email' | 'image',
+  { name: 'userName'; email: 'userEmail'; image: 'userImage' }
+>;
+
+export type OrganizationMembersDetailedDto = Pick<
+  OrganizationMembershipDto,
+  'organizationId' | 'userId' | 'organizationRole' | 'status' | 'joinedAt'
+> &
+  UserDetailRenamed;
+
+export type WorkspaceMembershipDetailedDto = Pick<
+  WorkspaceMembership,
+  'organizationId' | 'workspaceId' | 'workspaceRole' | 'userId'
+> &
+  UserDetailRenamed;
 
 export type CreateOrganizationInput = Pick<
   NewOrganization,
@@ -89,32 +108,9 @@ export type MeWorkspacesResponse = {
   workspaces: MeWorkspaceDto[];
 };
 
-export type { OrganizationRole, WorkspaceRole };
-
-export type OrganizationMembersDetailedDto = Pick<
-  OrganizationMembershipDto,
-  'organizationId' | 'userId' | 'organizationRole' | 'status' | 'joinedAt'
-> &
-  PickAndRenameStrict<
-    UserDto,
-    'name' | 'email' | 'image',
-    { name: 'userName'; email: 'userEmail'; image: 'userImage' }
-  >;
-
 export type OrganizationMembersDetailedResponse = {
   memberships: OrganizationMembersDetailedDto[];
 };
-
-export type WorkspaceMembershipDetailedDto = Pick<
-  WorkspaceMembership,
-  'organizationId' | 'workspaceId' | 'workspaceRole' | 'userId'
-> &
-  PickAndRenameStrict<
-    UserDto,
-    'name' | 'email' | 'image',
-    { name: 'userName'; email: 'userEmail'; image: 'userImage' }
-  >;
-
 export type WorkspaceMembersDetailedResponse = {
   memberships: WorkspaceMembershipDetailedDto[];
 };
