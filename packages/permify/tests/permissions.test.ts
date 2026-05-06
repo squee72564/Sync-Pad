@@ -1,6 +1,8 @@
 import {
+  type AttributeFilter,
   CheckResult,
   type Subject,
+  type Tuple,
 } from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
 import { PermifyError } from '@syncpad/errors';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -135,6 +137,126 @@ describe('permission checker', () => {
         'read',
       ),
     ).resolves.toBe(false);
+  });
+
+  it('sends a no-op attribute filter when deleting tuples', async () => {
+    const { grpc, instance } = createTestInstance();
+    grpc.data.delete.mockResolvedValue({});
+
+    const tuple: Tuple = {
+      entity: {
+        type: 'workspace',
+        id: 'ws_1',
+      },
+      relation: 'editor',
+      subject: {
+        type: 'user',
+        id: 'user_1',
+        relation: '',
+      },
+    };
+
+    await createPermissionChecker(instance).deleteTuples(tuple);
+
+    expect(grpc.data.delete).toHaveBeenCalledWith(
+      {
+        tenantId: 'tenant_1',
+        tupleFilter: {
+          entity: {
+            type: 'workspace',
+            ids: ['ws_1'],
+          },
+          relation: 'editor',
+          subject: {
+            type: 'user',
+            ids: ['user_1'],
+            relation: '',
+          },
+        },
+        attributeFilter: {
+          entity: {
+            type: '__syncpad_noop_attribute_delete__',
+            ids: ['__syncpad_noop_attribute_delete__'],
+          },
+          attributes: ['__syncpad_noop_attribute_delete__'],
+        },
+      },
+      expect.any(Object),
+    );
+  });
+
+  it('sends a no-op tuple filter when deleting attributes', async () => {
+    const { grpc, instance } = createTestInstance();
+    grpc.data.delete.mockResolvedValue({});
+
+    const attributeFilter: AttributeFilter = {
+      entity: {
+        type: 'document',
+        ids: ['doc_1'],
+      },
+      attributes: ['is_private'],
+    };
+
+    await createPermissionChecker(instance).deleteAttributes(attributeFilter);
+
+    expect(grpc.data.delete).toHaveBeenCalledWith(
+      {
+        tenantId: 'tenant_1',
+        tupleFilter: {
+          entity: {
+            type: '__syncpad_noop_tuple_delete__',
+            ids: ['__syncpad_noop_tuple_delete__'],
+          },
+          relation: '__syncpad_noop_tuple_delete__',
+          subject: {
+            type: '__syncpad_noop_tuple_delete__',
+            ids: ['__syncpad_noop_tuple_delete__'],
+            relation: '',
+          },
+        },
+        attributeFilter,
+      },
+      expect.any(Object),
+    );
+  });
+
+  it('deletes tuple and attribute data with explicit filters', async () => {
+    const { grpc, instance } = createTestInstance();
+    grpc.data.delete.mockResolvedValue({});
+
+    const tupleFilter = {
+      entity: {
+        type: 'document',
+        ids: ['doc_1'],
+      },
+      relation: 'viewer',
+      subject: {
+        type: 'user',
+        ids: ['user_1'],
+        relation: '',
+      },
+    };
+    const attributeFilter = {
+      entity: {
+        type: 'document',
+        ids: ['doc_1'],
+      },
+      attributes: ['is_private'],
+    };
+
+    await createPermissionChecker(instance).deleteData({
+      tupleFilter,
+      attributeFilter,
+    });
+
+    expect(grpc.data.delete).toHaveBeenCalledWith(
+      {
+        tenantId: 'tenant_1',
+        tupleFilter,
+        attributeFilter,
+      },
+      expect.any(Object),
+    );
   });
 
   it('normalizes Permify client errors as unavailable errors', async () => {

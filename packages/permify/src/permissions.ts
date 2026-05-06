@@ -1,7 +1,9 @@
 import {
+  type AttributeFilter,
   CheckResult,
   type Subject,
   type Tuple,
+  type TupleFilter,
 } from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
 import { isPermifyError, PermifyError } from '@syncpad/errors';
 import type { PermifyInstance } from './client.js';
@@ -59,6 +61,40 @@ const toPermifyUnavailableError = (
     userMessage: 'Authorization service is unavailable.',
   });
 };
+
+// Permify v1.6.9 validates attributeFilter on Data/Delete even for tuple-only
+// deletes. Target a non-existent attribute so tuple cleanup requests stay valid
+// without deleting real attribute data.
+const noopAttributeFilter: AttributeFilter = {
+  entity: {
+    type: '__syncpad_noop_attribute_delete__',
+    ids: ['__syncpad_noop_attribute_delete__'],
+  },
+  attributes: ['__syncpad_noop_attribute_delete__'],
+};
+
+const noopTupleFilter: TupleFilter = {
+  entity: {
+    type: '__syncpad_noop_tuple_delete__',
+    ids: ['__syncpad_noop_tuple_delete__'],
+  },
+  relation: '__syncpad_noop_tuple_delete__',
+  subject: {
+    type: '__syncpad_noop_tuple_delete__',
+    ids: ['__syncpad_noop_tuple_delete__'],
+    relation: '',
+  },
+};
+
+type DeleteDataInput =
+  | {
+      tupleFilter: TupleFilter;
+      attributeFilter?: AttributeFilter;
+    }
+  | {
+      tupleFilter?: TupleFilter;
+      attributeFilter: AttributeFilter;
+    };
 
 export function createPermissionChecker(instance: PermifyInstance) {
   return {
@@ -148,6 +184,44 @@ export function createPermissionChecker(instance: PermifyInstance) {
       }
     },
 
+    async deleteData(
+      input: DeleteDataInput,
+      _instance: PermifyInstance = instance,
+    ) {
+      try {
+        await _instance.grpc.data.delete(
+          {
+            tenantId: _instance.tenantId,
+            tupleFilter: input.tupleFilter ?? noopTupleFilter,
+            attributeFilter: input.attributeFilter ?? noopAttributeFilter,
+          },
+          {
+            signal: undefined,
+            onHeader: (_header) => {},
+            onTrailer: (_trailer) => {},
+          },
+        );
+      } catch (error) {
+        throw toPermifyUnavailableError(error, 'deleteData');
+      }
+    },
+
+    async deleteAttributes(
+      attributeFilter: AttributeFilter,
+      _instance: PermifyInstance = instance,
+    ) {
+      try {
+        await this.deleteData(
+          {
+            attributeFilter,
+          },
+          _instance,
+        );
+      } catch (error) {
+        throw toPermifyUnavailableError(error, 'deleteAttributes');
+      }
+    },
+
     async deleteTuples(
       tuples: Tuple | Tuple[],
       _instance: PermifyInstance = instance,
@@ -155,29 +229,23 @@ export function createPermissionChecker(instance: PermifyInstance) {
       try {
         const tupleList = Array.isArray(tuples) ? tuples : [tuples];
 
-        // TODO: We need to make sure this is safe
         const tupleDeletePromises = tupleList.map((tuple) =>
-          _instance.grpc.data.delete(
+          this.deleteData(
             {
-              tenantId: _instance.tenantId,
               tupleFilter: {
                 entity: {
-                  type: tuple.entity?.type,
+                  type: tuple.entity?.type ?? '',
                   ids: [tuple.entity?.id ?? ''],
                 },
                 relation: tuple.relation,
                 subject: {
-                  type: tuple.subject?.type,
+                  type: tuple.subject?.type ?? '',
                   ids: [tuple.subject?.id ?? ''],
                   relation: '',
                 },
               },
             },
-            {
-              signal: undefined,
-              onHeader: (_header) => {},
-              onTrailer: (_trailer) => {},
-            },
+            _instance,
           ),
         );
 
