@@ -7,11 +7,7 @@ export const workspaceQueryKeys = {
   byOrganization: (organizationId: string) =>
     [...workspaceQueryKeys.all, 'byOrganization', organizationId] as const,
   detail: (organizationId: string, workspaceId: string) =>
-    [
-      ...workspaceQueryKeys.byOrganization(organizationId),
-      'detail',
-      workspaceId,
-    ] as const,
+    [...workspaceQueryKeys.all, 'detail', workspaceId, organizationId] as const,
 };
 
 export const organizationWorkspacesQuery = (organizationId: string) =>
