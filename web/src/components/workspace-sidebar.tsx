@@ -2,14 +2,12 @@ import { Link, useParams } from '@tanstack/react-router';
 import {
   BotIcon,
   BriefcaseBusinessIcon,
-  CalendarClockIcon,
   FileTextIcon,
   FolderKanbanIcon,
   HomeIcon,
   LogOutIcon,
   type LucideIcon,
   Settings2Icon,
-  Table2Icon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -40,6 +38,12 @@ type OrganizationWorkspaceRouteItem = {
   title: string;
   icon: LucideIcon;
   to: '/organizations/$organizationId/workspaces';
+};
+
+type OrganizationWorkspaceResourceItem = {
+  title: string;
+  icon: LucideIcon;
+  to: '/organizations/$organizationId/workspaces/$workspaceId/documents';
 };
 
 type PendingWorkspaceItem = {
@@ -83,18 +87,11 @@ const organizationWorkspaceRouteItems: OrganizationWorkspaceRouteItem[] = [
   },
 ];
 
-const workspaceContentItems: PendingWorkspaceItem[] = [
+const workspaceContentItems: OrganizationWorkspaceResourceItem[] = [
   {
     title: 'Docs',
     icon: FileTextIcon,
-  },
-  {
-    title: 'Timeline',
-    icon: CalendarClockIcon,
-  },
-  {
-    title: 'Sheets',
-    icon: Table2Icon,
+    to: '/organizations/$organizationId/workspaces/$workspaceId/documents',
   },
 ];
 
@@ -240,21 +237,30 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
           </SidebarGroup>
         ) : null}
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Content</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {workspaceContentItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton tooltip={item.title} disabled>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {organizationId && workspaceId ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Content</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {workspaceContentItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <Link
+                        to={item.to}
+                        params={{ organizationId, workspaceId }}
+                        activeOptions={{ exact: true }}
+                        activeProps={{ 'data-active': true }}
+                      >
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
 
         <SidebarGroup>
           <SidebarGroupLabel>Manage</SidebarGroupLabel>
