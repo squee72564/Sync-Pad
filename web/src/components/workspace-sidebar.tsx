@@ -8,6 +8,7 @@ import {
   LogOutIcon,
   type LucideIcon,
   Settings2Icon,
+  UsersIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -31,7 +32,9 @@ import { authClient } from '#/lib/auth-client';
 type WorkspaceRouteItem = {
   title: string;
   icon: LucideIcon;
-  to: '/organizations/$organizationId/workspaces/$workspaceId';
+  to:
+    | '/organizations/$organizationId/workspaces/$workspaceId'
+    | '/organizations/$organizationId/workspaces/$workspaceId/members';
 };
 
 type OrganizationWorkspaceRouteItem = {
@@ -76,6 +79,11 @@ const workspaceRouteItems: WorkspaceRouteItem[] = [
     title: 'Workspace home',
     icon: HomeIcon,
     to: '/organizations/$organizationId/workspaces/$workspaceId',
+  },
+  {
+    title: 'Members',
+    icon: UsersIcon,
+    to: '/organizations/$organizationId/workspaces/$workspaceId/members',
   },
 ];
 
