@@ -36,6 +36,13 @@
       "when": 1777867674453,
       "tag": "0004_cynical_metal_master",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778027923032,
+      "tag": "0005_sturdy_proudstar",
+      "breakpoints": true
     }
   ]
 }
