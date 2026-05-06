@@ -6,7 +6,6 @@ import {
   FileTextIcon,
   HashIcon,
   PaletteIcon,
-  PlusIcon,
   Trash2Icon,
 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
@@ -14,7 +13,6 @@ import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { Badge } from '#/components/ui/badge';
-import { Button } from '#/components/ui/button';
 import {
   Card,
   CardAction,
@@ -23,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
+import { CreateDocumentSheet } from '#/features/documents/components/create-document-sheet';
 import { workspacesDocumentQuery } from '#/features/documents/queries';
 import type { Document } from '#/features/documents/types';
 import { assertUuidParam } from '#/lib/route-params';
@@ -51,6 +50,7 @@ export const Route = createFileRoute(
 
 function WorkspaceDocumentListPage() {
   const { documents } = Route.useLoaderData();
+  const { organizationId, workspaceId } = Route.useParams();
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -59,10 +59,10 @@ function WorkspaceDocumentListPage() {
         title="Workspace documents"
         description="Documents attached to this workspace, including their current metadata and visual identity."
         actions={
-          <Button disabled>
-            <PlusIcon />
-            New document
-          </Button>
+          <CreateDocumentSheet
+            organizationId={organizationId}
+            workspaceId={workspaceId}
+          />
         }
       >
         <div className="grid min-w-40 grid-cols-1 gap-2 sm:grid-cols-2">
@@ -85,12 +85,6 @@ function WorkspaceDocumentListPage() {
           icon={FileTextIcon}
           title="No documents yet"
           description="Documents created in this workspace will appear here with their title, color, and record metadata."
-          action={
-            <Button disabled>
-              <PlusIcon />
-              New document
-            </Button>
-          }
         />
       )}
     </div>

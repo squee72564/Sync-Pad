@@ -43,7 +43,7 @@ export function createDocument({
   workspaceId,
 }: CreateDocumentVariables) {
   return apiPost<CreateDocumentResponse, CreateDocumentInput>(
-    `/api/organizations/${organizationId}/workspaces/${workspaceId}`,
+    `/api/organizations/${organizationId}/workspaces/${workspaceId}/documents`,
     input,
   );
 }
