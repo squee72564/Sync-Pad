@@ -100,7 +100,7 @@ function OrganizationCard({ organization }: { organization: MeOrganization }) {
               <Building2Icon className="size-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <CardTitle className="truncate">{organization.name}</CardTitle>
+              <CardTitle>{organization.name}</CardTitle>
               <CardDescription className="mt-1 line-clamp-2 leading-5">
                 {description}
               </CardDescription>
