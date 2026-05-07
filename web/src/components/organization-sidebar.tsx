@@ -1,3 +1,7 @@
+import type {
+  OrganizationAccessDto,
+  OrganizationPermission,
+} from '@syncpad/types';
 import { Link, useParams } from '@tanstack/react-router';
 import {
   BotIcon,
@@ -44,6 +48,7 @@ type PrimaryNavItem = {
 type OrganizationNavItem = {
   title: string;
   icon: LucideIcon;
+  requiredPermission?: OrganizationPermission;
   to:
     | '/organizations/$organizationId'
     | '/organizations/$organizationId/members'
@@ -55,13 +60,15 @@ type OrganizationNavItem = {
 type OrganizationManagementItem = {
   title: string;
   icon: LucideIcon;
+  requiredPermission: OrganizationPermission;
   to:
     | '/organizations/$organizationId/settings'
     | '/organizations/$organizationId/billing';
 };
 
 type OrganizationSidebarProps = {
-  organization?: Organization;
+  organization: Organization;
+  access: OrganizationAccessDto;
 };
 
 const primaryNavItems: PrimaryNavItem[] = [
@@ -86,6 +93,7 @@ const organizationNavItems: OrganizationNavItem[] = [
   {
     title: 'Invite member',
     icon: UserRoundPlusIcon,
+    requiredPermission: 'manage',
     to: '/organizations/$organizationId/members/new',
   },
   {
@@ -96,6 +104,7 @@ const organizationNavItems: OrganizationNavItem[] = [
   {
     title: 'Create workspace',
     icon: FolderPlusIcon,
+    requiredPermission: 'manage',
     to: '/organizations/$organizationId/workspaces/new',
   },
 ];
@@ -104,25 +113,36 @@ const organizationManagementItems: OrganizationManagementItem[] = [
   {
     title: 'Settings',
     icon: Settings2Icon,
+    requiredPermission: 'manage',
     to: '/organizations/$organizationId/settings',
   },
   {
     title: 'Billing',
     icon: CreditCardIcon,
+    requiredPermission: 'manage',
     to: '/organizations/$organizationId/billing',
   },
 ];
 
 export function OrganizationSidebar({
   organization,
+  access,
 }: OrganizationSidebarProps) {
   const params = useParams({ strict: false });
   const organizationId =
     typeof params.organizationId === 'string' ? params.organizationId : null;
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const organizationDescription = organization?.description.trim().length
+  const organizationDescription = organization.description.trim().length
     ? organization.description
     : 'Organization overview';
+  const visibleOrganizationNavItems = organizationNavItems.filter(
+    (item) =>
+      item.requiredPermission === undefined ||
+      access.permissions[item.requiredPermission],
+  );
+  const visibleOrganizationManagementItems = organizationManagementItems.filter(
+    (item) => access.permissions[item.requiredPermission],
+  );
 
   async function handleSignOut() {
     await authClient.signOut({
@@ -155,7 +175,7 @@ export function OrganizationSidebar({
               Organization
             </p>
             <p className="truncate text-sm font-semibold leading-5">
-              {organization?.name ?? 'Syncpad'}
+              {organization.name}
             </p>
             <p className="line-clamp-2 text-xs leading-4 text-sidebar-foreground/70">
               {organizationDescription}
@@ -194,7 +214,7 @@ export function OrganizationSidebar({
             <SidebarGroupLabel>Organization</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {organizationNavItems.map((item) => (
+                {visibleOrganizationNavItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <Link
@@ -214,12 +234,12 @@ export function OrganizationSidebar({
           </SidebarGroup>
         ) : null}
 
-        {organizationId ? (
+        {organizationId && visibleOrganizationManagementItems.length > 0 ? (
           <SidebarGroup>
             <SidebarGroupLabel>Manage</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {organizationManagementItems.map((item) => (
+                {visibleOrganizationManagementItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
                       <Link
