@@ -2,47 +2,32 @@ import type {
   Tuple as PermifyTuple,
   Subject,
 } from '@permify/permify-node/dist/src/grpc/generated/base/v1/base.js';
+import type {
+  PermissionFor,
+  ResourceDescriptorMap,
+  ResourceType,
+} from '@syncpad/types';
+
+export {
+  type DocumentPermission,
+  type DocumentResource,
+  type OrganizationPermission,
+  type OrganizationResource,
+  type PermissionFor,
+  type PermissionMap,
+  type PermissionMapFor,
+  type PermissionsFor,
+  type ResourceAccess,
+  type ResourceDescriptor,
+  type ResourceDescriptorMap,
+  type ResourcePermissionMap,
+  type ResourceType,
+  resourceDefinitions,
+  type WorkspacePermission,
+  type WorkspaceResource,
+} from '@syncpad/types';
 
 export type Tuple = PermifyTuple;
-export const resourceDefinitions = {
-  organization: {
-    idKey: 'organizationId',
-    permissions: ['read', 'manage', 'invite', 'create_workspace', 'run_ai'],
-  },
-  workspace: {
-    idKey: 'workspaceId',
-    permissions: ['read', 'comment', 'write', 'manage', 'invite', 'run_ai'],
-  },
-  document: {
-    idKey: 'documentId',
-    permissions: ['read', 'comment', 'write', 'manage', 'invite', 'run_ai'],
-  },
-} as const;
-
-type ResourceDefinitions = typeof resourceDefinitions;
-
-export type ResourceType = keyof ResourceDefinitions;
-
-export type PermissionFor<TType extends ResourceType> =
-  ResourceDefinitions[TType]['permissions'][number];
-
-export type OrganizationPermission = PermissionFor<'organization'>;
-export type WorkspacePermission = PermissionFor<'workspace'>;
-export type DocumentPermission = PermissionFor<'document'>;
-
-type ResourceIdKey<TType extends ResourceType> =
-  ResourceDefinitions[TType]['idKey'];
-
-export type ResourceDescriptorMap = {
-  [TType in ResourceType]: {
-    type: TType;
-  } & Record<ResourceIdKey<TType>, string>;
-};
-
-export type OrganizationResource = ResourceDescriptorMap['organization'];
-export type WorkspaceResource = ResourceDescriptorMap['workspace'];
-export type DocumentResource = ResourceDescriptorMap['document'];
-export type ResourceDescriptor = ResourceDescriptorMap[ResourceType];
 
 export type PermissionCheckItem<TType extends ResourceType = ResourceType> = {
   [TCurrentType in TType]: {

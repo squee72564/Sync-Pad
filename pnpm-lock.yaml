@@ -201,10 +201,10 @@ importers:
       '@syncpad/errors':
         specifier: workspace:*
         version: link:../errors
-    devDependencies:
       '@syncpad/types':
         specifier: workspace:*
         version: link:../types
+    devDependencies:
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0

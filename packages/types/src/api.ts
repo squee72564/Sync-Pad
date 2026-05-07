@@ -1,4 +1,10 @@
 import type {
+  DocumentPermission,
+  OrganizationPermission,
+  PermissionMap,
+  WorkspacePermission,
+} from './authz.js';
+import type {
   Document,
   NewDocument,
   NewOrganization,
@@ -26,6 +32,18 @@ export type MeOrganizationDto = OrganizationDto;
 export type MeWorkspaceDto = WorkspaceDto & {
   organizationName: OrganizationDto['name'];
   workspaceRole: WorkspaceRole;
+};
+
+export type OrganizationAccessDto = {
+  permissions: PermissionMap<OrganizationPermission>;
+};
+
+export type WorkspaceAccessDto = {
+  permissions: PermissionMap<WorkspacePermission>;
+};
+
+export type DocumentAccessDto = {
+  permissions: PermissionMap<DocumentPermission>;
 };
 
 type UserDetailRenamed = PickAndRenameStrict<
@@ -60,6 +78,7 @@ export type UpdateDocumentInput = Partial<Pick<NewDocument, 'title' | 'color'>>;
 
 export type OrganizationResponse = {
   organization: OrganizationDto;
+  access: OrganizationAccessDto;
 };
 
 export type OrganizationsResponse = {
