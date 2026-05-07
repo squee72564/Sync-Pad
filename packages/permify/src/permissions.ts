@@ -130,9 +130,11 @@ export function createPermissionChecker(instance: PermifyInstance) {
       _instance: PermifyInstance = instance,
     ) {
       try {
-        for (const item of items) {
-          getResourceEntity(item.resource);
-        }
+        const permifyItems = items.map((item) => ({
+          entity: getResourceEntity(item.resource),
+          permission: item.permission,
+          subject: item.subject,
+        }));
 
         const response = await _instance.grpc.permission.bulkCheck(
           {
@@ -142,7 +144,7 @@ export function createPermissionChecker(instance: PermifyInstance) {
               depth,
               schemaVersion: _instance.schemaVersion,
             },
-            items: items,
+            items: permifyItems,
           },
           {
             signal: undefined,

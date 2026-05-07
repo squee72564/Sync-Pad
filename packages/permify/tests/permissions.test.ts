@@ -139,6 +139,80 @@ describe('permission checker', () => {
     ).resolves.toBe(false);
   });
 
+  it('serializes bulk check resources to Permify entities', async () => {
+    const { grpc, instance } = createTestInstance();
+    grpc.permission.bulkCheck.mockResolvedValue({
+      results: [
+        {
+          can: CheckResult.CHECK_RESULT_ALLOWED,
+        },
+        {
+          can: CheckResult.CHECK_RESULT_DENIED,
+        },
+      ],
+    });
+
+    const results = await createPermissionChecker(instance).bulkCheckPermission(
+      [
+        {
+          subject,
+          resource: resources.organization('org_1'),
+          permission: 'manage',
+        },
+        {
+          subject,
+          resource: resources.workspace('ws_1'),
+          permission: 'write',
+        },
+      ],
+      12,
+    );
+
+    expect(results).toEqual([
+      {
+        item_index: 0,
+        result: true,
+      },
+      {
+        item_index: 1,
+        result: false,
+      },
+    ]);
+    expect(grpc.permission.bulkCheck).toHaveBeenCalledWith(
+      {
+        tenantId: 'tenant_1',
+        metadata: {
+          snapToken: '',
+          depth: 12,
+          schemaVersion: 'schema_1',
+        },
+        items: [
+          {
+            entity: {
+              type: 'organization',
+              id: 'org_1',
+            },
+            permission: 'manage',
+            subject,
+          },
+          {
+            entity: {
+              type: 'workspace',
+              id: 'ws_1',
+            },
+            permission: 'write',
+            subject,
+          },
+        ],
+      },
+      {
+        signal: undefined,
+        onHeader: expect.any(Function),
+        onTrailer: expect.any(Function),
+      },
+    );
+  });
+
   it('sends a no-op attribute filter when deleting tuples', async () => {
     const { grpc, instance } = createTestInstance();
     grpc.data.delete.mockResolvedValue({});
