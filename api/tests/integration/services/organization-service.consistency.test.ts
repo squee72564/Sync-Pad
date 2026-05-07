@@ -34,6 +34,7 @@ const createOrganizationConsistencyService = ({
     accessGraphSync,
     db: deps.db,
     organizationRepo,
+    permissionChecker: deps.permissionChecker,
     workspaceRepo,
   });
 

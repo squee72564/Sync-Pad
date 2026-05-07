@@ -115,8 +115,16 @@ export function createOrganizationsRoute({
     ),
     requireOrganizationPermission('read'),
     async (context) => {
+      const user = getCurrentUser(context);
       const organization = getOrganizationResource(context);
-      return context.json({ organization }, StatusCodes.OK);
+
+      const access = await organizationService.getOrganizationAccess({
+        actorUserId: user.id,
+        organizationId: organization.id,
+        permissions: ['read', 'manage', 'invite', 'create_workspace', 'run_ai'],
+      });
+
+      return context.json({ organization, access }, StatusCodes.OK);
     },
   );
 

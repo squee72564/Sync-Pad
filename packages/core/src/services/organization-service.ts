@@ -10,6 +10,12 @@ import { CoreError } from '@syncpad/errors';
 import {
   type AccessGraphOperation,
   type AccessGraphSync,
+  type OrganizationPermission,
+  type PermissionChecker,
+  type PermissionMapFor,
+  type ResourceAccess,
+  resources,
+  subjects,
   toOrganizationMembershipTuple,
   toWorkspaceMembershipTuple,
 } from '@syncpad/permify';
@@ -20,6 +26,7 @@ export type OrganizationServiceDeps = {
   organizationRepo: OrganizationRepository;
   workspaceRepo: WorkspaceRepository;
   accessGraphSync: AccessGraphSync;
+  permissionChecker: PermissionChecker;
   db: DbClient;
 };
 
@@ -44,7 +51,13 @@ type UpsertOrganizationMembershipInput = {
   OrganizationId;
 
 export function createOrganizationService(deps: OrganizationServiceDeps) {
-  const { organizationRepo, workspaceRepo, accessGraphSync, db } = deps;
+  const {
+    organizationRepo,
+    workspaceRepo,
+    accessGraphSync,
+    permissionChecker,
+    db,
+  } = deps;
 
   const buildWorkspaceMembershipDeleteOperations = (
     memberships: Awaited<
@@ -57,6 +70,49 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
     }));
 
   return {
+    async getOrganizationAccess({
+      actorUserId,
+      organizationId,
+      permissions,
+    }: {
+      actorUserId: string;
+      organizationId: string;
+      permissions: OrganizationPermission[];
+    }): Promise<ResourceAccess<'organization'>> {
+      const subject = subjects.user(actorUserId);
+      const resource = resources.organization(organizationId);
+
+      const results = await permissionChecker.bulkCheckPermission(
+        permissions.map((permission) => ({
+          subject,
+          resource,
+          permission,
+        })),
+      );
+
+      const access: PermissionMapFor<'organization'> = {
+        read: false,
+        manage: false,
+        invite: false,
+        create_workspace: false,
+        run_ai: false,
+      };
+
+      for (const result of results) {
+        const permission = permissions[result.item_index];
+
+        if (!permission) {
+          continue;
+        }
+
+        access[permission] = result.result;
+      }
+
+      return {
+        permissions: access,
+      };
+    },
+
     findById(organizationId: string) {
       return organizationRepo.findById(organizationId);
     },

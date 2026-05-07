@@ -5,13 +5,19 @@ const fixtureDate = new Date('2024-01-02T03:04:05.000Z');
 const db = {
   transaction: vi.fn(async (callback) => callback({})),
 } as never;
+const permissionChecker = {
+  bulkCheckPermission: vi.fn(),
+} as never;
 
 type OrganizationServiceDeps = Parameters<
   typeof createCoreOrganizationService
 >[0];
 
-const createOrganizationService = (deps: Omit<OrganizationServiceDeps, 'db'>) =>
+const createOrganizationService = (
+  deps: Omit<OrganizationServiceDeps, 'db' | 'permissionChecker'>,
+) =>
   createCoreOrganizationService({
+    permissionChecker,
     ...deps,
     db,
   });
