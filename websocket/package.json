@@ -27,6 +27,7 @@
     "@syncpad/permify": "workspace:*",
     "http-status-codes": "^2.3.0",
     "pino": "^10.3.1",
+    "yjs": "^13.6.30",
     "zod": "^4.3.6"
   },
   "devDependencies": {
