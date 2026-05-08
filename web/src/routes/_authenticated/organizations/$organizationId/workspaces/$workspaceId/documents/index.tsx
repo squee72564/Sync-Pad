@@ -49,7 +49,7 @@ export const Route = createFileRoute(
 });
 
 function WorkspaceDocumentListPage() {
-  const { documents } = Route.useLoaderData();
+  const { documents, access } = Route.useLoaderData();
   const { organizationId, workspaceId } = Route.useParams();
 
   return (
@@ -59,10 +59,12 @@ function WorkspaceDocumentListPage() {
         title="Workspace documents"
         description="Documents attached to this workspace, including their current metadata and visual identity."
         actions={
-          <CreateDocumentSheet
-            organizationId={organizationId}
-            workspaceId={workspaceId}
-          />
+          access.permissions.write ? (
+            <CreateDocumentSheet
+              organizationId={organizationId}
+              workspaceId={workspaceId}
+            />
+          ) : null
         }
       >
         <div className="grid min-w-40 grid-cols-1 gap-2 sm:grid-cols-2">

@@ -108,6 +108,7 @@ export type DocumentResponse = {
 
 export type OrganizationWorkspaceDocumentsResponse = {
   documents: DocumentDto[];
+  access: DocumentAccessDto;
 };
 
 export type CreateDocumentResponse = DocumentResponse;
