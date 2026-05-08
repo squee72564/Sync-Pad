@@ -52,14 +52,18 @@ export function CreateDocumentSheet({
     onSuccess: async ({ document }) => {
       queryClient.setQueryData<OrganizationWorkspaceDocumentsResponse>(
         documentQueryKeys.byWorkspace(workspaceId),
-        (current) => ({
-          documents: [
-            document,
-            ...(current?.documents.filter(
-              (existingDocument) => existingDocument.id !== document.id,
-            ) ?? []),
-          ],
-        }),
+        (current) =>
+          current
+            ? {
+                ...current,
+                documents: [
+                  document,
+                  ...current.documents.filter(
+                    (existingDocument) => existingDocument.id !== document.id,
+                  ),
+                ],
+              }
+            : current,
       );
 
       toast.success(`Created ${document.title}`);
