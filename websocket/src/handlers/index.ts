@@ -33,6 +33,8 @@ type WebsocketContext = {
   session: AuthSession['session'];
   user: AuthSession['user'];
   actorUserId: string;
+  canWrite: boolean;
+  isAuthenticated: boolean;
 };
 
 type HandlerConfiguration = Omit<
@@ -65,6 +67,7 @@ export function createServerHandlers({
     onAuthenticate: async ({
       documentName,
       requestHeaders,
+      connectionConfig,
     }: onAuthenticatePayload<WebsocketContext>) => {
       const authSession = await auth.api.getSession({
         headers: requestHeaders,
@@ -89,11 +92,12 @@ export function createServerHandlers({
 
       // Keep the hot websocket auth path narrow: load metadata through
       // documentService, then use permissionChecker directly for the read gate.
-      const canRead = await permissionChecker.checkPermission(
-        subjects.user(authSession.user.id),
-        resources.document(documentId),
-        'read',
-      );
+      const subject = subjects.user(authSession.user.id);
+      const resource = resources.document(documentId);
+      const [canRead, canWrite] = await Promise.all([
+        permissionChecker.checkPermission(subject, resource, 'read'),
+        permissionChecker.checkPermission(subject, resource, 'write'),
+      ]);
 
       if (!canRead) {
         throw createAuthenticationError(
@@ -102,10 +106,18 @@ export function createServerHandlers({
         );
       }
 
+      if (!canWrite) {
+        connectionConfig.readOnly = true;
+      }
+
+      connectionConfig.isAuthenticated = true;
+
       return {
         actorUserId: authSession.user.id,
         session: authSession.session,
         user: authSession.user,
+        canWrite: canWrite,
+        isAuthenticated: true,
       };
     },
     onAwarenessUpdate: async (
@@ -170,6 +182,13 @@ export function createServerHandlers({
       documentName,
       lastContext,
     }: onStoreDocumentPayload<WebsocketContext>) => {
+      if (!lastContext.isAuthenticated || !lastContext.canWrite) {
+        throw createAuthenticationError(
+          'forbidden',
+          `Write permission denied for document ${getDocumentId(documentName)}`,
+        );
+      }
+
       await documentService.saveDocumentState({
         actorUserId: lastContext.actorUserId,
         documentId: getDocumentId(documentName),
