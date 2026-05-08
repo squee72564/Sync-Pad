@@ -126,13 +126,11 @@ function MemberCard({
           icon={BriefcaseBusinessIcon}
           label="Workspace ID"
           value={membership.workspaceId}
-          mono
         />
         <MemberMeta
           icon={HashIcon}
           label="Organization ID"
           value={membership.organizationId}
-          mono
         />
       </CardContent>
     </Card>
