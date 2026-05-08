@@ -13,8 +13,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
+
   return (
-    <AppProviders>
+    <AppProviders queryClient={queryClient}>
       <Outlet />
     </AppProviders>
   );
