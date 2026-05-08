@@ -1,8 +1,10 @@
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
 import InlineCode from '@tiptap/extension-code';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Collaboration from '@tiptap/extension-collaboration';
+import CollaborationCaret from '@tiptap/extension-collaboration-caret';
 import Details, {
   DetailsContent,
   DetailsSummary,
@@ -25,7 +27,7 @@ import {
   Selection,
   TrailingNode,
 } from '@tiptap/extensions';
-import type { Content, Editor } from '@tiptap/react';
+import type { Editor } from '@tiptap/react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import {
   AtSign,
@@ -43,7 +45,7 @@ import {
   Underline as UnderlineIcon,
   Undo2,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import * as Y from 'yjs';
 
 import { Button } from '#/components/ui/button';
@@ -52,15 +54,14 @@ import { Toggle } from '#/components/ui/toggle';
 import { cn } from '#/lib/utils';
 
 type TiptapEditorProps = {
-  content?: Content;
   editable?: boolean;
   autofocus?: boolean | 'start' | 'end' | 'all';
   className?: string;
   editorClassName?: string;
+  documentId: string;
+  userName: string;
   onUpdate?: (html: string, editor: Editor) => void;
 };
-
-const defaultContent = '<p>Start writing...</p>';
 
 const plainLowlight = {
   highlight: (_language: string, value: string) => ({
@@ -96,75 +97,138 @@ const defaultToolbarState = {
   words: 0,
 };
 
+const getCollaborationUrl = () => {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}/collaboration`;
+};
+
+const renderCollaborationCaret = (user: Record<string, unknown>) => {
+  const color = typeof user.color === 'string' ? user.color : '#f783ac';
+  const name = typeof user.name === 'string' ? user.name : 'Collaborator';
+  const caret = document.createElement('span');
+  const label = document.createElement('span');
+
+  caret.classList.add('collaboration-carets__caret');
+  caret.style.setProperty('--collaboration-caret-color', color);
+  caret.setAttribute('aria-label', name);
+  caret.setAttribute('title', name);
+
+  label.classList.add('collaboration-carets__label');
+  label.textContent = name;
+
+  caret.append(label);
+
+  return caret;
+};
+
 export function TiptapEditor({
-  content = defaultContent,
   editable = true,
   autofocus = false,
   className,
   editorClassName,
+  documentId,
+  userName,
   onUpdate,
 }: TiptapEditorProps) {
-  const ydoc = useMemo(() => new Y.Doc(), []);
+  const ydoc = useMemo(() => new Y.Doc({ guid: documentId }), [documentId]);
+  const collaborationUrl = useMemo(() => getCollaborationUrl(), []);
 
-  const editor = useEditor({
-    extensions: [
-      Document,
-      Text,
-      Paragraph,
-      Bold,
-      InlineCode,
-      Highlight,
-      Italic,
-      Collaboration.configure({
+  const provider = useMemo(
+    () =>
+      new HocuspocusProvider({
+        url: collaborationUrl,
+        name: documentId,
         document: ydoc,
       }),
-      Underline,
-      Dropcursor.configure({
-        color: 'var(--primary)',
-        width: 2,
-      }),
-      Focus.configure({
-        className: 'has-focus',
-        mode: 'deepest',
-      }),
-      Gapcursor,
-      Placeholder.configure({
-        placeholder: 'Start writing...',
-      }),
-      Selection,
-      TrailingNode.configure({
-        node: 'paragraph',
-        notAfter: ['paragraph'],
-      }),
-      CharacterCount,
-      Heading.configure({
-        levels: [1, 2, 3],
-      }),
-      ListKit,
-      CodeBlockLowlight.configure({
-        lowlight: plainLowlight,
-      }),
-      Blockquote,
-      Details,
-      DetailsSummary,
-      DetailsContent,
-      Mention,
-    ],
-    content,
-    editable,
-    autofocus,
-    editorProps: {
-      attributes: {
-        class: cn(
-          'tiptap min-h-64 px-4 py-3 focus:outline-none',
-          editorClassName,
-        ),
+    [collaborationUrl, documentId, ydoc],
+  );
+
+  useEffect(() => {
+    return () => {
+      provider.destroy();
+      ydoc.destroy();
+    };
+  }, [provider, ydoc]);
+
+  const editor = useEditor(
+    {
+      extensions: [
+        Document,
+        Text,
+        Paragraph,
+        Bold,
+        InlineCode,
+        Highlight,
+        Italic,
+        Collaboration.configure({
+          document: ydoc,
+        }),
+        CollaborationCaret.configure({
+          provider,
+          user: {
+            name: userName,
+            color: '#f783ac',
+          },
+          render: renderCollaborationCaret,
+          selectionRender: (user) => {
+            const color =
+              typeof user.color === 'string' ? user.color : '#f783ac';
+
+            return {
+              nodeName: 'span',
+              class: 'collaboration-carets__selection',
+              style: `--collaboration-caret-color: ${color}`,
+            };
+          },
+        }),
+        Underline,
+        Dropcursor.configure({
+          color: 'var(--primary)',
+          width: 2,
+        }),
+        Focus.configure({
+          className: 'has-focus',
+          mode: 'deepest',
+        }),
+        Gapcursor,
+        Placeholder.configure({
+          placeholder: 'Start writing...',
+        }),
+        Selection,
+        TrailingNode.configure({
+          node: 'paragraph',
+          notAfter: ['paragraph'],
+        }),
+        CharacterCount,
+        Heading.configure({
+          levels: [1, 2, 3],
+        }),
+        ListKit,
+        CodeBlockLowlight.configure({
+          lowlight: plainLowlight,
+        }),
+        Blockquote,
+        Details,
+        DetailsSummary,
+        DetailsContent,
+        Mention,
+      ],
+      editable,
+      autofocus,
+      editorProps: {
+        attributes: {
+          class: cn(
+            'tiptap min-h-64 px-4 py-3 focus:outline-none',
+            editorClassName,
+          ),
+        },
+      },
+      onUpdate: ({ editor: updatedEditor }) => {
+        onUpdate?.(updatedEditor.getHTML(), updatedEditor);
       },
     },
-    onUpdate: ({ editor: updatedEditor }) => {
-      onUpdate?.(updatedEditor.getHTML(), updatedEditor);
-    },
-  });
+    [provider, userName, ydoc],
+  );
 
   return (
     <div

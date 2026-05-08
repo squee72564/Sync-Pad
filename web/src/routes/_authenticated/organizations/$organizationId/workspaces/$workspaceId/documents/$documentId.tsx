@@ -14,6 +14,7 @@ import {
 } from '#/components/ui/card';
 import { Separator } from '#/components/ui/separator';
 import { documentQuery } from '#/features/documents/queries';
+import { meUserQuery } from '#/features/me/queries';
 import { workspacePermissionsQuery } from '#/features/workspaces/queries';
 import { assertUuidParam } from '#/lib/route-params';
 import { formatDate, getInitials } from '#/lib/utils';
@@ -34,11 +35,13 @@ export const Route = createFileRoute(
       ),
     );
 
+    const { user } = await context.queryClient.ensureQueryData(meUserQuery());
+
     const access = await context.queryClient.ensureQueryData(
       workspacePermissionsQuery(params.organizationId, params.workspaceId),
     );
 
-    return { document, access };
+    return { document, user, access };
   },
   errorComponent: ({ error }) => (
     <ScopeRouteError
@@ -51,8 +54,7 @@ export const Route = createFileRoute(
 });
 
 function DocumentEditorPage() {
-  const { document, access } = Route.useLoaderData();
-  const initialContent = `<h1>${escapeHtml(document.title)}</h1><p>Start writing...</p>`;
+  const { document, user, access } = Route.useLoaderData();
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -84,7 +86,8 @@ function DocumentEditorPage() {
         <TiptapEditor
           editable={access.permissions.write}
           autofocus="end"
-          content={initialContent}
+          documentId={document.id}
+          userName={user.name}
           editorClassName="min-h-[32rem]"
         />
 
@@ -146,13 +149,4 @@ function DetailRow({
       </div>
     </div>
   );
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
 }
