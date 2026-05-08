@@ -2,6 +2,7 @@ import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
 import InlineCode from '@tiptap/extension-code';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import Collaboration from '@tiptap/extension-collaboration';
 import Details, {
   DetailsContent,
   DetailsSummary,
@@ -23,7 +24,6 @@ import {
   Placeholder,
   Selection,
   TrailingNode,
-  UndoRedo,
 } from '@tiptap/extensions';
 import type { Content, Editor } from '@tiptap/react';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
@@ -43,6 +43,8 @@ import {
   Underline as UnderlineIcon,
   Undo2,
 } from 'lucide-react';
+import { useMemo } from 'react';
+import * as Y from 'yjs';
 
 import { Button } from '#/components/ui/button';
 import { Separator } from '#/components/ui/separator';
@@ -102,6 +104,8 @@ export function TiptapEditor({
   editorClassName,
   onUpdate,
 }: TiptapEditorProps) {
+  const ydoc = useMemo(() => new Y.Doc(), []);
+
   const editor = useEditor({
     extensions: [
       Document,
@@ -111,8 +115,10 @@ export function TiptapEditor({
       InlineCode,
       Highlight,
       Italic,
+      Collaboration.configure({
+        document: ydoc,
+      }),
       Underline,
-      UndoRedo,
       Dropcursor.configure({
         color: 'var(--primary)',
         width: 2,
