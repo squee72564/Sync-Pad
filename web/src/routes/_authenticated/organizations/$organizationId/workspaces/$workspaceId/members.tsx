@@ -61,7 +61,7 @@ function RouteComponent() {
       <PageHeader
         eyebrow="Members"
         title="Workspace members"
-        description="Review every member returned by the workspace membership payload, including role, account, and scope identifiers."
+        description="Review people with access to this workspace and their current role."
       >
         <div className="grid grid-cols-3 gap-2 sm:min-w-80">
           <PageHeaderStat label="Total" value={memberships.length} />
@@ -121,18 +121,7 @@ function MemberCard({
       </CardHeader>
 
       <CardContent className="grid gap-3 border-t border-border/70 pt-4 text-xs text-muted-foreground">
-        <MemberMeta
-          icon={UserIcon}
-          label="User ID"
-          value={membership.userId}
-          mono
-        />
-        <MemberMeta
-          icon={UserIcon}
-          label="User image"
-          value={membership.userImage ?? 'No image'}
-          mono={Boolean(membership.userImage)}
-        />
+        <MemberMeta icon={UserIcon} label="User ID" value={membership.userId} />
         <MemberMeta
           icon={BriefcaseBusinessIcon}
           label="Workspace ID"
@@ -170,25 +159,21 @@ function MemberMeta({
   icon: Icon,
   label,
   value,
-  mono = false,
 }: {
   icon: ComponentType<{ className?: string }>;
   label: string;
   value: string;
-  mono?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-1.5">
+    <div className="rounded-lg border border-border/60 bg-muted/25 p-3">
+      <div className="flex items-center gap-1.5 text-muted-foreground">
         <Icon className="size-3.5 shrink-0" />
-        <span>{label}</span>
+        <span className="text-[0.7rem] font-medium uppercase tracking-wide">
+          {label}
+        </span>
       </div>
       <span
-        className={
-          mono
-            ? 'truncate font-mono text-[11px] text-foreground'
-            : 'truncate text-foreground'
-        }
+        className="mt-1 block break-all font-mono text-[11px] leading-5 text-foreground"
         title={value}
       >
         {value}
