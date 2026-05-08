@@ -153,7 +153,15 @@ export function createOrganizationWorkspacesRoute({
     requireWorkspacePermission('read'),
     async (context) => {
       const workspace = getWorkspaceResource(context);
-      return context.json({ workspace }, StatusCodes.OK);
+      const user = getCurrentUser(context);
+
+      const access = await workspaceService.getWorkspaceAccess({
+        actorUserId: user.id,
+        workspaceId: workspace.id,
+        permissions: ['comment', 'write', 'read', 'manage', 'invite', 'run_ai'],
+      });
+
+      return context.json({ workspace, access }, StatusCodes.OK);
     },
   );
 

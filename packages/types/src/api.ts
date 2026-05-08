@@ -93,6 +93,7 @@ export type OrganizationMembershipsResponse = {
 
 export type WorkspaceResponse = {
   workspace: WorkspaceDto;
+  access: WorkspaceAccessDto;
 };
 
 export type OrganizationWorkspacesResponse = {

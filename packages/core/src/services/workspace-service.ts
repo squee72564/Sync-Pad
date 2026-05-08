@@ -10,10 +10,12 @@ import {
   type AccessGraphOperation,
   type AccessGraphSync,
   type PermissionChecker,
+  type PermissionMapFor,
   resources,
   subjects,
   toWorkspaceMembershipTuple,
   toWorkspaceParentTuple,
+  type WorkspacePermission,
 } from '@syncpad/permify';
 
 import { syncOrThrow } from '../utils/index.js';
@@ -74,7 +76,51 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
     }));
 
   return {
-    findById(workspaceId: string) {
+    async getWorkspaceAccess({
+      actorUserId,
+      workspaceId,
+      permissions,
+    }: {
+      actorUserId: string;
+      workspaceId: string;
+      permissions: WorkspacePermission[];
+    }) {
+      const subject = subjects.user(actorUserId);
+      const resource = resources.workspace(workspaceId);
+
+      const results = await permissionChecker.bulkCheckPermission(
+        permissions.map((permission) => ({
+          subject,
+          resource,
+          permission,
+        })),
+      );
+
+      const access: PermissionMapFor<'workspace'> = {
+        read: false,
+        manage: false,
+        invite: false,
+        write: false,
+        comment: false,
+        run_ai: false,
+      };
+
+      for (const result of results) {
+        const permission = permissions[result.item_index];
+
+        if (!permission) {
+          continue;
+        }
+
+        access[permission] = result.result;
+      }
+
+      return {
+        permissions: access,
+      };
+    },
+
+    async findById(workspaceId: string) {
       return workspaceRepo.findById(workspaceId);
     },
 
@@ -91,15 +137,15 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       return workspace;
     },
 
-    listReadableToUser(input: { actorUserId: string }) {
+    async listReadableToUser(input: { actorUserId: string }) {
       return workspaceRepo.listReadableToUser(input.actorUserId);
     },
 
-    listMemberships(workspaceId: string) {
+    async listMemberships(workspaceId: string) {
       return workspaceRepo.listMemberships(workspaceId);
     },
 
-    listMembershipsWithUserProfiles(workspaceId: string) {
+    async listMembershipsWithUserProfiles(workspaceId: string) {
       return workspaceRepo.listMembershipsWithUserProfiles(workspaceId);
     },
 
@@ -168,7 +214,7 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       });
     },
 
-    updateWorkspace(input: {
+    async updateWorkspace(input: {
       workspaceId: string;
       data: {
         name?: string;
@@ -210,7 +256,7 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       });
     },
 
-    addMember(input: {
+    async addMember(input: {
       organizationId: string;
       workspaceId: string;
       userId: string;
@@ -242,7 +288,7 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       });
     },
 
-    updateMember(input: {
+    async updateMember(input: {
       workspaceId: string;
       userId: string;
       role: 'manager' | 'editor' | 'commenter' | 'viewer';
@@ -298,7 +344,7 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       });
     },
 
-    deleteMember(workspaceId: string, userId: string) {
+    async deleteMember(workspaceId: string, userId: string) {
       return db.transaction(async (tx) => {
         const existing = await workspaceRepo.findMembership(
           workspaceId,
