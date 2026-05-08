@@ -20,6 +20,11 @@ const config = defineConfig({
         target: 'http://localhost:3001',
         changeOrigin: false,
       },
+      '/collaboration': {
+        target: 'ws://localhost:1234',
+        changeOrigin: false,
+        ws: true,
+      },
       '/health': {
         target: 'http://localhost:3001',
         changeOrigin: false,
