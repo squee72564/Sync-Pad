@@ -283,7 +283,7 @@ export function WorkspaceSidebar({ workspace, access }: WorkspaceSidebarProps) {
             <SidebarGroupLabel>Manage</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {workspaceManagementItems.map((item) => (
+                {visibleWorkspaceManagementItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton tooltip={item.title} disabled>
                       <item.icon />
