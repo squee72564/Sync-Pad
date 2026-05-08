@@ -1,3 +1,4 @@
+import type { WorkspaceAccessDto, WorkspacePermission } from '@syncpad/types';
 import { Link, useParams } from '@tanstack/react-router';
 import {
   BotIcon,
@@ -49,15 +50,17 @@ type OrganizationWorkspaceResourceItem = {
   to: '/organizations/$organizationId/workspaces/$workspaceId/documents';
 };
 
-type PendingWorkspaceItem = {
+type WorkspaceManagementItems = {
   title: string;
   icon: LucideIcon;
+  requiredPermission: WorkspacePermission;
 };
 
 type WorkspaceSidebarProps = {
   workspace?: Workspace & {
     organizationName?: string;
   };
+  access: WorkspaceAccessDto;
 };
 
 type PrimaryNavItem = {
@@ -103,14 +106,15 @@ const workspaceContentItems: OrganizationWorkspaceResourceItem[] = [
   },
 ];
 
-const workspaceManagementItems: PendingWorkspaceItem[] = [
+const workspaceManagementItems: WorkspaceManagementItems[] = [
   {
     title: 'Workspace settings',
     icon: Settings2Icon,
+    requiredPermission: 'manage',
   },
 ];
 
-export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
+export function WorkspaceSidebar({ workspace, access }: WorkspaceSidebarProps) {
   const params = useParams({ strict: false });
   const organizationId =
     typeof params.organizationId === 'string' ? params.organizationId : null;
@@ -122,6 +126,10 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
     (workspace?.description.trim().length
       ? workspace.description
       : 'Workspace overview');
+
+  const visibleWorkspaceManagementItems = workspaceManagementItems.filter(
+    (item) => access.permissions[item.requiredPermission],
+  );
 
   async function handleSignOut() {
     await authClient.signOut({
@@ -270,21 +278,23 @@ export function WorkspaceSidebar({ workspace }: WorkspaceSidebarProps) {
           </SidebarGroup>
         ) : null}
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Manage</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {workspaceManagementItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton tooltip={item.title} disabled>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {visibleWorkspaceManagementItems.length > 0 ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Manage</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {workspaceManagementItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton tooltip={item.title} disabled>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
       </SidebarContent>
 
       <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
