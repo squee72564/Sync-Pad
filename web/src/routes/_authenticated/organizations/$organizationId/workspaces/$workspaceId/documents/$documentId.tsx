@@ -14,24 +14,31 @@ import {
 } from '#/components/ui/card';
 import { Separator } from '#/components/ui/separator';
 import { documentQuery } from '#/features/documents/queries';
+import { workspacePermissionsQuery } from '#/features/workspaces/queries';
 import { assertUuidParam } from '#/lib/route-params';
 import { formatDate, getInitials } from '#/lib/utils';
 
 export const Route = createFileRoute(
   '/_authenticated/organizations/$organizationId/workspaces/$workspaceId/documents/$documentId',
 )({
-  loader: ({ context, params }) => {
+  loader: async ({ context, params }) => {
     assertUuidParam('Organization', params.organizationId);
     assertUuidParam('Workspace', params.workspaceId);
     assertUuidParam('Document', params.documentId);
 
-    return context.queryClient.ensureQueryData(
+    const { document } = await context.queryClient.ensureQueryData(
       documentQuery(
         params.organizationId,
         params.workspaceId,
         params.documentId,
       ),
     );
+
+    const access = await context.queryClient.ensureQueryData(
+      workspacePermissionsQuery(params.organizationId, params.workspaceId),
+    );
+
+    return { document, access };
   },
   errorComponent: ({ error }) => (
     <ScopeRouteError
@@ -44,7 +51,7 @@ export const Route = createFileRoute(
 });
 
 function DocumentEditorPage() {
-  const { document } = Route.useLoaderData();
+  const { document, access } = Route.useLoaderData();
   const initialContent = `<h1>${escapeHtml(document.title)}</h1><p>Start writing...</p>`;
 
   return (
@@ -75,6 +82,7 @@ function DocumentEditorPage() {
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <TiptapEditor
+          editable={access.permissions.write}
           autofocus="end"
           content={initialContent}
           editorClassName="min-h-[32rem]"
