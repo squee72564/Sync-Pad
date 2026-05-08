@@ -154,6 +154,23 @@ export function createOrganizationsRoute({
   );
 
   organizationsRoute.get(
+    '/:organizationId/access',
+    requireAuth(),
+    validateRequest({ params: organizationParamsSchema }),
+    requireOrganizationPermission('read'),
+    async (context) => {
+      const user = getCurrentUser(context);
+      const { params } = getValidated<OrganizationParams>(context);
+      const access = await organizationService.getOrganizationAccess({
+        actorUserId: user.id,
+        organizationId: params.organizationId,
+        permissions: ['read', 'manage', 'invite', 'run_ai', 'create_workspace'],
+      });
+      return context.json({ access }, StatusCodes.OK);
+    },
+  );
+
+  organizationsRoute.get(
     '/:organizationId/members',
     requireAuth(),
     validateRequest({ params: organizationParamsSchema }),

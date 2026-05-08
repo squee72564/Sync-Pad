@@ -3,6 +3,7 @@ import type {
   CreateWorkspaceInput,
   CreateWorkspaceResponse,
   OrganizationWorkspacesResponse,
+  WorkspaceAccessDto,
   WorkspaceMembersDetailedResponse,
   WorkspaceResponse,
 } from './types';
@@ -49,4 +50,15 @@ export function createWorkspace({
     `/api/organizations/${organizationId}/workspaces`,
     input,
   );
+}
+
+export async function getWorkspaceAccessPermissions({
+  organizationId,
+  workspaceId,
+}: GetWorkspaceVariables) {
+  const { access } = await apiGet<{ access: WorkspaceAccessDto }>(
+    `/api/organizations/${organizationId}/workspaces/${workspaceId}/access`,
+  );
+
+  return access;
 }

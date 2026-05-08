@@ -1,6 +1,7 @@
 import type {
   CreateOrganizationInput,
   CreateOrganizationResponse,
+  OrganizationAccessDto,
   OrganizationDto,
   OrganizationMembersDetailedDto,
   OrganizationMembersDetailedResponse,
@@ -13,6 +14,7 @@ export type Organization = OrganizationDto;
 export type {
   CreateOrganizationInput,
   CreateOrganizationResponse,
+  OrganizationAccessDto,
   OrganizationMembersDetailedDto,
   OrganizationMembersDetailedResponse,
   OrganizationResponse,

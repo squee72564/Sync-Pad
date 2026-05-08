@@ -5,6 +5,7 @@ import { type SubmitEvent, useState } from 'react';
 import { HexAlphaColorPicker } from 'react-colorful';
 import { toast } from 'sonner';
 import { PageHeader } from '#/components/page-header';
+import { ScopeRouteError } from '#/components/scope-route-error';
 import { Button } from '#/components/ui/button';
 import {
   Card,
@@ -23,12 +24,31 @@ import {
 } from '#/components/ui/field';
 import { Input } from '#/components/ui/input';
 import { meQueryKeys } from '#/features/me/queries';
+import { organizationPermissionsQuery } from '#/features/organizations/queries';
 import { createWorkspace } from '#/features/workspaces/api';
 import { workspaceQueryKeys } from '#/features/workspaces/queries';
+import { assertUuidParam } from '#/lib/route-params';
 
 export const Route = createFileRoute(
   '/_authenticated/organizations/$organizationId/_organization/workspaces/new',
 )({
+  loader: async ({ context, params }) => {
+    assertUuidParam('OrganizationMemberships', params.organizationId);
+    const { permissions } = await context.queryClient.ensureQueryData(
+      organizationPermissionsQuery(params.organizationId),
+    );
+
+    if (!permissions.create_workspace) {
+      throw new Error('You do not have permission to create workspaces.');
+    }
+  },
+  errorComponent: ({ error }) => (
+    <ScopeRouteError
+      error={error}
+      fallbackTitle="Organization permissions not found"
+      fallbackDescription="Unable to load organization permissions."
+    />
+  ),
   component: NewWorkspacePage,
 });
 

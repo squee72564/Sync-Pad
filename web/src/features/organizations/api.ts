@@ -2,6 +2,7 @@ import { apiGet, apiPost } from '#/lib/api/client';
 import type {
   CreateOrganizationInput,
   CreateOrganizationResponse,
+  OrganizationAccessDto,
   OrganizationMembersDetailedResponse,
   OrganizationResponse,
   OrganizationsResponse,
@@ -26,4 +27,12 @@ export function getOrganizationMembers(organizationId: string) {
   return apiGet<OrganizationMembersDetailedResponse>(
     `/api/organizations/${organizationId}/members`,
   );
+}
+
+export async function getOrganizationAccessPermissions(organizationId: string) {
+  const { access } = await apiGet<{ access: OrganizationAccessDto }>(
+    `/api/organizations/${organizationId}/access`,
+  );
+
+  return access;
 }

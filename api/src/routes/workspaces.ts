@@ -220,6 +220,25 @@ export function createOrganizationWorkspacesRoute({
   );
 
   organizationWorkspacesRoute.get(
+    '/:workspaceId/access',
+    requireAuth(),
+    validateRequest({
+      params: organizationWorkspaceParamsSchema,
+    }),
+    requireWorkspacePermission('manage'),
+    async (context) => {
+      const user = getCurrentUser(context);
+      const { params } = getValidated<OrganizationWorkspaceParams>(context);
+      const access = await workspaceService.getWorkspaceAccess({
+        actorUserId: user.id,
+        workspaceId: params.workspaceId,
+        permissions: ['comment', 'write', 'read', 'manage', 'invite', 'run_ai'],
+      });
+      return context.json({ access }, StatusCodes.OK);
+    },
+  );
+
+  organizationWorkspacesRoute.get(
     '/:workspaceId/members',
     requireAuth(),
     validateRequest({ params: organizationWorkspaceParamsSchema }),
