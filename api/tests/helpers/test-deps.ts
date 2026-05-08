@@ -83,6 +83,15 @@ export const createTestDeps = (overrides: Partial<ApiDeps> = {}): ApiDeps => {
       createOrganization: vi.fn(),
       deleteMember: vi.fn(),
       findById: vi.fn(),
+      getOrganizationAccess: vi.fn().mockResolvedValue({
+        permissions: {
+          read: true,
+          manage: true,
+          invite: true,
+          create_workspace: true,
+          run_ai: true,
+        },
+      }),
       listMemberships: vi.fn(),
       listOrganizationsForUser: vi.fn(),
       updateMember: vi.fn(),
@@ -107,6 +116,16 @@ export const createTestDeps = (overrides: Partial<ApiDeps> = {}): ApiDeps => {
       deleteWorkspace: vi.fn(),
       findById: vi.fn(),
       findInOrganization: vi.fn(),
+      getWorkspaceAccess: vi.fn().mockResolvedValue({
+        permissions: {
+          read: true,
+          manage: true,
+          invite: true,
+          write: true,
+          comment: true,
+          run_ai: true,
+        },
+      }),
       listByOrganizationReadableToUser: vi.fn(),
       listMemberships: vi.fn(),
       listReadableToUser: vi.fn(),

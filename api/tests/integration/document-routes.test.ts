@@ -132,6 +132,16 @@ describe('document routes', () => {
           deletedAt: null,
         },
       ],
+      access: {
+        permissions: {
+          read: true,
+          manage: true,
+          invite: true,
+          write: true,
+          comment: true,
+          run_ai: true,
+        },
+      },
     });
   });
 

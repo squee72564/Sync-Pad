@@ -85,6 +85,15 @@ describe('organization routes', () => {
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       },
+      access: {
+        permissions: {
+          read: true,
+          manage: true,
+          invite: true,
+          create_workspace: true,
+          run_ai: true,
+        },
+      },
     });
   });
 
