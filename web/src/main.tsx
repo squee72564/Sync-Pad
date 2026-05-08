@@ -1,5 +1,6 @@
 import { RouterProvider } from '@tanstack/react-router';
 import ReactDOM from 'react-dom/client';
+import { createBrowserAuthContext } from '#/lib/auth-context';
 import { createQueryClient } from '#/lib/query';
 import { getRouter } from './router';
 
@@ -10,8 +11,11 @@ if (!rootElement) {
 }
 
 if (!rootElement.innerHTML) {
+  const auth = createBrowserAuthContext();
   const queryClient = createQueryClient();
-  const router = getRouter(queryClient);
+  const router = getRouter({ auth, queryClient });
   const root = ReactDOM.createRoot(rootElement);
-  root.render(<RouterProvider router={router} context={{ queryClient }} />);
+  root.render(
+    <RouterProvider router={router} context={{ auth, queryClient }} />,
+  );
 }
