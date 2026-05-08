@@ -114,7 +114,7 @@ function DocumentCard({ document }: { document: Document }) {
         style={{ borderLeftColor: document.color }}
       >
         <CardHeader className="gap-4">
-          <div className="flex items-start gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <div
               className="flex size-11 shrink-0 items-center justify-center rounded-lg text-white ring-1 ring-border/70"
               style={{ backgroundColor: document.color }}
@@ -123,8 +123,11 @@ function DocumentCard({ document }: { document: Document }) {
             </div>
             <div className="min-w-0 flex-1">
               <CardTitle className="truncate">{document.title}</CardTitle>
-              <CardDescription className="mt-1 flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="max-w-full font-mono">
+              <CardDescription className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="min-w-0 max-w-full font-mono"
+                >
                   <span className="truncate">{document.id}</span>
                 </Badge>
                 {document.deletedAt ? (
@@ -196,8 +199,8 @@ function DocumentMeta({
   children?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-1.5">
+    <div className="flex min-w-0 items-center justify-between gap-3">
+      <div className="flex shrink-0 items-center gap-1.5">
         <Icon className="size-3.5 shrink-0" />
         <span>{label}</span>
       </div>

@@ -48,7 +48,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
     >
       <Card className="h-full border-border/70 transition-colors hover:bg-muted/25">
         <CardHeader className="gap-4">
-          <div className="flex items-start gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <div
               className="flex size-11 shrink-0 items-center justify-center rounded-lg text-white ring-1 ring-border/70"
               style={{ backgroundColor: workspace.color }}
@@ -83,9 +83,11 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
             value={formatShortDate(workspace.createdAt)}
           />
           {workspace.workspaceRole ? (
-            <div className="flex items-center justify-between gap-3">
-              <span>Role</span>
-              <Badge variant="outline">{workspace.workspaceRole}</Badge>
+            <div className="flex min-w-0 items-center justify-between gap-3">
+              <span className="shrink-0">Role</span>
+              <Badge variant="outline" className="min-w-0 max-w-[70%]">
+                <span className="truncate">{workspace.workspaceRole}</span>
+              </Badge>
             </div>
           ) : null}
         </CardContent>
@@ -104,12 +106,12 @@ function WorkspaceMeta({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-1.5">
+    <div className="flex min-w-0 items-center justify-between gap-3">
+      <div className="flex shrink-0 items-center gap-1.5">
         <Icon className="size-3.5 shrink-0" />
         <span>{label}</span>
       </div>
-      <span className="truncate text-foreground">{value}</span>
+      <span className="min-w-0 truncate text-foreground">{value}</span>
     </div>
   );
 }
