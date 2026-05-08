@@ -11,6 +11,7 @@ import {
   type AccessGraphSync,
   type PermissionChecker,
   type PermissionMapFor,
+  type ResourceAccess,
   resources,
   subjects,
   toWorkspaceMembershipTuple,
@@ -84,7 +85,7 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       actorUserId: string;
       workspaceId: string;
       permissions: WorkspacePermission[];
-    }) {
+    }): Promise<ResourceAccess<'workspace'>> {
       const subject = subjects.user(actorUserId);
       const resource = resources.workspace(workspaceId);
 
