@@ -22,9 +22,9 @@ import {
   FieldLabel,
 } from '#/components/ui/field';
 import { Input } from '#/components/ui/input';
-import { authClient } from '#/lib/auth-client';
+import type { AuthContext } from '#/lib/auth-context';
 
-export default function SignInForm() {
+export default function SignInForm({ auth }: { auth: AuthContext }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -33,7 +33,7 @@ export default function SignInForm() {
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    await authClient.signIn.email(
+    await auth.signIn.email(
       {
         email,
         password,

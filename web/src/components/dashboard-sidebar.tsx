@@ -1,16 +1,12 @@
 import { Link } from '@tanstack/react-router';
 import {
-  BotIcon,
   Building2Icon,
   FolderKanbanIcon,
   HomeIcon,
-  LogOutIcon,
   PlusCircleIcon,
   Settings2Icon,
   UserIcon,
 } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar';
 import {
   Sidebar,
@@ -26,8 +22,9 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from '#/components/ui/sidebar';
-import { authClient } from '#/lib/auth-client';
+import type { AuthContext } from '#/lib/auth-context';
 import { getInitials } from '#/lib/utils';
+import SignOutMenuButton from './sign-out-menu-button';
 
 type PrimaryNavItem = {
   title: string;
@@ -53,6 +50,7 @@ type DashboardSidebarUser = {
 
 type DashboardSidebarProps = {
   user?: DashboardSidebarUser;
+  auth: AuthContext;
 };
 
 const primaryNavItems: PrimaryNavItem[] = [
@@ -97,30 +95,10 @@ const createNavItems: PrimaryNavItem[] = [
   },
 ];
 
-export function DashboardSidebar({ user }: DashboardSidebarProps) {
-  const [isSigningOut, setIsSigningOut] = useState(false);
+export function DashboardSidebar({ user, auth }: DashboardSidebarProps) {
   const userName = user?.name?.trim() || 'Syncpad';
   const userEmail = user?.email?.trim() || 'Dashboard';
   const initials = getInitials(userName);
-
-  async function handleSignOut() {
-    await authClient.signOut({
-      fetchOptions: {
-        onRequest: () => {
-          setIsSigningOut(true);
-        },
-        onSuccess: () => {
-          setIsSigningOut(false);
-          toast.success('Signed out');
-          window.location.assign('/signin');
-        },
-        onError: (ctx) => {
-          setIsSigningOut(false);
-          toast.error(ctx.error.message || 'Unable to sign out.');
-        },
-      },
-    });
-  }
 
   return (
     <Sidebar collapsible="icon">
@@ -244,19 +222,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
       <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip={isSigningOut ? 'Signing out...' : 'Sign out'}
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-              className="border border-sidebar-border/70 bg-sidebar-accent/30 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center"
-            >
-              {isSigningOut ? (
-                <BotIcon className="size-4 animate-pulse group-data-[collapsible=icon]:size-3.5" />
-              ) : (
-                <LogOutIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
-              )}
-              <span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>
-            </SidebarMenuButton>
+            <SignOutMenuButton auth={auth} />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

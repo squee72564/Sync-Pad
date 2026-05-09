@@ -1,13 +1,9 @@
-import { authClient } from './auth-client';
+import { createAuthClient } from 'better-auth/react';
 
-type BrowserAuthClient = typeof authClient;
-
-export type AuthContext = {
-  getSession: BrowserAuthClient['getSession'];
-};
+export type AuthContext = ReturnType<typeof createAuthClient>;
 
 export function createBrowserAuthContext(): AuthContext {
-  return {
-    getSession: authClient.getSession,
-  };
+  return createAuthClient({
+    basePath: '/api/auth',
+  });
 }

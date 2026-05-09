@@ -4,20 +4,16 @@ import type {
 } from '@syncpad/types';
 import { Link, useParams } from '@tanstack/react-router';
 import {
-  BotIcon,
   Building2Icon,
   CreditCardIcon,
   FolderKanbanIcon,
   FolderPlusIcon,
   HomeIcon,
-  LogOutIcon,
   type LucideIcon,
   Settings2Icon,
   UserRoundPlusIcon,
   UsersIcon,
 } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
 import {
   Sidebar,
   SidebarContent,
@@ -33,7 +29,8 @@ import {
   SidebarSeparator,
 } from '#/components/ui/sidebar';
 import type { Organization } from '#/features/organizations/types';
-import { authClient } from '#/lib/auth-client';
+import type { AuthContext } from '#/lib/auth-context';
+import SignOutMenuButton from './sign-out-menu-button';
 
 type PrimaryNavItem = {
   title: string;
@@ -69,6 +66,7 @@ type OrganizationManagementItem = {
 type OrganizationSidebarProps = {
   organization: Organization;
   access: OrganizationAccessDto;
+  auth: AuthContext;
 };
 
 const primaryNavItems: PrimaryNavItem[] = [
@@ -127,11 +125,11 @@ const organizationManagementItems: OrganizationManagementItem[] = [
 export function OrganizationSidebar({
   organization,
   access,
+  auth,
 }: OrganizationSidebarProps) {
   const params = useParams({ strict: false });
   const organizationId =
     typeof params.organizationId === 'string' ? params.organizationId : null;
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const organizationDescription = organization.description.trim().length
     ? organization.description
     : 'Organization overview';
@@ -143,25 +141,6 @@ export function OrganizationSidebar({
   const visibleOrganizationManagementItems = organizationManagementItems.filter(
     (item) => access.permissions[item.requiredPermission],
   );
-
-  async function handleSignOut() {
-    await authClient.signOut({
-      fetchOptions: {
-        onRequest: () => {
-          setIsSigningOut(true);
-        },
-        onSuccess: () => {
-          setIsSigningOut(false);
-          toast.success('Signed out');
-          window.location.assign('/signin');
-        },
-        onError: (ctx) => {
-          setIsSigningOut(false);
-          toast.error(ctx.error.message || 'Unable to sign out.');
-        },
-      },
-    });
-  }
 
   return (
     <Sidebar collapsible="icon">
@@ -263,19 +242,7 @@ export function OrganizationSidebar({
       <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip={isSigningOut ? 'Signing out...' : 'Sign out'}
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-              className="border border-sidebar-border/70 bg-sidebar-accent/30 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center"
-            >
-              {isSigningOut ? (
-                <BotIcon className="size-4 animate-pulse group-data-[collapsible=icon]:size-3.5" />
-              ) : (
-                <LogOutIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
-              )}
-              <span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>
-            </SidebarMenuButton>
+            <SignOutMenuButton auth={auth} />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

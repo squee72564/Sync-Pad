@@ -34,6 +34,7 @@ export const Route = createFileRoute(
 
 function WorkspaceLayout() {
   const { workspace, access } = Route.useLoaderData();
+  const { auth } = Route.useRouteContext();
 
   return (
     <SidebarProvider
@@ -44,7 +45,7 @@ function WorkspaceLayout() {
         } as React.CSSProperties
       }
     >
-      <WorkspaceSidebar workspace={workspace} access={access} />
+      <WorkspaceSidebar workspace={workspace} access={access} auth={auth} />
       <SidebarInset>
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/75 md:px-6">
           <SidebarTrigger />

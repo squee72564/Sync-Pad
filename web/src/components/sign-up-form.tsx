@@ -21,9 +21,9 @@ import {
   FieldLabel,
 } from '#/components/ui/field';
 import { Input } from '#/components/ui/input';
-import { authClient } from '#/lib/auth-client';
+import type { AuthContext } from '#/lib/auth-context';
 
-export default function SignUpForm() {
+export default function SignUpForm({ auth }: { auth: AuthContext }) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -34,7 +34,7 @@ export default function SignUpForm() {
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    await authClient.signUp.email(
+    await auth.signUp.email(
       {
         name,
         email,

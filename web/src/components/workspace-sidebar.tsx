@@ -1,18 +1,14 @@
 import type { WorkspaceAccessDto, WorkspacePermission } from '@syncpad/types';
 import { Link, useParams } from '@tanstack/react-router';
 import {
-  BotIcon,
   BriefcaseBusinessIcon,
   FileTextIcon,
   FolderKanbanIcon,
   HomeIcon,
-  LogOutIcon,
   type LucideIcon,
   Settings2Icon,
   UsersIcon,
 } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
 import {
   Sidebar,
   SidebarContent,
@@ -28,7 +24,8 @@ import {
   SidebarSeparator,
 } from '#/components/ui/sidebar';
 import type { Workspace } from '#/features/workspaces/types';
-import { authClient } from '#/lib/auth-client';
+import type { AuthContext } from '#/lib/auth-context';
+import SignOutMenuButton from './sign-out-menu-button';
 
 type WorkspaceRouteItem = {
   title: string;
@@ -61,6 +58,7 @@ type WorkspaceSidebarProps = {
     organizationName?: string;
   };
   access: WorkspaceAccessDto;
+  auth: AuthContext;
 };
 
 type PrimaryNavItem = {
@@ -114,13 +112,16 @@ const workspaceManagementItems: WorkspaceManagementItems[] = [
   },
 ];
 
-export function WorkspaceSidebar({ workspace, access }: WorkspaceSidebarProps) {
+export function WorkspaceSidebar({
+  workspace,
+  access,
+  auth,
+}: WorkspaceSidebarProps) {
   const params = useParams({ strict: false });
   const organizationId =
     typeof params.organizationId === 'string' ? params.organizationId : null;
   const workspaceId =
     typeof params.workspaceId === 'string' ? params.workspaceId : null;
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const workspaceSubline =
     workspace?.organizationName ??
     (workspace?.description.trim().length
@@ -130,25 +131,6 @@ export function WorkspaceSidebar({ workspace, access }: WorkspaceSidebarProps) {
   const visibleWorkspaceManagementItems = workspaceManagementItems.filter(
     (item) => access.permissions[item.requiredPermission],
   );
-
-  async function handleSignOut() {
-    await authClient.signOut({
-      fetchOptions: {
-        onRequest: () => {
-          setIsSigningOut(true);
-        },
-        onSuccess: () => {
-          setIsSigningOut(false);
-          toast.success('Signed out');
-          window.location.assign('/signin');
-        },
-        onError: (ctx) => {
-          setIsSigningOut(false);
-          toast.error(ctx.error.message || 'Unable to sign out.');
-        },
-      },
-    });
-  }
 
   return (
     <Sidebar collapsible="icon">
@@ -300,19 +282,7 @@ export function WorkspaceSidebar({ workspace, access }: WorkspaceSidebarProps) {
       <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip={isSigningOut ? 'Signing out...' : 'Sign out'}
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-              className="border border-sidebar-border/70 bg-sidebar-accent/30 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:justify-center"
-            >
-              {isSigningOut ? (
-                <BotIcon className="size-4 animate-pulse group-data-[collapsible=icon]:size-3.5" />
-              ) : (
-                <LogOutIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
-              )}
-              <span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>
-            </SidebarMenuButton>
+            <SignOutMenuButton auth={auth} />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

@@ -15,7 +15,5 @@ if (!rootElement.innerHTML) {
   const queryClient = createQueryClient();
   const router = getRouter({ auth, queryClient });
   const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <RouterProvider router={router} context={{ auth, queryClient }} />,
-  );
+  root.render(<RouterProvider router={router} />);
 }
