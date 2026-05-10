@@ -7,7 +7,7 @@ import {
   RefreshCwIcon,
 } from 'lucide-react';
 import { EmptyStateCard } from '#/components/empty-state-card';
-import { PageHeader, PageHeaderStat } from '#/components/page-header';
+import { PageHeader } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { SearchQueryInput } from '#/components/search-query-input';
 import { Button } from '#/components/ui/button';
@@ -46,7 +46,7 @@ export const Route = createFileRoute('/_authenticated/dashboard/organizations')(
 );
 
 function OrganizationsPage() {
-  const { organizations, pageInfo } = Route.useLoaderData();
+  const { organizations } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
 
@@ -57,25 +57,17 @@ function OrganizationsPage() {
         title="Organizations"
         description="Organizations you belong to across Syncpad."
       >
-        <div className="grid min-w-40 grid-cols-1 gap-2 sm:grid-cols-2">
-          <PageHeaderStat label="Shown" value={organizations.length} />
-          <PageHeaderStat label="Limit" value={pageInfo.limit} />
-          {search.q ? <PageHeaderStat label="Search" value="On" /> : null}
-          {pageInfo.hasNextPage ? (
-            <PageHeaderStat label="More" value="Yes" />
-          ) : null}
-        </div>
+        <SearchQueryInput
+          onSearchChange={(q) =>
+            navigate({
+              replace: true,
+              search: (current) => withListQuerySearch(current, q),
+            })
+          }
+          placeholder="Search organizations..."
+          value={search.q}
+        />
       </PageHeader>
-      <SearchQueryInput
-        onSearchChange={(q) =>
-          navigate({
-            replace: true,
-            search: (current) => withListQuerySearch(current, q),
-          })
-        }
-        placeholder="Search organizations..."
-        value={search.q}
-      />
 
       {organizations.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

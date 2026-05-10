@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { EmptyStateCard } from '#/components/empty-state-card';
-import { PageHeader, PageHeaderStat } from '#/components/page-header';
+import { PageHeader } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { SearchQueryInput } from '#/components/search-query-input';
 import { Badge } from '#/components/ui/badge';
@@ -56,7 +56,7 @@ export const Route = createFileRoute(
 });
 
 function WorkspaceDocumentListPage() {
-  const { documents, access, pageInfo } = Route.useLoaderData();
+  const { documents, access } = Route.useLoaderData();
   const { organizationId, workspaceId } = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -76,28 +76,17 @@ function WorkspaceDocumentListPage() {
           ) : null
         }
       >
-        <div className="grid min-w-40 grid-cols-1 gap-2 sm:grid-cols-2">
-          <PageHeaderStat label="Total" value={documents.length} />
-          <PageHeaderStat
-            label="Active"
-            value={documents.filter((document) => !document.deletedAt).length}
-          />
-          {search.q ? <PageHeaderStat label="Search" value="On" /> : null}
-          {pageInfo.hasNextPage ? (
-            <PageHeaderStat label="More" value="Yes" />
-          ) : null}
-        </div>
+        <SearchQueryInput
+          onSearchChange={(q) =>
+            navigate({
+              replace: true,
+              search: (current) => withListQuerySearch(current, q),
+            })
+          }
+          placeholder="Search documents..."
+          value={search.q}
+        />
       </PageHeader>
-      <SearchQueryInput
-        onSearchChange={(q) =>
-          navigate({
-            replace: true,
-            search: (current) => withListQuerySearch(current, q),
-          })
-        }
-        placeholder="Search documents..."
-        value={search.q}
-      />
 
       {documents.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
