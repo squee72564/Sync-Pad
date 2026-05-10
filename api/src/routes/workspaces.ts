@@ -238,7 +238,7 @@ export function createOrganizationWorkspacesRoute({
     validateRequest({
       params: organizationWorkspaceParamsSchema,
     }),
-    requireWorkspacePermission('manage'),
+    requireWorkspacePermission('read'),
     async (context) => {
       const user = getCurrentUser(context);
       const { params } = getValidated<OrganizationWorkspaceParams>(context);
