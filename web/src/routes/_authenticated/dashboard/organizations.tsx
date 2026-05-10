@@ -81,7 +81,7 @@ function OrganizationsPage() {
       ) : (
         <EmptyStateCard
           icon={Building2Icon}
-          title="No organizations yet"
+          title="No organizations found"
           description="Create an organization to group workspaces, members, and team settings."
           action={
             <Button asChild>

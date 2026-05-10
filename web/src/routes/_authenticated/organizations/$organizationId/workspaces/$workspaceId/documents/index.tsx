@@ -97,8 +97,8 @@ function WorkspaceDocumentListPage() {
       ) : (
         <EmptyStateCard
           icon={FileTextIcon}
-          title="No documents yet"
-          description="Documents created in this workspace will appear here with their title, color, and record metadata."
+          title="No documents found"
+          description="Documents created in this workspace will appear here."
         />
       )}
     </div>

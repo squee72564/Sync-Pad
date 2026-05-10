@@ -67,7 +67,7 @@ function OrganizationWorkspaceListPage() {
       ) : (
         <EmptyStateCard
           icon={FolderKanbanIcon}
-          title="No workspaces yet"
+          title="No workspaces found"
           description="Create a workspace to start organizing docs, timelines, sheets, and project work for this organization."
         />
       )}

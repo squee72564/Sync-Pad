@@ -59,7 +59,7 @@ function WorkspacesPage() {
       ) : (
         <EmptyStateCard
           icon={FolderKanbanIcon}
-          title="No workspaces yet"
+          title="No workspaces found"
           description="Workspaces you create or join will appear here, grouped across your organizations."
         />
       )}
