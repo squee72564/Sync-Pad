@@ -1,7 +1,12 @@
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq, ilike, lt, or } from 'drizzle-orm';
 
 import type { DbClient } from '../client.js';
 import { withDbError } from '../errors.js';
+import {
+  createPageInfo,
+  decodeUpdatedAtIdCursor,
+  type SearchableCursorPaginationInput,
+} from '../pagination.js';
 import { user } from '../schema/auth-schema.js';
 import {
   organization,
@@ -30,6 +35,29 @@ type InsertWorkspaceMembershipValues = Pick<
 type UpdateWorkspaceMembershipValues = Partial<
   Pick<NewWorkspaceMembership, 'workspaceRole'>
 >;
+
+const getReadableWorkspaceSearchFilter = (q: string | undefined) =>
+  q
+    ? or(
+        ilike(workspace.name, `%${q}%`),
+        ilike(workspace.description, `%${q}%`),
+        ilike(organization.name, `%${q}%`),
+      )
+    : undefined;
+
+const getWorkspaceCursorFilter = (cursor: string | undefined) => {
+  const decodedCursor = decodeUpdatedAtIdCursor(cursor);
+
+  return decodedCursor
+    ? or(
+        lt(workspace.updatedAt, decodedCursor.updatedAt),
+        and(
+          eq(workspace.updatedAt, decodedCursor.updatedAt),
+          lt(workspace.id, decodedCursor.id),
+        ),
+      )
+    : undefined;
+};
 
 export function createWorkspaceRepository(db: DbClient) {
   return {
@@ -136,6 +164,70 @@ export function createWorkspaceRepository(db: DbClient) {
                 eq(organizationMembership.status, 'active'),
               ),
             ),
+      );
+    },
+
+    async listReadableToUserPage(
+      input: { userId: string } & SearchableCursorPaginationInput,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'workspace', operation: 'listReadableToUserPage' },
+        async () => {
+          const limit = input.pagination.limit;
+          const rows = await database
+            .select({
+              id: workspace.id,
+              name: workspace.name,
+              description: workspace.description,
+              color: workspace.color,
+              organizationId: workspace.organizationId,
+              organizationName: organization.name,
+              workspaceRole: workspaceMembership.workspaceRole,
+              createdAt: workspace.createdAt,
+              updatedAt: workspace.updatedAt,
+            })
+            .from(workspaceMembership)
+            .innerJoin(
+              workspace,
+              eq(workspaceMembership.workspaceId, workspace.id),
+            )
+            .innerJoin(
+              organization,
+              eq(workspace.organizationId, organization.id),
+            )
+            .innerJoin(
+              organizationMembership,
+              and(
+                eq(workspaceMembership.userId, organizationMembership.userId),
+                eq(
+                  workspaceMembership.organizationId,
+                  organizationMembership.organizationId,
+                ),
+              ),
+            )
+            .where(
+              and(
+                eq(workspaceMembership.userId, input.userId),
+                eq(organizationMembership.status, 'active'),
+                getReadableWorkspaceSearchFilter(input.q),
+                getWorkspaceCursorFilter(input.pagination.cursor),
+              ),
+            )
+            .orderBy(desc(workspace.updatedAt), desc(workspace.id))
+            .limit(limit + 1);
+
+          const workspaces = rows.slice(0, limit);
+
+          return {
+            workspaces,
+            pageInfo: createPageInfo({
+              items: workspaces,
+              hasNextPage: rows.length > limit,
+              limit,
+            }),
+          };
+        },
       );
     },
 

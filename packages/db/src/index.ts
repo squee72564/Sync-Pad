@@ -1,5 +1,12 @@
 export { createDbClientAndPool, type DbClient, type DbPool } from './client.js';
 export { type DbErrorContext, toDbError, withDbError } from './errors.js';
+export type {
+  CursorPaginationInput,
+  PageInfo,
+  PaginatedResult,
+  SearchableCursorPaginationInput,
+  SearchInput,
+} from './pagination.js';
 export {
   createDocumentRepository,
   createOrganizationRepository,

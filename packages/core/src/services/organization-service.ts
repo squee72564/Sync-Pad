@@ -4,6 +4,7 @@ import type {
   OrganizationMembershipStatus,
   OrganizationRepository,
   OrganizationRole,
+  SearchableCursorPaginationInput,
   WorkspaceRepository,
 } from '@syncpad/db';
 import { CoreError } from '@syncpad/errors';
@@ -119,6 +120,16 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
 
     listOrganizationsForUser(userId: string) {
       return organizationRepo.listOrganizationsForUser(userId);
+    },
+
+    listOrganizationsForUserPage(
+      input: { actorUserId: string } & SearchableCursorPaginationInput,
+    ) {
+      return organizationRepo.listOrganizationsForUserPage({
+        userId: input.actorUserId,
+        q: input.q,
+        pagination: input.pagination,
+      });
     },
 
     listMemberships(organizationId: string) {

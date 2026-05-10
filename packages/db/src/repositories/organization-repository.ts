@@ -1,6 +1,11 @@
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq, ilike, lt, or } from 'drizzle-orm';
 import { withDbError } from '../errors.js';
 import type { DbClient } from '../index.js';
+import {
+  createPageInfo,
+  decodeUpdatedAtIdCursor,
+  type SearchableCursorPaginationInput,
+} from '../pagination.js';
 import { user } from '../schema/auth-schema.js';
 import { organization, organizationMembership } from '../schema/core.js';
 
@@ -31,6 +36,28 @@ type UpdateOrganizationMembershipValues = Partial<
     'organizationRole' | 'status' | 'invitedBy' | 'joinedAt'
   >
 >;
+
+const getOrganizationSearchFilter = (q: string | undefined) =>
+  q
+    ? or(
+        ilike(organization.name, `%${q}%`),
+        ilike(organization.description, `%${q}%`),
+      )
+    : undefined;
+
+const getOrganizationCursorFilter = (cursor: string | undefined) => {
+  const decodedCursor = decodeUpdatedAtIdCursor(cursor);
+
+  return decodedCursor
+    ? or(
+        lt(organization.updatedAt, decodedCursor.updatedAt),
+        and(
+          eq(organization.updatedAt, decodedCursor.updatedAt),
+          lt(organization.id, decodedCursor.id),
+        ),
+      )
+    : undefined;
+};
 
 export function createOrganizationRepository(db: DbClient) {
   return {
@@ -218,6 +245,50 @@ export function createOrganizationRepository(db: DbClient) {
               ),
             )
             .then((rows) => rows.map((row) => row.organization)),
+      );
+    },
+
+    async listOrganizationsForUserPage(
+      input: { userId: string } & SearchableCursorPaginationInput,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'organization', operation: 'listOrganizationsForUserPage' },
+        async () => {
+          const limit = input.pagination.limit;
+          const rows = await database
+            .select({
+              organization,
+            })
+            .from(organizationMembership)
+            .innerJoin(
+              organization,
+              eq(organizationMembership.organizationId, organization.id),
+            )
+            .where(
+              and(
+                eq(organizationMembership.userId, input.userId),
+                eq(organizationMembership.status, 'active'),
+                getOrganizationSearchFilter(input.q),
+                getOrganizationCursorFilter(input.pagination.cursor),
+              ),
+            )
+            .orderBy(desc(organization.updatedAt), desc(organization.id))
+            .limit(limit + 1);
+
+          const organizations = rows
+            .slice(0, limit)
+            .map((row) => row.organization);
+
+          return {
+            organizations,
+            pageInfo: createPageInfo({
+              items: organizations,
+              hasNextPage: rows.length > limit,
+              limit,
+            }),
+          };
+        },
       );
     },
   };

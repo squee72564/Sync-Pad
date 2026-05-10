@@ -2,6 +2,7 @@ import type {
   DbClient,
   NewWorkspace,
   OrganizationRepository,
+  SearchableCursorPaginationInput,
   WorkspaceMembership,
   WorkspaceRepository,
 } from '@syncpad/db';
@@ -140,6 +141,16 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
 
     async listReadableToUser(input: { actorUserId: string }) {
       return workspaceRepo.listReadableToUser(input.actorUserId);
+    },
+
+    async listReadableToUserPage(
+      input: { actorUserId: string } & SearchableCursorPaginationInput,
+    ) {
+      return workspaceRepo.listReadableToUserPage({
+        userId: input.actorUserId,
+        q: input.q,
+        pagination: input.pagination,
+      });
     },
 
     async listMemberships(workspaceId: string) {

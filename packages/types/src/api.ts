@@ -34,6 +34,18 @@ export type MeWorkspaceDto = WorkspaceDto & {
   workspaceRole: WorkspaceRole;
 };
 
+export type PageInfoDto = {
+  limit: number;
+  nextCursor: string | null;
+  hasNextPage: boolean;
+};
+
+export type SearchablePageParamsDto = {
+  q?: string;
+  limit?: number;
+  cursor?: string;
+};
+
 export type OrganizationAccessDto = {
   permissions: PermissionMap<OrganizationPermission>;
 };
@@ -123,10 +135,12 @@ export type MeUserResponse = {
 
 export type MeOrganizationsResponse = {
   organizations: MeOrganizationDto[];
+  pageInfo: PageInfoDto;
 };
 
 export type MeWorkspacesResponse = {
   workspaces: MeWorkspaceDto[];
+  pageInfo: PageInfoDto;
 };
 
 export type OrganizationMembersDetailedResponse = {

@@ -6,8 +6,10 @@ import type { Auth } from '../lib/auth.js';
 import { type AppVariables, CURRENT_USER_CONTEXT_KEY } from '../lib/context.js';
 import { ApiError } from '../lib/error.js';
 import { createAuthenticationMiddleware } from '../middleware/authentication.js';
-import { validateRequest } from '../middleware/validation.js';
+import { getValidated, validateRequest } from '../middleware/validation.js';
 import {
+  type MeOrganizationsQuery,
+  type MeWorkspacesQuery,
   meOrganizationsQuerySchema,
   meWorkspacesQuerySchema,
 } from '../schemas/me.js';
@@ -39,26 +41,29 @@ export function createMeRoute({
 }) {
   const { requireAuth } = createAuthenticationMiddleware({ auth });
   return new Hono<{ Variables: AppVariables }>()
-    .get(
-      '/',
-      requireAuth(),
-      validateRequest({ query: meWorkspacesQuerySchema }),
-      async (context) => {
-        const user = getCurrentUser(context);
-        return context.json({ user }, StatusCodes.OK);
-      },
-    )
+    .get('/', requireAuth(), async (context) => {
+      const user = getCurrentUser(context);
+      return context.json({ user }, StatusCodes.OK);
+    })
     .get(
       '/workspaces',
       requireAuth(),
       validateRequest({ query: meWorkspacesQuerySchema }),
       async (context) => {
+        const { query } = getValidated<never, MeWorkspacesQuery, never>(
+          context,
+        );
         const user = getCurrentUser(context);
-        const workspaces = await workspaceService.listReadableToUser({
+        const result = await workspaceService.listReadableToUserPage({
+          pagination: {
+            limit: query.limit,
+            cursor: query.cursor,
+          },
+          q: query.q,
           actorUserId: user.id,
         });
 
-        return context.json({ workspaces }, StatusCodes.OK);
+        return context.json(result, StatusCodes.OK);
       },
     )
     .get(
@@ -66,11 +71,20 @@ export function createMeRoute({
       requireAuth(),
       validateRequest({ query: meOrganizationsQuerySchema }),
       async (context) => {
+        const { query } = getValidated<never, MeOrganizationsQuery, never>(
+          context,
+        );
         const user = getCurrentUser(context);
-        const organizations =
-          await organizationService.listOrganizationsForUser(user.id);
+        const result = await organizationService.listOrganizationsForUserPage({
+          pagination: {
+            limit: query.limit,
+            cursor: query.cursor,
+          },
+          q: query.q,
+          actorUserId: user.id,
+        });
 
-        return context.json({ organizations }, StatusCodes.OK);
+        return context.json(result, StatusCodes.OK);
       },
     );
 }
