@@ -110,28 +110,43 @@ describe('document routes', () => {
   it('returns documents for a workspace', async () => {
     const deps = createDocumentRouteDeps();
     vi.mocked(
-      deps.documentService.listByWorkspaceReadableToUser,
-    ).mockResolvedValue([documentRecord]);
+      deps.documentService.listByWorkspaceReadableToUserPage,
+    ).mockResolvedValue({
+      documents: [documentRecord],
+      pageInfo: {
+        limit: 24,
+        nextCursor: null,
+        hasNextPage: false,
+      },
+    });
 
     const response = await createTestApp(deps).request(route);
 
     expect(response.status).toBe(StatusCodes.OK);
     expect(
-      deps.documentService.listByWorkspaceReadableToUser,
+      deps.documentService.listByWorkspaceReadableToUserPage,
     ).toHaveBeenCalledWith({
       actorUserId: 'user_1',
       workspaceId: 'ws_1',
+      q: undefined,
+      pagination: {
+        limit: 24,
+        cursor: undefined,
+      },
     });
-    expect(await response.json()).toMatchObject({
+    expect(await response.json()).toEqual({
       documents: [
         {
-          id: 'doc_1',
-          workspaceId: 'ws_1',
-          title: 'Planning',
-          color: '#336699FF',
-          deletedAt: null,
+          ...documentRecord,
+          createdAt: documentRecord.createdAt.toISOString(),
+          updatedAt: documentRecord.updatedAt.toISOString(),
         },
       ],
+      pageInfo: {
+        limit: 24,
+        nextCursor: null,
+        hasNextPage: false,
+      },
       access: {
         permissions: {
           read: true,
