@@ -1,7 +1,12 @@
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, ilike, isNull, lt, or } from 'drizzle-orm';
 
 import type { DbClient } from '../client.js';
 import { withDbError } from '../errors.js';
+import {
+  createPageInfo,
+  decodeUpdatedAtIdCursor,
+  type SearchableCursorPaginationInput,
+} from '../pagination.js';
 import {
   document,
   documentState,
@@ -41,6 +46,23 @@ type UpsertDocumentStateValues = Pick<
 
 const maybeExcludeDeleted = (includeDeleted: boolean | undefined) =>
   includeDeleted ? undefined : isNull(document.deletedAt);
+
+const getReadableDocumentSearchfilter = (q: string | undefined) =>
+  q ? or(ilike(document.title, `%${q}%`)) : undefined;
+
+const getDocumentCursorFilter = (cursor: string | undefined) => {
+  const decodedCursor = decodeUpdatedAtIdCursor(cursor);
+
+  return decodedCursor
+    ? or(
+        lt(document.updatedAt, decodedCursor.updatedAt),
+        and(
+          eq(document.updatedAt, decodedCursor.updatedAt),
+          lt(document.id, decodedCursor.id),
+        ),
+      )
+    : undefined;
+};
 
 export function createDocumentRepository(db: DbClient) {
   return {
@@ -135,6 +157,83 @@ export function createDocumentRepository(db: DbClient) {
               maybeExcludeDeleted(options?.includeDeleted),
             ),
           }),
+      );
+    },
+
+    async listByWorkspaceReadableToUserPage(
+      input: {
+        workspaceId: string;
+        userId: string;
+        options?: ListDocumentsOptions & {
+          includeAll?: boolean;
+        };
+      } & SearchableCursorPaginationInput,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'document', operation: 'listByWorkspaceReadableToUser' },
+        async () => {
+          const limit = input.pagination.limit;
+          const rows = input.options?.includeAll
+            ? await database
+                .select({ document })
+                .from(document)
+                .where(
+                  and(
+                    eq(document.workspaceId, input.workspaceId),
+                    maybeExcludeDeleted(input.options.includeDeleted),
+                    getReadableDocumentSearchfilter(input.q),
+                    getDocumentCursorFilter(input.pagination.cursor),
+                  ),
+                )
+                .orderBy(desc(document.updatedAt), desc(document.id))
+                .limit(limit + 1)
+                .then((rows) => rows.map((row) => row.document))
+            : await database
+                .select({ document })
+                .from(document)
+                .innerJoin(workspace, eq(document.workspaceId, workspace.id))
+                .innerJoin(
+                  workspaceMembership,
+                  eq(workspaceMembership.workspaceId, workspace.id),
+                )
+                .innerJoin(
+                  organizationMembership,
+                  and(
+                    eq(
+                      workspaceMembership.userId,
+                      organizationMembership.userId,
+                    ),
+                    eq(
+                      workspaceMembership.organizationId,
+                      organizationMembership.organizationId,
+                    ),
+                  ),
+                )
+                .where(
+                  and(
+                    eq(document.workspaceId, input.workspaceId),
+                    eq(workspaceMembership.userId, input.userId),
+                    eq(organizationMembership.status, 'active'),
+                    maybeExcludeDeleted(input.options?.includeDeleted),
+                    getReadableDocumentSearchfilter(input.q),
+                    getDocumentCursorFilter(input.pagination.cursor),
+                  ),
+                )
+                .orderBy(desc(document.updatedAt), desc(document.id))
+                .limit(limit + 1)
+                .then((rows) => rows.map((row) => row.document));
+
+          const documents = rows.slice(0, limit);
+          return {
+            documents,
+            pageInfo: createPageInfo({
+              items: documents,
+              hasNextPage: rows.length > limit,
+              limit,
+            }),
+          };
+        },
       );
     },
 

@@ -2,6 +2,7 @@ import type {
   DbClient,
   DocumentRepository,
   NewDocument,
+  SearchableCursorPaginationInput,
   WorkspaceRepository,
 } from '@syncpad/db';
 import { CoreError } from '@syncpad/errors';
@@ -112,6 +113,26 @@ export function createDocumentService(deps: DocumentServiceDeps) {
 
     listReadableToUser(input: ActorId) {
       return documentRepo.listReadableToUser(input.actorUserId);
+    },
+
+    async listByWorkspaceReadableToUserPage(
+      input: ActorId & WorkspaceId & SearchableCursorPaginationInput,
+    ) {
+      const includeAll = await permissionChecker.checkPermission(
+        subjects.user(input.actorUserId),
+        resources.workspace(input.workspaceId),
+        'read',
+      );
+
+      return documentRepo.listByWorkspaceReadableToUserPage({
+        workspaceId: input.workspaceId,
+        userId: input.actorUserId,
+        options: {
+          includeAll,
+        },
+        pagination: input.pagination,
+        q: input.q,
+      });
     },
 
     async listByWorkspaceReadableToUser(input: ActorId & WorkspaceId) {

@@ -25,7 +25,9 @@ import {
   type CreateDocumentInput,
   createDocumentSchema,
   type OrganizationWorkspaceDocumentParams,
+  type OrganizationWorkspaceDocumentQuery,
   organizationWorkspaceDocumentParamsSchema,
+  organizationWorkspaceDocumentQuerySchema,
   type UpdateDocumentInput,
   updateDocumentSchema,
 } from '../schemas/document.js';
@@ -99,7 +101,10 @@ export function createOrganizationWorkspaceDocumentsRoute({
   organizationWorkspaceDocumentsRoute.get(
     '/',
     requireAuth(),
-    validateRequest({ params: organizationWorkspaceParamsSchema }),
+    validateRequest({
+      params: organizationWorkspaceParamsSchema,
+      query: organizationWorkspaceDocumentQuerySchema,
+    }),
     loadOrganizationResource<OrganizationWorkspaceParams>(
       ({ params }) => params.organizationId,
     ),
@@ -112,11 +117,20 @@ export function createOrganizationWorkspaceDocumentsRoute({
     requireWorkspacePermission('read'),
     async (context) => {
       const user = getCurrentUser(context);
-      const { params } = getValidated<OrganizationWorkspaceParams>(context);
-      const documents = await documentService.listByWorkspaceReadableToUser({
-        actorUserId: user.id,
-        workspaceId: params.workspaceId,
-      });
+      const { params, query } = getValidated<
+        OrganizationWorkspaceParams,
+        OrganizationWorkspaceDocumentQuery
+      >(context);
+      const { documents, pageInfo } =
+        await documentService.listByWorkspaceReadableToUserPage({
+          actorUserId: user.id,
+          workspaceId: params.workspaceId,
+          q: query.q,
+          pagination: {
+            limit: query.limit,
+            cursor: query.cursor,
+          },
+        });
 
       const access = await workspaceService.getWorkspaceAccess({
         actorUserId: user.id,
@@ -124,7 +138,7 @@ export function createOrganizationWorkspaceDocumentsRoute({
         permissions: ['comment', 'write', 'read', 'manage', 'invite', 'run_ai'],
       });
 
-      return context.json({ documents, access }, StatusCodes.OK);
+      return context.json({ documents, pageInfo, access }, StatusCodes.OK);
     },
   );
 

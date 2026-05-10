@@ -1,14 +1,19 @@
 import { z } from 'zod';
-import { colorSchema } from './shared.js';
+import { colorSchema, searchablePaginationSchema } from './shared.js';
 import { organizationWorkspaceParamsSchema } from './workspace.js';
 
 export const organizationWorkspaceDocumentParamsSchema =
   organizationWorkspaceParamsSchema.extend({
     documentId: z.string().min(1),
   });
-
 export type OrganizationWorkspaceDocumentParams = z.infer<
   typeof organizationWorkspaceDocumentParamsSchema
+>;
+
+export const organizationWorkspaceDocumentQuerySchema =
+  searchablePaginationSchema;
+export type OrganizationWorkspaceDocumentQuery = z.infer<
+  typeof organizationWorkspaceDocumentQuerySchema
 >;
 
 export const createDocumentSchema = z.object({
