@@ -30,6 +30,24 @@ export const parseListQuerySearch = (
   cursor: toOptionalString(search.cursor),
 });
 
+export const withListQuerySearch = (
+  current: ListQuerySearch,
+  q: string,
+): ListQuerySearch => {
+  const nextQ = toOptionalString(q);
+  const currentQ = toOptionalString(current.q);
+
+  if (nextQ === currentQ) {
+    return current;
+  }
+
+  return {
+    ...current,
+    q: nextQ,
+    cursor: undefined,
+  };
+};
+
 export const toListQueryString = (search: ListQuerySearch = {}) => {
   const params = new URLSearchParams();
 

@@ -12,6 +12,7 @@ import type { ComponentType, ReactNode } from 'react';
 import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
+import { SearchQueryInput } from '#/components/search-query-input';
 import { Badge } from '#/components/ui/badge';
 import {
   Card,
@@ -24,7 +25,10 @@ import {
 import { CreateDocumentSheet } from '#/features/documents/components/create-document-sheet';
 import { workspacesDocumentQuery } from '#/features/documents/queries';
 import type { Document } from '#/features/documents/types';
-import { parseListQuerySearch } from '#/lib/api/list-query';
+import {
+  parseListQuerySearch,
+  withListQuerySearch,
+} from '#/lib/api/list-query';
 import { assertUuidParam } from '#/lib/route-params';
 import { formatDate, formatShortDate } from '#/lib/utils';
 
@@ -52,8 +56,10 @@ export const Route = createFileRoute(
 });
 
 function WorkspaceDocumentListPage() {
-  const { documents, access } = Route.useLoaderData();
+  const { documents, access, pageInfo } = Route.useLoaderData();
   const { organizationId, workspaceId } = Route.useParams();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -76,8 +82,22 @@ function WorkspaceDocumentListPage() {
             label="Active"
             value={documents.filter((document) => !document.deletedAt).length}
           />
+          {search.q ? <PageHeaderStat label="Search" value="On" /> : null}
+          {pageInfo.hasNextPage ? (
+            <PageHeaderStat label="More" value="Yes" />
+          ) : null}
         </div>
       </PageHeader>
+      <SearchQueryInput
+        onSearchChange={(q) =>
+          navigate({
+            replace: true,
+            search: (current) => withListQuerySearch(current, q),
+          })
+        }
+        placeholder="Search documents..."
+        value={search.q}
+      />
 
       {documents.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

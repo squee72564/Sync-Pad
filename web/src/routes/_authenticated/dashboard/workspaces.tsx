@@ -3,9 +3,13 @@ import { FolderKanbanIcon } from 'lucide-react';
 import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
+import { SearchQueryInput } from '#/components/search-query-input';
 import { WorkspaceCard } from '#/components/workspace-card';
 import { meWorkspacesQuery } from '#/features/me/queries';
-import { parseListQuerySearch } from '#/lib/api/list-query';
+import {
+  parseListQuerySearch,
+  withListQuerySearch,
+} from '#/lib/api/list-query';
 
 export const Route = createFileRoute('/_authenticated/dashboard/workspaces')({
   validateSearch: parseListQuerySearch,
@@ -26,6 +30,7 @@ export const Route = createFileRoute('/_authenticated/dashboard/workspaces')({
 function WorkspacesPage() {
   const { workspaces, pageInfo } = Route.useLoaderData();
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -43,6 +48,16 @@ function WorkspacesPage() {
           ) : null}
         </div>
       </PageHeader>
+      <SearchQueryInput
+        onSearchChange={(q) =>
+          navigate({
+            replace: true,
+            search: (current) => withListQuerySearch(current, q),
+          })
+        }
+        placeholder="Search workspaces..."
+        value={search.q}
+      />
       {workspaces.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {workspaces.map((workspace) => (

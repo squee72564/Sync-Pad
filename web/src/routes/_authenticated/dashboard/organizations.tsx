@@ -9,6 +9,7 @@ import {
 import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
+import { SearchQueryInput } from '#/components/search-query-input';
 import { Button } from '#/components/ui/button';
 import {
   Card,
@@ -20,7 +21,10 @@ import {
 } from '#/components/ui/card';
 import { meOrganizationsQuery } from '#/features/me/queries';
 import type { MeOrganization } from '#/features/me/types';
-import { parseListQuerySearch } from '#/lib/api/list-query';
+import {
+  parseListQuerySearch,
+  withListQuerySearch,
+} from '#/lib/api/list-query';
 import { formatShortDate } from '#/lib/utils';
 
 export const Route = createFileRoute('/_authenticated/dashboard/organizations')(
@@ -44,6 +48,7 @@ export const Route = createFileRoute('/_authenticated/dashboard/organizations')(
 function OrganizationsPage() {
   const { organizations, pageInfo } = Route.useLoaderData();
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -61,6 +66,16 @@ function OrganizationsPage() {
           ) : null}
         </div>
       </PageHeader>
+      <SearchQueryInput
+        onSearchChange={(q) =>
+          navigate({
+            replace: true,
+            search: (current) => withListQuerySearch(current, q),
+          })
+        }
+        placeholder="Search organizations..."
+        value={search.q}
+      />
 
       {organizations.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
