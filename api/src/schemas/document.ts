@@ -1,9 +1,6 @@
 import { z } from 'zod';
+import { colorSchema } from './shared.js';
 import { organizationWorkspaceParamsSchema } from './workspace.js';
-
-const colorSchema = z
-  .string()
-  .regex(/^#[0-9A-Fa-f]{8}$/, 'Color must be a valid #RRGGBBAA hex color.');
 
 export const organizationWorkspaceDocumentParamsSchema =
   organizationWorkspaceParamsSchema.extend({

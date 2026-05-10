@@ -1,5 +1,6 @@
 import { coreSchema } from '@syncpad/db';
 import { z } from 'zod';
+import { colorSchema } from './shared.js';
 
 export const organizationWorkspaceParamsSchema = z.object({
   organizationId: z.string().min(1),
@@ -12,19 +13,14 @@ export type OrganizationWorkspaceParams = z.infer<
 export const createWorkspaceSchema = z.object({
   name: z.string().trim().min(1).max(200),
   description: z.string().trim().max(512),
-  color: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{8}$/, 'Color must be a valid #RRGGBBAA hex color.'),
+  color: colorSchema,
 });
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
 
 export const updateWorkspaceSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
   description: z.string().trim().max(512).optional(),
-  color: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{8}$/, 'Color must be a valid #RRGGBBAA hex color.')
-    .optional(),
+  color: colorSchema.optional(),
 });
 export type UpdateWorkspaceInput = z.infer<typeof updateWorkspaceSchema>;
 
