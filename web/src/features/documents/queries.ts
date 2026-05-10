@@ -1,11 +1,12 @@
 import { queryOptions } from '@tanstack/react-query';
+import type { ListQuerySearch } from '#/lib/api/list-query';
 
 import { getDocument, getWorkspaceDocuments } from './api';
 
 export const documentQueryKeys = {
   all: ['documents'] as const,
-  byWorkspace: (workspaceId: string) =>
-    [...documentQueryKeys.all, 'byWorkspace', workspaceId] as const,
+  byWorkspace: (workspaceId: string, search: ListQuerySearch = {}) =>
+    [...documentQueryKeys.all, 'byWorkspace', workspaceId, search] as const,
   detail: (organizationId: string, workspaceId: string, documentId: string) =>
     [
       ...documentQueryKeys.all,
@@ -19,10 +20,11 @@ export const documentQueryKeys = {
 export const workspacesDocumentQuery = (
   organizationId: string,
   workspaceId: string,
+  search: ListQuerySearch,
 ) =>
   queryOptions({
-    queryFn: () => getWorkspaceDocuments(organizationId, workspaceId),
-    queryKey: documentQueryKeys.byWorkspace(workspaceId),
+    queryFn: () => getWorkspaceDocuments(organizationId, workspaceId, search),
+    queryKey: documentQueryKeys.byWorkspace(workspaceId, search),
     staleTime: 60_000,
   });
 

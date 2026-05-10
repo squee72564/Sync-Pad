@@ -24,18 +24,21 @@ import {
 import { CreateDocumentSheet } from '#/features/documents/components/create-document-sheet';
 import { workspacesDocumentQuery } from '#/features/documents/queries';
 import type { Document } from '#/features/documents/types';
+import { parseListQuerySearch } from '#/lib/api/list-query';
 import { assertUuidParam } from '#/lib/route-params';
 import { formatDate, formatShortDate } from '#/lib/utils';
 
 export const Route = createFileRoute(
   '/_authenticated/organizations/$organizationId/workspaces/$workspaceId/documents/',
 )({
-  loader: ({ context, params }) => {
+  validateSearch: parseListQuerySearch,
+  loaderDeps: ({ search }) => search,
+  loader: ({ context, params, deps }) => {
     assertUuidParam('Organization', params.organizationId);
     assertUuidParam('Workspace', params.workspaceId);
 
     return context.queryClient.ensureQueryData(
-      workspacesDocumentQuery(params.organizationId, params.workspaceId),
+      workspacesDocumentQuery(params.organizationId, params.workspaceId, deps),
     );
   },
   errorComponent: ({ error }) => (

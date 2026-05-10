@@ -1,4 +1,5 @@
 import { apiGet, apiPost } from '#/lib/api/client';
+import { type ListQuerySearch, toListQueryString } from '#/lib/api/list-query';
 import type {
   CreateDocumentInput,
   CreateDocumentResponse,
@@ -21,9 +22,10 @@ type GetDocumentVariables = {
 export function getWorkspaceDocuments(
   organizationId: string,
   workspaceId: string,
+  search: ListQuerySearch,
 ) {
   return apiGet<OrganizationWorkspaceDocumentsResponse>(
-    `/api/organizations/${organizationId}/workspaces/${workspaceId}/documents`,
+    `/api/organizations/${organizationId}/workspaces/${workspaceId}/documents${toListQueryString(search)}`,
   );
 }
 
