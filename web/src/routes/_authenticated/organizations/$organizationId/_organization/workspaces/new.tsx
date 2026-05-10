@@ -70,10 +70,10 @@ function NewWorkspacePage() {
       toast.success(`Created ${workspace.name}`);
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: workspaceQueryKeys.byOrganization(organizationId),
+          queryKey: workspaceQueryKeys.byOrganizationRoot(organizationId),
         }),
         queryClient.invalidateQueries({
-          queryKey: meQueryKeys.workspaces(),
+          queryKey: meQueryKeys.workspaceLists(),
         }),
       ]);
       await navigate({

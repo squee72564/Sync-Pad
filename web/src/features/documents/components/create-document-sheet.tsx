@@ -51,7 +51,7 @@ export function CreateDocumentSheet({
     },
     onSuccess: async ({ document }) => {
       queryClient.setQueryData<OrganizationWorkspaceDocumentsResponse>(
-        documentQueryKeys.byWorkspace(workspaceId),
+        documentQueryKeys.byWorkspace(organizationId, workspaceId),
         (current) =>
           current
             ? {
@@ -72,7 +72,10 @@ export function CreateDocumentSheet({
       setOpen(false);
 
       await queryClient.invalidateQueries({
-        queryKey: documentQueryKeys.byWorkspace(workspaceId),
+        queryKey: documentQueryKeys.byWorkspaceRoot(
+          organizationId,
+          workspaceId,
+        ),
         refetchType: 'none',
       });
       await router.invalidate();

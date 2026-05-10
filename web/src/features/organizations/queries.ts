@@ -9,9 +9,11 @@ import {
 
 export const organizationQueryKeys = {
   all: ['organizations'] as const,
-  list: () => [...organizationQueryKeys.all, 'list'] as const,
+  lists: () => [...organizationQueryKeys.all, 'list'] as const,
+  list: () => [...organizationQueryKeys.lists()] as const,
+  details: () => [...organizationQueryKeys.all, 'detail'] as const,
   detail: (organizationId: string) =>
-    [...organizationQueryKeys.all, 'detail', organizationId] as const,
+    [...organizationQueryKeys.details(), organizationId] as const,
   members: (organizationId: string) =>
     [...organizationQueryKeys.all, 'members', organizationId] as const,
   access: (organizationId: string) =>

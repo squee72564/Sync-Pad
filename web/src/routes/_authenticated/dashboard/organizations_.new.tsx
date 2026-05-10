@@ -47,9 +47,11 @@ function NewOrganizationPage() {
       toast.success(`Created ${organization.name}`);
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: meQueryKeys.organizations(),
+          queryKey: meQueryKeys.organizationLists(),
         }),
-        queryClient.invalidateQueries({ queryKey: organizationQueryKeys.all }),
+        queryClient.invalidateQueries({
+          queryKey: organizationQueryKeys.lists(),
+        }),
       ]);
       await navigate({ to: '/dashboard/organizations' });
     },

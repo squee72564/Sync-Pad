@@ -9,24 +9,23 @@ import {
 
 export const workspaceQueryKeys = {
   all: ['workspaces'] as const,
-  byOrganization: (organizationId: string, search: ListQuerySearch) =>
-    [
-      ...workspaceQueryKeys.all,
-      'byOrganization',
-      organizationId,
-      search,
-    ] as const,
+  lists: () => [...workspaceQueryKeys.all, 'list'] as const,
+  byOrganizationRoot: (organizationId: string) =>
+    [...workspaceQueryKeys.lists(), 'byOrganization', organizationId] as const,
+  byOrganization: (organizationId: string, search: ListQuerySearch = {}) =>
+    [...workspaceQueryKeys.byOrganizationRoot(organizationId), search] as const,
+  details: () => [...workspaceQueryKeys.all, 'detail'] as const,
   detail: (organizationId: string, workspaceId: string) =>
-    [...workspaceQueryKeys.all, 'detail', workspaceId, organizationId] as const,
+    [...workspaceQueryKeys.details(), organizationId, workspaceId] as const,
   members: (organizationId: string, workspaceId: string) =>
     [
       ...workspaceQueryKeys.all,
       'members',
-      workspaceId,
       organizationId,
+      workspaceId,
     ] as const,
   access: (organizationId: string, workspaceId: string) =>
-    [...workspaceQueryKeys.all, 'access', workspaceId, organizationId] as const,
+    [...workspaceQueryKeys.all, 'access', organizationId, workspaceId] as const,
 };
 
 export const organizationWorkspacesQuery = (
