@@ -110,6 +110,7 @@ export type WorkspaceResponse = {
 
 export type OrganizationWorkspacesResponse = {
   workspaces: WorkspaceDto[];
+  pageInfo: PageInfoDto;
 };
 
 export type CreateWorkspaceResponse = WorkspaceResponse;

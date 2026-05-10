@@ -31,6 +31,8 @@ import {
   type UpdateWorkspaceMemberInput,
   updateWorkspaceMemberSchema,
   updateWorkspaceSchema,
+  type WorkspaceQuery,
+  workspaceQuerySchema,
 } from '../schemas/workspace.js';
 
 const getCurrentUser = (
@@ -93,20 +95,31 @@ export function createOrganizationWorkspacesRoute({
   organizationWorkspacesRoute.get(
     '/',
     requireAuth(),
-    validateRequest({ params: organizationParamsSchema }),
+    validateRequest({
+      params: organizationParamsSchema,
+      query: workspaceQuerySchema,
+    }),
     loadOrganizationResource<OrganizationParams>(
       ({ params }) => params.organizationId,
     ),
     requireOrganizationPermission('read'),
     async (context) => {
       const user = getCurrentUser(context);
-      const { params } = getValidated<OrganizationParams>(context);
-      const workspaces =
-        await workspaceService.listByOrganizationReadableToUser({
+      const { params, query } = getValidated<
+        OrganizationParams,
+        WorkspaceQuery
+      >(context);
+      const { workspaces, pageInfo } =
+        await workspaceService.listByOrganizationReadableToUserPage({
           actorUserId: user.id,
           organizationId: params.organizationId,
+          q: query.q,
+          pagination: {
+            cursor: query.cursor,
+            limit: query.limit,
+          },
         });
-      return context.json({ workspaces }, StatusCodes.OK);
+      return context.json({ workspaces, pageInfo }, StatusCodes.OK);
     },
   );
 

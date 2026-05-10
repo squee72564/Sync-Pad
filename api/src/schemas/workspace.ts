@@ -1,6 +1,9 @@
 import { coreSchema } from '@syncpad/db';
 import { z } from 'zod';
-import { colorSchema } from './shared.js';
+import { colorSchema, searchablePaginationSchema } from './shared.js';
+
+export const workspaceQuerySchema = searchablePaginationSchema;
+export type WorkspaceQuery = z.infer<typeof workspaceQuerySchema>;
 
 export const organizationWorkspaceParamsSchema = z.object({
   organizationId: z.string().min(1),

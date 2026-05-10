@@ -41,7 +41,6 @@ const getReadableWorkspaceSearchFilter = (q: string | undefined) =>
     ? or(
         ilike(workspace.name, `%${q}%`),
         ilike(workspace.description, `%${q}%`),
-        ilike(organization.name, `%${q}%`),
       )
     : undefined;
 
@@ -83,6 +82,74 @@ export function createWorkspaceRepository(db: DbClient) {
               eq(workspaceMembership.userId, userId),
             ),
           }),
+      );
+    },
+
+    async listByOrganizationReadableToUserPage(
+      input: {
+        organizationId: string;
+        userId: string;
+        options?: {
+          includeAll?: boolean;
+        };
+      } & SearchableCursorPaginationInput,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'workspace', operation: 'listByOrganizationReadableToUser' },
+        async () => {
+          const limit = input.pagination.limit;
+          const rows = input.options?.includeAll
+            ? await database
+                .select({
+                  workspace,
+                })
+                .from(workspace)
+                .where(
+                  and(
+                    eq(workspace.organizationId, input.organizationId),
+                    getReadableWorkspaceSearchFilter(input.q),
+                    getWorkspaceCursorFilter(input.pagination.cursor),
+                  ),
+                )
+                .orderBy(desc(workspace.updatedAt), desc(workspace.id))
+                .limit(limit + 1)
+                .then((rows) => rows.map((row) => row.workspace))
+            : await database
+                .select({
+                  workspace,
+                })
+                .from(workspaceMembership)
+                .innerJoin(
+                  workspace,
+                  eq(workspaceMembership.workspaceId, workspace.id),
+                )
+                .where(
+                  and(
+                    eq(
+                      workspaceMembership.organizationId,
+                      input.organizationId,
+                    ),
+                    eq(workspaceMembership.userId, input.userId),
+                    getReadableWorkspaceSearchFilter(input.q),
+                    getWorkspaceCursorFilter(input.pagination.cursor),
+                  ),
+                )
+                .orderBy(desc(workspace.updatedAt), desc(workspace.id))
+                .limit(limit + 1)
+                .then((rows) => rows.map((row) => row.workspace));
+
+          const workspaces = rows.slice(0, limit);
+
+          return {
+            workspaces,
+            pageInfo: createPageInfo({
+              items: workspaces,
+              hasNextPage: rows.length > limit,
+              limit,
+            }),
+          };
+        },
       );
     },
 

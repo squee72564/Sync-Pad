@@ -161,6 +161,27 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       return workspaceRepo.listMembershipsWithUserProfiles(workspaceId);
     },
 
+    async listByOrganizationReadableToUserPage(
+      input: {
+        actorUserId: string;
+        organizationId: string;
+      } & SearchableCursorPaginationInput,
+    ) {
+      const includeAll = await permissionChecker.checkPermission(
+        subjects.user(input.actorUserId),
+        resources.organization(input.organizationId),
+        'manage',
+      );
+
+      return workspaceRepo.listByOrganizationReadableToUserPage({
+        organizationId: input.organizationId,
+        userId: input.actorUserId,
+        options: { includeAll },
+        pagination: input.pagination,
+        q: input.q,
+      });
+    },
+
     async listByOrganizationReadableToUser(input: {
       actorUserId: string;
       organizationId: string;
