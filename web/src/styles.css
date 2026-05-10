@@ -149,6 +149,18 @@ body {
 }
 
 @layer components {
+  .app-sidebar-header {
+    @apply gap-3 px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0;
+  }
+
+  .app-sidebar-identity {
+    @apply flex items-start gap-3 rounded-lg border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 shadow-sm group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0;
+  }
+
+  .app-sidebar-footer {
+    @apply px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0;
+  }
+
   .tiptap {
     @apply text-sm leading-7 text-foreground;
   }

@@ -1,5 +1,9 @@
-import type { WorkspaceAccessDto, WorkspacePermission } from '@syncpad/types';
-import { Link, useParams } from '@tanstack/react-router';
+import type {
+  WorkspaceAccessDto,
+  WorkspaceDto,
+  WorkspacePermission,
+} from '@syncpad/types';
+import { Link } from '@tanstack/react-router';
 import {
   BriefcaseBusinessIcon,
   FileTextIcon,
@@ -23,7 +27,6 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from '#/components/ui/sidebar';
-import type { Workspace } from '#/features/workspaces/types';
 import type { AuthContext } from '#/lib/auth-context';
 import SignOutMenuButton from './sign-out-menu-button';
 
@@ -54,9 +57,7 @@ type WorkspaceManagementItems = {
 };
 
 type WorkspaceSidebarProps = {
-  workspace?: Workspace & {
-    organizationName?: string;
-  };
+  workspace: WorkspaceDto;
   access: WorkspaceAccessDto;
   auth: AuthContext;
 };
@@ -117,32 +118,19 @@ export function WorkspaceSidebar({
   access,
   auth,
 }: WorkspaceSidebarProps) {
-  const params = useParams({ strict: false });
-  const organizationId =
-    typeof params.organizationId === 'string' ? params.organizationId : null;
-  const workspaceId =
-    typeof params.workspaceId === 'string' ? params.workspaceId : null;
-  const workspaceSubline =
-    workspace?.organizationName ??
-    (workspace?.description.trim().length
-      ? workspace.description
-      : 'Workspace overview');
-
+  const workspaceId = workspace.id;
+  const organizationId = workspace.organizationId;
   const visibleWorkspaceManagementItems = workspaceManagementItems.filter(
     (item) => access.permissions[item.requiredPermission],
   );
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="gap-3 px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <div className="flex items-start gap-3 rounded-lg border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 shadow-sm group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
+      <SidebarHeader className="app-sidebar-header">
+        <div className="app-sidebar-identity">
           <div
             className="flex size-10 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-9"
-            style={
-              workspace?.color
-                ? { backgroundColor: workspace.color }
-                : undefined
-            }
+            style={{ backgroundColor: workspace.color }}
           >
             <BriefcaseBusinessIcon className="size-4 group-data-[collapsible=icon]:size-3.5" />
           </div>
@@ -151,10 +139,10 @@ export function WorkspaceSidebar({
               Workspace
             </p>
             <p className="truncate text-sm font-semibold leading-5">
-              {workspace?.name ?? 'Workspace'}
+              {workspace.name}
             </p>
             <p className="line-clamp-2 text-xs leading-4 text-sidebar-foreground/70">
-              {workspaceSubline}
+              {workspace.description}
             </p>
           </div>
         </div>
@@ -185,80 +173,74 @@ export function WorkspaceSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {organizationId ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>Organization</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {organizationWorkspaceRouteItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <Link
-                        to={item.to}
-                        params={{ organizationId }}
-                        activeOptions={{ exact: true }}
-                        activeProps={{ 'data-active': true }}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : null}
+        <SidebarGroup>
+          <SidebarGroupLabel>Organization</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {organizationWorkspaceRouteItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link
+                      to={item.to}
+                      params={{ organizationId }}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-        {organizationId && workspaceId ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {workspaceRouteItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <Link
-                        to={item.to}
-                        params={{ organizationId, workspaceId }}
-                        activeOptions={{ exact: true }}
-                        activeProps={{ 'data-active': true }}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : null}
+        <SidebarGroup>
+          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {workspaceRouteItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link
+                      to={item.to}
+                      params={{ organizationId, workspaceId }}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-        {organizationId && workspaceId ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>Content</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {workspaceContentItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <Link
-                        to={item.to}
-                        params={{ organizationId, workspaceId }}
-                        activeOptions={{ exact: true }}
-                        activeProps={{ 'data-active': true }}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : null}
+        <SidebarGroup>
+          <SidebarGroupLabel>Content</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {workspaceContentItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link
+                      to={item.to}
+                      params={{ organizationId, workspaceId }}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
         {visibleWorkspaceManagementItems.length > 0 ? (
           <SidebarGroup>
@@ -279,7 +261,7 @@ export function WorkspaceSidebar({
         ) : null}
       </SidebarContent>
 
-      <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+      <SidebarFooter className="app-sidebar-footer">
         <SidebarMenu>
           <SidebarMenuItem>
             <SignOutMenuButton auth={auth} />

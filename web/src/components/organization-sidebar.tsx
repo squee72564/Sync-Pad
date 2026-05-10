@@ -2,7 +2,7 @@ import type {
   OrganizationAccessDto,
   OrganizationPermission,
 } from '@syncpad/types';
-import { Link, useParams } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import {
   Building2Icon,
   CreditCardIcon,
@@ -127,11 +127,9 @@ export function OrganizationSidebar({
   access,
   auth,
 }: OrganizationSidebarProps) {
-  const params = useParams({ strict: false });
-  const organizationId =
-    typeof params.organizationId === 'string' ? params.organizationId : null;
+  const organizationId = organization.id;
   const organizationDescription = organization.description.trim().length
-    ? organization.description
+    ? organization.description.trim()
     : 'Organization overview';
   const visibleOrganizationNavItems = organizationNavItems.filter(
     (item) =>
@@ -144,8 +142,8 @@ export function OrganizationSidebar({
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="gap-3 px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <div className="flex items-start gap-3 rounded-lg border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 shadow-sm group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
+      <SidebarHeader className="app-sidebar-header">
+        <div className="app-sidebar-identity">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-9">
             <Building2Icon className="size-4 group-data-[collapsible=icon]:size-3.5" />
           </div>
@@ -188,32 +186,30 @@ export function OrganizationSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {organizationId ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>Organization</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {visibleOrganizationNavItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <Link
-                        to={item.to}
-                        params={{ organizationId }}
-                        activeOptions={{ exact: true }}
-                        activeProps={{ 'data-active': true }}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : null}
+        <SidebarGroup>
+          <SidebarGroupLabel>Organization</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {visibleOrganizationNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title}>
+                    <Link
+                      to={item.to}
+                      params={{ organizationId }}
+                      activeOptions={{ exact: true }}
+                      activeProps={{ 'data-active': true }}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-        {organizationId && visibleOrganizationManagementItems.length > 0 ? (
+        {visibleOrganizationManagementItems.length > 0 ? (
           <SidebarGroup>
             <SidebarGroupLabel>Manage</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -239,7 +235,7 @@ export function OrganizationSidebar({
         ) : null}
       </SidebarContent>
 
-      <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+      <SidebarFooter className="app-sidebar-footer">
         <SidebarMenu>
           <SidebarMenuItem>
             <SignOutMenuButton auth={auth} />

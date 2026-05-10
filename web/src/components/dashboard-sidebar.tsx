@@ -102,8 +102,8 @@ export function DashboardSidebar({ user, auth }: DashboardSidebarProps) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="gap-3 px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
-        <div className="flex items-start gap-3 rounded-lg border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 shadow-sm group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
+      <SidebarHeader className="app-sidebar-header">
+        <div className="app-sidebar-identity">
           <Avatar
             size="lg"
             className="size-10 group-data-[collapsible=icon]:size-9"
@@ -219,7 +219,7 @@ export function DashboardSidebar({ user, auth }: DashboardSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="px-3 py-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+      <SidebarFooter className="app-sidebar-footer">
         <SidebarMenu>
           <SidebarMenuItem>
             <SignOutMenuButton auth={auth} />
