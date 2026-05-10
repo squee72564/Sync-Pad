@@ -20,12 +20,15 @@ import {
 } from '#/components/ui/card';
 import { meOrganizationsQuery } from '#/features/me/queries';
 import type { MeOrganization } from '#/features/me/types';
+import { parseListQuerySearch } from '#/lib/api/list-query';
 import { formatShortDate } from '#/lib/utils';
 
 export const Route = createFileRoute('/_authenticated/dashboard/organizations')(
   {
-    loader: ({ context }) => {
-      return context.queryClient.ensureQueryData(meOrganizationsQuery());
+    validateSearch: parseListQuerySearch,
+    loaderDeps: ({ search }) => search,
+    loader: ({ context, deps }) => {
+      return context.queryClient.ensureQueryData(meOrganizationsQuery(deps));
     },
     errorComponent: ({ error }) => (
       <ScopeRouteError
@@ -39,7 +42,8 @@ export const Route = createFileRoute('/_authenticated/dashboard/organizations')(
 );
 
 function OrganizationsPage() {
-  const { organizations } = Route.useLoaderData();
+  const { organizations, pageInfo } = Route.useLoaderData();
+  const search = Route.useSearch();
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -48,8 +52,13 @@ function OrganizationsPage() {
         title="Organizations"
         description="Organizations you belong to across Syncpad."
       >
-        <div className="grid min-w-40 grid-cols-1 gap-2">
-          <PageHeaderStat label="Total" value={organizations.length} />
+        <div className="grid min-w-40 grid-cols-1 gap-2 sm:grid-cols-2">
+          <PageHeaderStat label="Shown" value={organizations.length} />
+          <PageHeaderStat label="Limit" value={pageInfo.limit} />
+          {search.q ? <PageHeaderStat label="Search" value="On" /> : null}
+          {pageInfo.hasNextPage ? (
+            <PageHeaderStat label="More" value="Yes" />
+          ) : null}
         </div>
       </PageHeader>
 

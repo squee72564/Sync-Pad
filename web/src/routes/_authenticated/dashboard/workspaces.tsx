@@ -5,10 +5,13 @@ import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { WorkspaceCard } from '#/components/workspace-card';
 import { meWorkspacesQuery } from '#/features/me/queries';
+import { parseListQuerySearch } from '#/lib/api/list-query';
 
 export const Route = createFileRoute('/_authenticated/dashboard/workspaces')({
-  loader: ({ context }) => {
-    return context.queryClient.ensureQueryData(meWorkspacesQuery());
+  validateSearch: parseListQuerySearch,
+  loaderDeps: ({ search }) => search,
+  loader: ({ context, deps }) => {
+    return context.queryClient.ensureQueryData(meWorkspacesQuery(deps));
   },
   errorComponent: ({ error }) => (
     <ScopeRouteError
@@ -21,7 +24,9 @@ export const Route = createFileRoute('/_authenticated/dashboard/workspaces')({
 });
 
 function WorkspacesPage() {
-  const { workspaces } = Route.useLoaderData();
+  const { workspaces, pageInfo } = Route.useLoaderData();
+  const search = Route.useSearch();
+
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
       <PageHeader
@@ -29,8 +34,13 @@ function WorkspacesPage() {
         title="Workspaces"
         description="Workspaces you can access across your organizations."
       >
-        <div className="grid min-w-40 grid-cols-1 gap-2">
-          <PageHeaderStat label="Total" value={workspaces.length} />
+        <div className="grid min-w-40 grid-cols-1 gap-2 sm:grid-cols-2">
+          <PageHeaderStat label="Shown" value={workspaces.length} />
+          <PageHeaderStat label="Limit" value={pageInfo.limit} />
+          {search.q ? <PageHeaderStat label="Search" value="On" /> : null}
+          {pageInfo.hasNextPage ? (
+            <PageHeaderStat label="More" value="Yes" />
+          ) : null}
         </div>
       </PageHeader>
       {workspaces.length > 0 ? (
