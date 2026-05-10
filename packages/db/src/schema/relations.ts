@@ -5,6 +5,7 @@ import {
   document,
   documentState,
   organization,
+  organizationInvite,
   organizationMembership,
   workspace,
   workspaceMembership,
@@ -17,6 +18,12 @@ export const userRelations = relations(user, ({ many }) => ({
   workspaceMemberships: many(workspaceMembership),
   invitedOrganizationMemberships: many(organizationMembership, {
     relationName: 'organization_membership_inviter',
+  }),
+  sentOrganizationInvites: many(organizationInvite, {
+    relationName: 'organization_invite_inviter',
+  }),
+  acceptedOrganizationInvites: many(organizationInvite, {
+    relationName: 'organization_invite_acceptor',
   }),
 }));
 
@@ -36,6 +43,7 @@ export const accountRelations = relations(account, ({ one }) => ({
 
 export const organizationRelations = relations(organization, ({ many }) => ({
   memberships: many(organizationMembership),
+  invites: many(organizationInvite),
   workspaces: many(workspace),
   workspaceMemberships: many(workspaceMembership),
 }));
@@ -55,6 +63,26 @@ export const organizationMembershipRelations = relations(
       fields: [organizationMembership.invitedBy],
       references: [user.id],
       relationName: 'organization_membership_inviter',
+    }),
+  }),
+);
+
+export const organizationInviteRelations = relations(
+  organizationInvite,
+  ({ one }) => ({
+    organization: one(organization, {
+      fields: [organizationInvite.organizationId],
+      references: [organization.id],
+    }),
+    inviter: one(user, {
+      fields: [organizationInvite.invitedBy],
+      references: [user.id],
+      relationName: 'organization_invite_inviter',
+    }),
+    acceptor: one(user, {
+      fields: [organizationInvite.acceptedBy],
+      references: [user.id],
+      relationName: 'organization_invite_acceptor',
     }),
   }),
 );

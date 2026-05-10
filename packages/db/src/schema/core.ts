@@ -10,6 +10,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   varchar,
 } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema.js';
@@ -44,6 +45,11 @@ export const organizationMembershipStatusEnum = pgEnum(
   ['invited', 'active', 'suspended'],
 );
 
+export const organizationInviteStatusEnum = pgEnum(
+  'organization_invite_status',
+  ['pending', 'accepted', 'declined', 'revoked', 'expired'],
+);
+
 export const workspaceRoleEnum = pgEnum('workspace_role', [
   'manager',
   'editor',
@@ -74,8 +80,10 @@ export const organizationMembership = pgTable(
 
     organizationRole: organizationRoleEnum('organization_role').notNull(),
 
+    // TODO: Remove invited
     status: organizationMembershipStatusEnum('status').notNull(),
 
+    // TODO: Possibly remove and keep in org invite table
     invitedBy: text('invited_by').references(() => user.id, {
       onDelete: 'set null',
     }),
@@ -192,3 +200,54 @@ export const documentState = pgTable('document_state', {
   yjsState: bytea('yjs_state').default(sql`decode('0000', 'hex')`).notNull(),
   persistedAt: timestamp('persisted_at').defaultNow().notNull(),
 });
+
+export const organizationInvite = pgTable(
+  'organization_invite',
+  {
+    id: text('organization_invite_id').primaryKey(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'cascade' }),
+    email: text('email').notNull(),
+    tokenHash: text('token_hash').notNull(),
+    organizationRole: organizationRoleEnum('organization_role').notNull(),
+
+    status: organizationInviteStatusEnum('status').default('pending').notNull(),
+    invitedBy: text('invited_by').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    acceptedBy: text('accepted_by').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    expiresAt: timestamp('expires_at').notNull(),
+    acceptedAt: timestamp('accepted_at'),
+    declinedAt: timestamp('declined_at'),
+    revokedAt: timestamp('revoked_at'),
+    lastSentAt: timestamp('last_sent_at'),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex('organization_invite_token_hash_unique').on(t.tokenHash),
+    uniqueIndex('organization_invite_pending_email_unique')
+      .on(t.organizationId, t.email)
+      .where(sql`${t.status} = 'pending'`),
+    index('organization_invite_organization_id_idx').on(t.organizationId),
+    index('organization_invite_email_idx').on(t.email),
+    index('organization_invite_invited_by_idx').on(t.invitedBy),
+    index('organization_invite_accepted_by_idx').on(t.acceptedBy),
+    index('organization_invite_status_idx').on(t.status),
+    check(
+      'organization_invite_email_normalized',
+      sql`${t.email} = lower(trim(${t.email}))`,
+    ),
+    check(
+      'organization_invite_email_valid',
+      sql`${t.email} ~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$'`,
+    ),
+  ],
+);
