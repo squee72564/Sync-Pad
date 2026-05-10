@@ -32,15 +32,25 @@ describe('me routes', () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
     });
-    vi.mocked(deps.workspaceService.listReadableToUser).mockResolvedValue([
-      workspaceSummary,
-    ]);
+    vi.mocked(deps.workspaceService.listReadableToUserPage).mockResolvedValue({
+      workspaces: [workspaceSummary],
+      pageInfo: {
+        limit: 24,
+        nextCursor: null,
+        hasNextPage: false,
+      },
+    });
 
     const response = await createTestApp(deps).request('/api/me/workspaces');
 
     expect(response.status).toBe(StatusCodes.OK);
-    expect(deps.workspaceService.listReadableToUser).toHaveBeenCalledWith({
+    expect(deps.workspaceService.listReadableToUserPage).toHaveBeenCalledWith({
       actorUserId: 'user_1',
+      q: undefined,
+      pagination: {
+        limit: 24,
+        cursor: undefined,
+      },
     });
     expect(await response.json()).toEqual({
       workspaces: [
@@ -50,17 +60,39 @@ describe('me routes', () => {
           updatedAt: workspaceSummary.updatedAt.toISOString(),
         },
       ],
+      pageInfo: {
+        limit: 24,
+        nextCursor: null,
+        hasNextPage: false,
+      },
     });
   });
 
-  it('returns 400 for unsupported workspace list query params', async () => {
-    const response = await createTestApp({
+  it('passes workspace search and pagination query params to the service', async () => {
+    const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
-    }).request('/api/me/workspaces?limit=10');
+    });
+    vi.mocked(deps.workspaceService.listReadableToUserPage).mockResolvedValue({
+      workspaces: [],
+      pageInfo: {
+        limit: 10,
+        nextCursor: null,
+        hasNextPage: false,
+      },
+    });
 
-    expect(response.status).toBe(StatusCodes.BAD_REQUEST);
-    expect(await response.json()).toMatchObject({
-      code: 'VALIDATION_FAILED',
+    const response = await createTestApp(deps).request(
+      '/api/me/workspaces?q=design&limit=10&cursor=abc',
+    );
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(deps.workspaceService.listReadableToUserPage).toHaveBeenCalledWith({
+      actorUserId: 'user_1',
+      q: 'design',
+      pagination: {
+        limit: 10,
+        cursor: 'abc',
+      },
     });
   });
 
@@ -81,15 +113,29 @@ describe('me routes', () => {
       auth: createTestAuth(authenticatedSession),
     });
     vi.mocked(
-      deps.organizationService.listOrganizationsForUser,
-    ).mockResolvedValue([organizationRecord]);
+      deps.organizationService.listOrganizationsForUserPage,
+    ).mockResolvedValue({
+      organizations: [organizationRecord],
+      pageInfo: {
+        limit: 24,
+        nextCursor: null,
+        hasNextPage: false,
+      },
+    });
 
     const response = await createTestApp(deps).request('/api/me/organizations');
 
     expect(response.status).toBe(StatusCodes.OK);
     expect(
-      deps.organizationService.listOrganizationsForUser,
-    ).toHaveBeenCalledWith('user_1');
+      deps.organizationService.listOrganizationsForUserPage,
+    ).toHaveBeenCalledWith({
+      actorUserId: 'user_1',
+      q: undefined,
+      pagination: {
+        limit: 24,
+        cursor: undefined,
+      },
+    });
     expect(await response.json()).toEqual({
       organizations: [
         {
@@ -98,17 +144,43 @@ describe('me routes', () => {
           updatedAt: organizationRecord.updatedAt.toISOString(),
         },
       ],
+      pageInfo: {
+        limit: 24,
+        nextCursor: null,
+        hasNextPage: false,
+      },
     });
   });
 
-  it('returns 400 for unsupported organization list query params', async () => {
-    const response = await createTestApp({
+  it('passes organization search and pagination query params to the service', async () => {
+    const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
-    }).request('/api/me/organizations?limit=10');
+    });
+    vi.mocked(
+      deps.organizationService.listOrganizationsForUserPage,
+    ).mockResolvedValue({
+      organizations: [],
+      pageInfo: {
+        limit: 10,
+        nextCursor: null,
+        hasNextPage: false,
+      },
+    });
 
-    expect(response.status).toBe(StatusCodes.BAD_REQUEST);
-    expect(await response.json()).toMatchObject({
-      code: 'VALIDATION_FAILED',
+    const response = await createTestApp(deps).request(
+      '/api/me/organizations?q=acme&limit=10&cursor=abc',
+    );
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(
+      deps.organizationService.listOrganizationsForUserPage,
+    ).toHaveBeenCalledWith({
+      actorUserId: 'user_1',
+      q: 'acme',
+      pagination: {
+        limit: 10,
+        cursor: 'abc',
+      },
     });
   });
 });
