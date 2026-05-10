@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-
+import type { ListQuerySearch } from '#/lib/api/list-query';
 import {
   getOrganizationWorkspaces,
   getWorkspace,
@@ -9,8 +9,13 @@ import {
 
 export const workspaceQueryKeys = {
   all: ['workspaces'] as const,
-  byOrganization: (organizationId: string) =>
-    [...workspaceQueryKeys.all, 'byOrganization', organizationId] as const,
+  byOrganization: (organizationId: string, search: ListQuerySearch) =>
+    [
+      ...workspaceQueryKeys.all,
+      'byOrganization',
+      organizationId,
+      search,
+    ] as const,
   detail: (organizationId: string, workspaceId: string) =>
     [...workspaceQueryKeys.all, 'detail', workspaceId, organizationId] as const,
   members: (organizationId: string, workspaceId: string) =>
@@ -24,10 +29,13 @@ export const workspaceQueryKeys = {
     [...workspaceQueryKeys.all, 'access', workspaceId, organizationId] as const,
 };
 
-export const organizationWorkspacesQuery = (organizationId: string) =>
+export const organizationWorkspacesQuery = (
+  organizationId: string,
+  search: ListQuerySearch,
+) =>
   queryOptions({
-    queryFn: () => getOrganizationWorkspaces(organizationId),
-    queryKey: workspaceQueryKeys.byOrganization(organizationId),
+    queryFn: () => getOrganizationWorkspaces(organizationId, search),
+    queryKey: workspaceQueryKeys.byOrganization(organizationId, search),
     staleTime: 60_000,
   });
 

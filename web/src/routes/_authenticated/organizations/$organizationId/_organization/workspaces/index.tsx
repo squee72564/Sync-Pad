@@ -5,16 +5,19 @@ import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { WorkspaceCard } from '#/components/workspace-card';
 import { organizationWorkspacesQuery } from '#/features/workspaces/queries';
+import { parseListQuerySearch } from '#/lib/api/list-query';
 import { assertUuidParam } from '#/lib/route-params';
 
 export const Route = createFileRoute(
   '/_authenticated/organizations/$organizationId/_organization/workspaces/',
 )({
-  loader: ({ context, params }) => {
+  validateSearch: parseListQuerySearch,
+  loaderDeps: ({ search }) => search,
+  loader: ({ context, params, deps }) => {
     assertUuidParam('Organization', params.organizationId);
 
     return context.queryClient.ensureQueryData(
-      organizationWorkspacesQuery(params.organizationId),
+      organizationWorkspacesQuery(params.organizationId, deps),
     );
   },
   errorComponent: ({ error }) => (
