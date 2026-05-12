@@ -72,6 +72,15 @@ describe('api dependency bootstrap', () => {
     vi.resetModules();
   });
 
+  const expectedGrpcEndpoint = (value: string) => {
+    try {
+      const parsed = new URL(value);
+      return parsed.host || value;
+    } catch {
+      return value;
+    }
+  };
+
   it('constructs Permify dependencies from env config', async () => {
     const { createApiDeps } = await import('../../../src/bootstrap/deps.js');
     const { env } = await import('../../../src/lib/env.js');
@@ -79,7 +88,7 @@ describe('api dependency bootstrap', () => {
     const deps = createApiDeps(env);
 
     expect(depsMocks.createPermifyClient).toHaveBeenCalledWith({
-      endpoint: new URL(env.PERMIFY_GRPC_URL).host,
+      endpoint: expectedGrpcEndpoint(env.PERMIFY_GRPC_URL),
       insecure: env.PERMIFY_GRPC_INSECURE,
       requestTimeoutMs: env.PERMIFY_REQUEST_TIMEOUT_MS,
       schemaVersion: env.PERMIFY_SCHEMA_VERSION,
@@ -92,6 +101,22 @@ describe('api dependency bootstrap', () => {
       depsMocks.permissionChecker,
     );
     expect(deps.permissionChecker).toBe(depsMocks.permissionChecker);
+  });
+
+  it('preserves scheme-less host:port Permify gRPC endpoints', async () => {
+    const { createApiDeps } = await import('../../../src/bootstrap/deps.js');
+    const { env } = await import('../../../src/lib/env.js');
+
+    createApiDeps({
+      ...env,
+      PERMIFY_GRPC_URL: 'permify:3478',
+    });
+
+    expect(depsMocks.createPermifyClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        endpoint: 'permify:3478',
+      }),
+    );
   });
 
   it('wires repositories and services from one database client', async () => {

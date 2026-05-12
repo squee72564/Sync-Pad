@@ -25,7 +25,8 @@ export const createWebsocketDeps = (env: Env) => {
 
   const toGrpcEndpoint = (value: string) => {
     try {
-      return new URL(value).host;
+      const parsed = new URL(value);
+      return parsed.host || value;
     } catch {
       return value;
     }
