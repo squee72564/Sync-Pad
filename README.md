@@ -34,7 +34,7 @@ pnpm dev
 
 `pnpm infra:bootstrap:dev` applies the development database migrations and writes the Permify authorization schema from `infra/permify/schema.syncpad.perm`.
 
-The Permify bootstrap prints a `PERMIFY_SCHEMA_VERSION=...` value. Add that value to `api/.env`, then restart `pnpm dev` so the API uses the schema version for authorization writes and checks.
+The Permify bootstrap prints a `PERMIFY_SCHEMA_VERSION=...` value. Add that value to `api/.env` and `websocket/.env`, then restart `pnpm dev` so the services use the schema version for authorization writes and checks.
 
 To boostrap test infrastructure and run tests make sure to do:
 
@@ -47,62 +47,7 @@ pnpm infra:bootstrap:test
 This repository includes a production Docker Compose file, a shared application
 image, scoped production environment examples, and production bootstrap scripts.
 
-For a fuller deployment outline, see [Production deployment](./docs/production-deployment.md).
-
-Copy the production examples and fill in real values for your environment:
-
-```bash
-cp .env.prod.example .env.prod
-cp api/.env.prod.example api/.env.prod
-cp websocket/.env.prod.example websocket/.env.prod
-cp embedding/.env.prod.example embedding/.env.prod
-```
-
-`.env.prod` is used by Compose for Postgres and Permify settings. The
-service-scoped files are injected only into their matching processes.
-
-Use the same `BETTER_AUTH_SECRET` in both `api/.env.prod` and
-`websocket/.env.prod`. Set `BETTER_AUTH_URL` to the public origin where the app
-is served.
-
-Build the shared application image:
-
-```bash
-docker compose --env-file .env.prod -f docker-compose.prod.yml build
-```
-
-Start Postgres and Permify:
-
-```bash
-docker compose --env-file .env.prod -f docker-compose.prod.yml up -d postgres permify
-```
-
-Apply database migrations and write the Permify authorization schema. The
-production scripts use the environment injected into the container by Compose:
-
-```bash
-docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm api pnpm infra:bootstrap:prod
-```
-
-The Permify bootstrap prints a `PERMIFY_SCHEMA_VERSION=...` value. Set that
-value in both `api/.env.prod` and `websocket/.env.prod`, then start the app
-services:
-
-```bash
-docker compose --env-file .env.prod -f docker-compose.prod.yml up -d api websocket
-```
-
-Build the static Vite app into `deploy/web-dist`:
-
-```bash
-docker compose --env-file .env.prod -f docker-compose.prod.yml --profile build run --rm web-build
-```
-
-The embedding service is currently optional and is behind the `workers` profile:
-
-```bash
-docker compose --env-file .env.prod -f docker-compose.prod.yml --profile workers up -d embedding
-```
+For a full deployment outline, see [Production deployment](./docs/production-deployment.md).
 
 ## Overview
 
