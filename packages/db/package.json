@@ -26,6 +26,7 @@
     "check": "pnpm lint:check && pnpm format:check && pnpm typecheck",
     "db:generate:dev": "drizzle-kit generate",
     "db:migrate:dev": "drizzle-kit migrate",
+    "db:migrate:prod": "drizzle-kit migrate",
     "db:migrate:test": "drizzle-kit migrate"
   },
   "keywords": [],
