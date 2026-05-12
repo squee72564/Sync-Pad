@@ -54,3 +54,9 @@ export function apiPost<TResponse, TBody>(
     body: JSON.stringify(body),
   });
 }
+
+export function apiDelete<TResponse>(path: string): Promise<TResponse> {
+  return apiRequest<TResponse>(path, {
+    method: 'DELETE',
+  });
+}
