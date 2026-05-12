@@ -24,7 +24,13 @@ import {
 import { Input } from '#/components/ui/input';
 import type { AuthContext } from '#/lib/auth-context';
 
-export default function SignInForm({ auth }: { auth: AuthContext }) {
+export default function SignInForm({
+  auth,
+  redirect,
+}: {
+  auth: AuthContext;
+  redirect?: string;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,7 +52,7 @@ export default function SignInForm({ auth }: { auth: AuthContext }) {
         onSuccess: (_ctx) => {
           setIsSubmitting(false);
           toast.success('Successfully signed in');
-          window.location.assign('/dashboard');
+          window.location.assign(redirect ?? '/dashboard');
         },
         onError: (ctx) => {
           setIsSubmitting(false);
@@ -113,7 +119,9 @@ export default function SignInForm({ auth }: { auth: AuthContext }) {
       <CardFooter className="justify-between gap-3">
         <span className="text-sm text-muted-foreground">Need an account?</span>
         <Button variant="ghost" asChild>
-          <Link to="/signup">Create one</Link>
+          <Link to="/signup" search={redirect ? { redirect } : undefined}>
+            Create one
+          </Link>
         </Button>
       </CardFooter>
     </Card>

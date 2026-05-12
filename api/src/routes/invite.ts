@@ -69,7 +69,7 @@ const buildInviteExpiresAt = (mailService: Mailer, now = new Date()) =>
     now.getTime() + mailService.organizationInvite.ttlHours * 60 * 60 * 1000,
   );
 
-const buildInviteUrl = ({
+const buildInviteUrls = ({
   mailService,
   organizationId,
   token,
@@ -78,11 +78,17 @@ const buildInviteUrl = ({
   organizationId: string;
   token: string;
 }) => {
-  const url = new URL(
-    `/api/organizations/${organizationId}/invitations/token/${token}`,
+  const inviteUrl = new URL(
+    `/invitations/${organizationId}/${token}`,
     mailService.organizationInvite.baseUrl,
   );
-  return url.toString();
+  const declineUrl = new URL(inviteUrl);
+  declineUrl.searchParams.set('intent', 'decline');
+
+  return {
+    declineUrl: declineUrl.toString(),
+    inviteUrl: inviteUrl.toString(),
+  };
 };
 
 const toInvitePreview = (
@@ -322,7 +328,7 @@ export function createOrganizationInvitationsRoute({
         const expiresAt = buildInviteExpiresAt(mailService);
         const token = createInviteToken();
         const tokenHash = hashInviteToken(token);
-        const inviteUrl = buildInviteUrl({
+        const { declineUrl, inviteUrl } = buildInviteUrls({
           mailService,
           organizationId: params.organizationId,
           token,
@@ -342,6 +348,7 @@ export function createOrganizationInvitationsRoute({
 
         try {
           await mailService.sendOrganizationInvite({
+            declineUrl,
             inviteUrl,
             organizationName: organization.name,
             inviterName: user.name,
@@ -400,13 +407,14 @@ export function createOrganizationInvitationsRoute({
 
         const token = createInviteToken();
         const tokenHash = hashInviteToken(token);
-        const inviteUrl = buildInviteUrl({
+        const { declineUrl, inviteUrl } = buildInviteUrls({
           mailService,
           organizationId: params.organizationId,
           token,
         });
 
         await mailService.sendOrganizationInvite({
+          declineUrl,
           inviteUrl,
           organizationName: organization.name,
           inviterName: user.name,

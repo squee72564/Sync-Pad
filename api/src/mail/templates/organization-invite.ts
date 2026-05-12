@@ -59,6 +59,16 @@ const buttonStyle = {
   textDecoration: 'none',
 } satisfies CSSProperties;
 
+const secondaryLinkStyle = {
+  color: '#6f6f66',
+  display: 'inline-block',
+  fontSize: '14px',
+  fontWeight: 600,
+  marginLeft: '14px',
+  textDecoration: 'underline',
+  textUnderlineOffset: '3px',
+} satisfies CSSProperties;
+
 const detailStyle = {
   borderTop: '1px solid #eeeeea',
   color: '#6f6f66',
@@ -119,12 +129,24 @@ export function OrganizationInviteEmailTemplate(
             'Sign in or create an account with this email address to review and accept the invitation.',
           ),
           createElement(
-            'a',
-            {
-              href: input.inviteUrl,
-              style: buttonStyle,
-            },
-            'Review invitation',
+            'p',
+            { style: { margin: '0 0 18px' } },
+            createElement(
+              'a',
+              {
+                href: input.inviteUrl,
+                style: buttonStyle,
+              },
+              'Review invitation',
+            ),
+            createElement(
+              'a',
+              {
+                href: input.declineUrl,
+                style: secondaryLinkStyle,
+              },
+              'Decline',
+            ),
           ),
           createElement(
             'div',

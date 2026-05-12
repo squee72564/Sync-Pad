@@ -2,6 +2,7 @@ import type { OrganizationRole } from '@syncpad/types';
 
 export type OrganizationInviteEmail = {
   inviteUrl: string;
+  declineUrl: string;
   organizationName: string;
   inviterName: string;
   inviterEmail: string;

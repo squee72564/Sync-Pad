@@ -23,7 +23,13 @@ import {
 import { Input } from '#/components/ui/input';
 import type { AuthContext } from '#/lib/auth-context';
 
-export default function SignUpForm({ auth }: { auth: AuthContext }) {
+export default function SignUpForm({
+  auth,
+  redirect,
+}: {
+  auth: AuthContext;
+  redirect?: string;
+}) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -48,6 +54,11 @@ export default function SignUpForm({ auth }: { auth: AuthContext }) {
         onSuccess: async (_ctx) => {
           setIsSubmitting(false);
           toast.success('Successfully signed up');
+          if (redirect) {
+            window.location.assign(redirect);
+            return;
+          }
+
           await navigate({ to: '/' });
         },
         onError: (ctx) => {
@@ -125,7 +136,9 @@ export default function SignUpForm({ auth }: { auth: AuthContext }) {
           Already have an account?
         </span>
         <Button variant="ghost" asChild>
-          <Link to="/signin">Sign in</Link>
+          <Link to="/signin" search={redirect ? { redirect } : undefined}>
+            Sign in
+          </Link>
         </Button>
       </CardFooter>
     </Card>
