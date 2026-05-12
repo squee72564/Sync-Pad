@@ -5,6 +5,10 @@ export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ context, location }) => {
     const session = await context.auth.getSession();
 
+    if (session.error) {
+      throw session.error;
+    }
+
     if (!session.data?.session) {
       throw redirect({
         to: '/signin',
