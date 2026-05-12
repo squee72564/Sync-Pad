@@ -91,7 +91,7 @@ const organizationNavItems: OrganizationNavItem[] = [
   {
     title: 'Invite member',
     icon: UserRoundPlusIcon,
-    requiredPermission: 'manage',
+    requiredPermission: 'invite',
     to: '/organizations/$organizationId/invite',
   },
   {
