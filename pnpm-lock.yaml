@@ -177,9 +177,6 @@ importers:
         specifier: workspace:*
         version: link:../permify
     devDependencies:
-      '@syncpad/types':
-        specifier: workspace:*
-        version: link:../types
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0
