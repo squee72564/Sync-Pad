@@ -50,12 +50,18 @@ export type OrganizationInvitePreviewDto = Pick<
   | 'status'
   | 'expiresAt'
   | 'isExpired'
->;
+> & {
+  organizationName: OrganizationDto['name'];
+};
 
 export type MeOrganizationDto = OrganizationDto;
 export type MeWorkspaceDto = WorkspaceDto & {
   organizationName: OrganizationDto['name'];
   workspaceRole: WorkspaceRole;
+};
+export type MeOrganizationInviteDto = OrganizationInviteDto & {
+  organizationName: OrganizationDto['name'];
+  invitedByEmail: UserDto['email'] | null;
 };
 
 export type PageInfoDto = {
@@ -153,6 +159,10 @@ export type OrganizationInvitesResponse = {
   pageInfo: PageInfoDto;
 };
 
+export type MeOrganizationInviteLinkResponse = {
+  inviteUrl: string;
+};
+
 export type CreateOrganizationInviteResponse = {
   organizationInvite: OrganizationInviteDto;
 };
@@ -207,7 +217,10 @@ export type MeWorkspacesResponse = {
   pageInfo: PageInfoDto;
 };
 
-export type MeOrganizationInvitesResponse = OrganizationInvitesResponse;
+export type MeOrganizationInvitesResponse = {
+  organizationInvites: MeOrganizationInviteDto[];
+  pageInfo: PageInfoDto;
+};
 
 export type OrganizationMembersDetailedResponse = {
   memberships: OrganizationMembersDetailedDto[];

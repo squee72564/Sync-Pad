@@ -204,7 +204,13 @@ describe('me routes', () => {
     vi.mocked(
       deps.organizationService.listOrganizationInvitesForUserPage,
     ).mockResolvedValue({
-      organizationInvites: [organizationInviteRecord],
+      organizationInvites: [
+        {
+          ...organizationInviteRecord,
+          organizationName: 'Acme',
+          invitedByEmail: 'admin@example.com',
+        },
+      ],
       pageInfo: {
         limit: 24,
         nextCursor: null,
@@ -247,6 +253,8 @@ describe('me routes', () => {
           lastSentAt: organizationInviteRecord.lastSentAt.toISOString(),
           createdAt: organizationInviteRecord.createdAt.toISOString(),
           updatedAt: organizationInviteRecord.updatedAt.toISOString(),
+          organizationName: 'Acme',
+          invitedByEmail: 'admin@example.com',
           isExpired: true,
         },
       ],
@@ -288,6 +296,47 @@ describe('me routes', () => {
         limit: 10,
         cursor: 'abc',
       },
+    });
+  });
+
+  it('creates an authenticated link for a pending invitation owned by the user', async () => {
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(
+      deps.organizationService.getOrganizationInvitationForUserById,
+    ).mockResolvedValue({
+      ...organizationInviteRecord,
+      expiresAt: new Date('2999-02-02T03:04:05.000Z'),
+    });
+    vi.mocked(
+      deps.organizationService.rotateOrganizationInvitationTokenForOpen,
+    ).mockResolvedValue(organizationInviteRecord);
+
+    const response = await createTestApp(deps).request(
+      '/api/me/invitations/org_invite_1/link',
+      { method: 'POST' },
+    );
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(
+      deps.organizationService.getOrganizationInvitationForUserById,
+    ).toHaveBeenCalledWith({
+      organizationInviteId: 'org_invite_1',
+      userEmail: 'user@example.com',
+    });
+    expect(
+      deps.organizationService.rotateOrganizationInvitationTokenForOpen,
+    ).toHaveBeenCalledWith({
+      organizationInviteId: 'org_invite_1',
+      organizationId: organizationRecord.id,
+      tokenHash: expect.any(String),
+      rotatedAt: expect.any(Date),
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      inviteUrl: expect.stringMatching(
+        /^\/invitations\/org_1\/[A-Za-z0-9_-]+$/,
+      ),
     });
   });
 });

@@ -2,11 +2,12 @@ import type { ListQuerySearch } from '#/lib/api/list-query';
 
 export type {
   MeOrganizationDto as MeOrganization,
+  MeOrganizationInviteDto as MeOrganizationInvite,
+  MeOrganizationInviteLinkResponse,
   MeOrganizationInvitesResponse,
   MeOrganizationsResponse,
   MeWorkspaceDto as MeWorkspace,
   MeWorkspacesResponse,
-  OrganizationInviteDto as MeOrganizationInvite,
   OrganizationInviteQueryDto as MeInvitationsSearch,
   OrganizationInviteStatus,
   SearchablePageParamsDto,

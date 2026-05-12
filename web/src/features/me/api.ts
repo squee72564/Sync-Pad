@@ -1,9 +1,10 @@
-import { apiGet } from '#/lib/api/client';
+import { apiGet, apiPost } from '#/lib/api/client';
 import { toListQueryString } from '#/lib/api/list-query';
 import type { MeUserResponse } from '../../../../packages/types/dist/api';
 import type {
   MeInvitationsSearch,
   MeListSearch,
+  MeOrganizationInviteLinkResponse,
   MeOrganizationInvitesResponse,
   MeOrganizationsResponse,
   MeWorkspacesResponse,
@@ -40,5 +41,12 @@ export function getMeWorkspaces(search?: MeListSearch) {
 export function getMeInvitations(search?: MeInvitationsSearch) {
   return apiGet<MeOrganizationInvitesResponse>(
     `/api/me/invitations${toMeInvitationsQueryString(search)}`,
+  );
+}
+
+export function createMeInvitationLink(invitationId: string) {
+  return apiPost<MeOrganizationInviteLinkResponse, undefined>(
+    `/api/me/invitations/${invitationId}/link`,
+    undefined,
   );
 }

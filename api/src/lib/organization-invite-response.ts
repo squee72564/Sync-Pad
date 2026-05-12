@@ -1,5 +1,9 @@
 import type { OrganizationService } from '@syncpad/core';
 
+type MeOrganizationInvitation = Awaited<
+  ReturnType<OrganizationService['listOrganizationInvitesForUserPage']>
+>['organizationInvites'][number];
+
 export const toOrganizationInviteResponse = (
   organizationInvitation: Awaited<
     ReturnType<OrganizationService['getOrganizationInvitationByToken']>
@@ -20,4 +24,12 @@ export const toOrganizationInviteResponse = (
   createdAt: organizationInvitation.createdAt,
   updatedAt: organizationInvitation.updatedAt,
   isExpired: organizationInvitation.expiresAt <= new Date(),
+});
+
+export const toMeOrganizationInviteResponse = (
+  organizationInvitation: MeOrganizationInvitation,
+) => ({
+  ...toOrganizationInviteResponse(organizationInvitation),
+  organizationName: organizationInvitation.organizationName,
+  invitedByEmail: organizationInvitation.invitedByEmail,
 });

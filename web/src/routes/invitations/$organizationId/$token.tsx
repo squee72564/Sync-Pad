@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
+  Building2Icon,
   CheckCircle2Icon,
   Clock3Icon,
   LogInIcon,
@@ -141,7 +142,8 @@ function InvitationPage() {
           </div>
           <div className="space-y-2">
             <CardTitle className="text-xl">
-              Join this organization as {formatLabel(invite.organizationRole)}
+              Join {invite.organizationName} as{' '}
+              {formatLabel(invite.organizationRole)}
             </CardTitle>
             <CardDescription>
               This invitation was sent to {invite.email}.
@@ -162,10 +164,9 @@ function InvitationPage() {
             muted={invite.isExpired}
           />
           <InviteDetail
-            icon={ShieldCheckIcon}
-            label="Organization ID"
-            value={invite.organizationId}
-            mono
+            icon={Building2Icon}
+            label="Organization"
+            value={invite.organizationName}
           />
           {signedInEmail ? (
             <InviteDetail

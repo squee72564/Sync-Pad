@@ -1,4 +1,5 @@
 import { and, desc, eq, gte, ilike, lt, lte, or } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { withDbError } from '../errors.js';
 import type { DbClient } from '../index.js';
 import {
@@ -42,8 +43,30 @@ type UpdateOrganizationMembershipValues = Partial<
   Pick<NewOrganizationMembership, 'organizationRole' | 'status' | 'joinedAt'>
 >;
 
+const invitedByUser = alias(user, 'invited_by_user');
+
 const getOrganizationInviteSearchFilter = (q: string | undefined) =>
   q ? ilike(organizationInvite.email, `%${q}%`) : undefined;
+
+const organizationInviteDetailedSelect = {
+  id: organizationInvite.id,
+  organizationId: organizationInvite.organizationId,
+  email: organizationInvite.email,
+  tokenHash: organizationInvite.tokenHash,
+  organizationRole: organizationInvite.organizationRole,
+  status: organizationInvite.status,
+  invitedBy: organizationInvite.invitedBy,
+  acceptedBy: organizationInvite.acceptedBy,
+  expiresAt: organizationInvite.expiresAt,
+  acceptedAt: organizationInvite.acceptedAt,
+  declinedAt: organizationInvite.declinedAt,
+  revokedAt: organizationInvite.revokedAt,
+  lastSentAt: organizationInvite.lastSentAt,
+  createdAt: organizationInvite.createdAt,
+  updatedAt: organizationInvite.updatedAt,
+  organizationName: organization.name,
+  invitedByEmail: invitedByUser.email,
+};
 
 const getOrganizationInviteCursorFilter = (cursor: string | undefined) => {
   const decodedCursor = decodeUpdatedAtIdCursor(cursor);
@@ -463,8 +486,16 @@ export function createOrganizationRepository(db: DbClient) {
           const normalizedEmail = input.userEmail.trim().toLowerCase();
           const limit = input.pagination.limit;
           const rows = await database
-            .select()
+            .select(organizationInviteDetailedSelect)
             .from(organizationInvite)
+            .innerJoin(
+              organization,
+              eq(organizationInvite.organizationId, organization.id),
+            )
+            .leftJoin(
+              invitedByUser,
+              eq(organizationInvite.invitedBy, invitedByUser.id),
+            )
             .where(
               and(
                 eq(organizationInvite.email, normalizedEmail),
@@ -491,6 +522,44 @@ export function createOrganizationRepository(db: DbClient) {
               limit,
             }),
           };
+        },
+      );
+    },
+
+    async getOrganizationInvitationForUserById(
+      input: {
+        organizationInviteId: string;
+        userEmail: string;
+      },
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'getOrganizationInvitationForUserById',
+        },
+        async () => {
+          const normalizedEmail = input.userEmail.trim().toLowerCase();
+          const rows = await database
+            .select(organizationInviteDetailedSelect)
+            .from(organizationInvite)
+            .innerJoin(
+              organization,
+              eq(organizationInvite.organizationId, organization.id),
+            )
+            .leftJoin(
+              invitedByUser,
+              eq(organizationInvite.invitedBy, invitedByUser.id),
+            )
+            .where(
+              and(
+                eq(organizationInvite.id, input.organizationInviteId),
+                eq(organizationInvite.email, normalizedEmail),
+              ),
+            )
+            .limit(1);
+
+          return rows[0] ?? null;
         },
       );
     },
@@ -644,6 +713,42 @@ export function createOrganizationRepository(db: DbClient) {
             .where(
               and(
                 gte(organizationInvite.expiresAt, input.sentAt),
+                eq(organizationInvite.status, 'pending'),
+                eq(organizationInvite.id, input.organizationInviteId),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .returning();
+
+          return row[0] ?? null;
+        },
+      );
+    },
+
+    async rotateOrganizationInvitationTokenForOpen(
+      input: {
+        organizationInviteId: string;
+        organizationId: string;
+        tokenHash: string;
+        rotatedAt: Date;
+      },
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'rotateOrganizationInvitationTokenForOpen',
+        },
+        async () => {
+          const row = await database
+            .update(organizationInvite)
+            .set({
+              tokenHash: input.tokenHash,
+              updatedAt: input.rotatedAt,
+            })
+            .where(
+              and(
+                gte(organizationInvite.expiresAt, input.rotatedAt),
                 eq(organizationInvite.status, 'pending'),
                 eq(organizationInvite.id, input.organizationInviteId),
                 eq(organizationInvite.organizationId, input.organizationId),

@@ -92,13 +92,18 @@ const buildInviteUrls = ({
   };
 };
 
-const toInvitePreview = (
+const toInvitePreview = ({
+  organizationName,
+  organizationInvitation,
+}: {
+  organizationName: string;
   organizationInvitation: Awaited<
     ReturnType<OrganizationService['getOrganizationInvitationByToken']>
-  >,
-) => ({
+  >;
+}) => ({
   id: organizationInvitation.id,
   organizationId: organizationInvitation.organizationId,
+  organizationName,
   email: organizationInvitation.email,
   organizationRole: organizationInvitation.organizationRole,
   status: organizationInvitation.status,
@@ -172,8 +177,16 @@ export function createInvitationsRoute({
             organizationId: params.organizationId,
             tokenHash: hashInviteToken(params.token),
           });
+        const organization = await organizationService.findById(
+          params.organizationId,
+        );
         return context.json(
-          { organizationInvitation: toInvitePreview(organizationInvitation) },
+          {
+            organizationInvitation: toInvitePreview({
+              organizationInvitation,
+              organizationName: organization?.name ?? params.organizationId,
+            }),
+          },
           StatusCodes.OK,
         );
       },

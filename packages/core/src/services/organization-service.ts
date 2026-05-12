@@ -567,6 +567,31 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
       });
     },
 
+    async getOrganizationInvitationForUserById(input: {
+      organizationInviteId: string;
+      userEmail: string;
+    }) {
+      return db.transaction(async (tx) => {
+        const organizationInvite =
+          await organizationRepo.getOrganizationInvitationForUserById(
+            input,
+            tx,
+          );
+
+        if (!organizationInvite) {
+          throw new CoreError({
+            code: 'ORGANIZATION_INVITATION_NOT_FOUND',
+            expose: true,
+            kind: 'not_found',
+            message: `Organization invite ${input.organizationInviteId} for user not found.`,
+            userMessage: 'Organization invite not found.',
+          });
+        }
+
+        return normalizeOrganizationInvitationExpiry(organizationInvite, tx);
+      });
+    },
+
     async markOrganizationInvitationSent(input: {
       tokenHash: string;
       organizationId: string;
@@ -593,6 +618,27 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
       return db.transaction(async (tx) => {
         const organizationInvite =
           await organizationRepo.rotateOrganizationInvitationToken(input, tx);
+
+        if (!organizationInvite) {
+          throwInvitationTokenRotationFailed(input.organizationId);
+        }
+
+        return organizationInvite;
+      });
+    },
+
+    async rotateOrganizationInvitationTokenForOpen(input: {
+      organizationInviteId: string;
+      organizationId: string;
+      tokenHash: string;
+      rotatedAt: Date;
+    }) {
+      return db.transaction(async (tx) => {
+        const organizationInvite =
+          await organizationRepo.rotateOrganizationInvitationTokenForOpen(
+            input,
+            tx,
+          );
 
         if (!organizationInvite) {
           throwInvitationTokenRotationFailed(input.organizationId);

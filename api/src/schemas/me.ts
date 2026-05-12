@@ -17,3 +17,10 @@ export const meOrganizationInvitesQuerySchema =
 export type MeOrganizationInvitesQuery = z.infer<
   typeof meOrganizationInvitesQuerySchema
 >;
+
+export const meOrganizationInviteParamsSchema = z.object({
+  invitationId: z.string().min(1),
+});
+export type MeOrganizationInviteParams = z.infer<
+  typeof meOrganizationInviteParamsSchema
+>;

@@ -1,12 +1,16 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { useMutation } from '@tanstack/react-query';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   Building2Icon,
   CalendarClockIcon,
+  CheckCircle2Icon,
   Clock3Icon,
   MailIcon,
-  RotateCcwIcon,
   ShieldCheckIcon,
+  UserRoundIcon,
+  XCircleIcon,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
@@ -21,6 +25,7 @@ import {
   CardTitle,
 } from '#/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group';
+import { createMeInvitationLink } from '#/features/me/api';
 import { meInvitationsQuery } from '#/features/me/queries';
 import type {
   MeInvitationsSearch,
@@ -162,6 +167,19 @@ function InvitesPage() {
 }
 
 function InviteCard({ invite }: { invite: MeOrganizationInvite }) {
+  const navigate = useNavigate();
+  const createInviteLinkMutation = useMutation({
+    mutationFn: createMeInvitationLink,
+    onSuccess: async ({ inviteUrl }) => {
+      await navigate({ to: inviteUrl });
+    },
+    onError: (error) => {
+      const message =
+        error instanceof Error ? error.message : 'Unable to open invitation.';
+      toast.error(message);
+    },
+  });
+
   return (
     <Card className="border-border/70 transition-colors hover:bg-muted/20">
       <CardHeader className="gap-4">
@@ -185,7 +203,12 @@ function InviteCard({ invite }: { invite: MeOrganizationInvite }) {
         <InviteMeta
           icon={Building2Icon}
           label="Organization"
-          value={invite.organizationId}
+          value={invite.organizationName}
+        />
+        <InviteMeta
+          icon={UserRoundIcon}
+          label="Invited by"
+          value={invite.invitedByEmail ?? 'Unknown sender'}
         />
         <InviteMeta
           icon={CalendarClockIcon}
@@ -202,15 +225,60 @@ function InviteCard({ invite }: { invite: MeOrganizationInvite }) {
           }
           title={invite.lastSentAt ? formatDate(invite.lastSentAt) : undefined}
         />
-        <InviteMeta
-          icon={RotateCcwIcon}
-          label="Created"
-          value={formatShortDate(invite.createdAt)}
-          title={formatDate(invite.createdAt)}
-        />
+        <InviteStatusMeta invite={invite} />
+        {invite.status === 'pending' ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-1"
+            disabled={createInviteLinkMutation.isPending}
+            onClick={() => createInviteLinkMutation.mutateAsync(invite.id)}
+          >
+            {createInviteLinkMutation.isPending
+              ? 'Opening invite...'
+              : 'Open invite'}
+          </Button>
+        ) : null}
       </CardContent>
     </Card>
   );
+}
+
+function InviteStatusMeta({ invite }: { invite: MeOrganizationInvite }) {
+  if (invite.status === 'accepted' && invite.acceptedAt) {
+    return (
+      <InviteMeta
+        icon={CheckCircle2Icon}
+        label="Accepted"
+        value={formatShortDate(invite.acceptedAt)}
+        title={formatDate(invite.acceptedAt)}
+      />
+    );
+  }
+
+  if (invite.status === 'declined' && invite.declinedAt) {
+    return (
+      <InviteMeta
+        icon={XCircleIcon}
+        label="Declined"
+        value={formatShortDate(invite.declinedAt)}
+        title={formatDate(invite.declinedAt)}
+      />
+    );
+  }
+
+  if (invite.status === 'revoked' && invite.revokedAt) {
+    return (
+      <InviteMeta
+        icon={XCircleIcon}
+        label="Revoked"
+        value={formatShortDate(invite.revokedAt)}
+        title={formatDate(invite.revokedAt)}
+      />
+    );
+  }
+
+  return null;
 }
 
 function InviteRoleBadge({
