@@ -16,6 +16,7 @@ const envSchema = z.object({
   PERMIFY_HTTP_URL: z.url(),
   PERMIFY_GRPC_URL: z.string().min(1),
   PERMIFY_GRPC_INSECURE: z.stringbool().default(true),
+  PERMIFY_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
   PERMIFY_TENANT_ID: z.string().min(1).default('syncpad'),
   PERMIFY_SCHEMA_VERSION: z.string().min(1),
 });

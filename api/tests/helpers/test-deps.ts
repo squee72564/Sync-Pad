@@ -29,6 +29,7 @@ export const testEnvFixture: Env = {
   PERMIFY_HTTP_URL: 'http://localhost:3476',
   PERMIFY_GRPC_URL: 'localhost:3478',
   PERMIFY_GRPC_INSECURE: true,
+  PERMIFY_REQUEST_TIMEOUT_MS: 5000,
   PERMIFY_TENANT_ID: 'syncpad-test',
   PERMIFY_SCHEMA_VERSION: 'test',
   RESEND_API_KEY: 're_test',

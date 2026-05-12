@@ -32,6 +32,7 @@ const createTestInstance = () => {
     grpc,
     instance: {
       grpc,
+      requestTimeoutMs: 5000,
       schemaVersion: 'schema_1',
       tenantId: 'tenant_1',
     } as unknown as PermifyInstance,
@@ -56,20 +57,27 @@ describe('permission checker', () => {
     );
 
     expect(allowed).toBe(true);
-    expect(grpc.permission.check).toHaveBeenCalledWith({
-      tenantId: 'tenant_1',
-      metadata: {
-        snapToken: '',
-        depth: 20,
-        schemaVersion: 'schema_1',
+    expect(grpc.permission.check).toHaveBeenCalledWith(
+      {
+        tenantId: 'tenant_1',
+        metadata: {
+          snapToken: '',
+          depth: 20,
+          schemaVersion: 'schema_1',
+        },
+        entity: {
+          type: 'organization',
+          id: 'org_1',
+        },
+        permission: 'read',
+        subject,
       },
-      entity: {
-        type: 'organization',
-        id: 'org_1',
+      {
+        signal: expect.any(AbortSignal),
+        onHeader: expect.any(Function),
+        onTrailer: expect.any(Function),
       },
-      permission: 'read',
-      subject,
-    });
+    );
   });
 
   it('serializes workspace resources using the registry id key', async () => {
@@ -97,6 +105,9 @@ describe('permission checker', () => {
         },
         permission: 'manage',
       }),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      }),
     );
   });
 
@@ -120,6 +131,9 @@ describe('permission checker', () => {
           id: 'doc_1',
         },
         permission: 'write',
+      }),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
       }),
     );
   });
@@ -206,7 +220,7 @@ describe('permission checker', () => {
         ],
       },
       {
-        signal: undefined,
+        signal: expect.any(AbortSignal),
         onHeader: expect.any(Function),
         onTrailer: expect.any(Function),
       },
@@ -350,6 +364,43 @@ describe('permission checker', () => {
       kind: 'dependency_unavailable',
       retryable: true,
     });
+  });
+
+  it('fails fast and aborts hanging Permify requests', async () => {
+    vi.useFakeTimers();
+    const { grpc, instance } = createTestInstance();
+    instance.requestTimeoutMs = 25;
+    grpc.data.write.mockReturnValue(new Promise(() => {}));
+
+    const promise = createPermissionChecker(instance).writeTuples({
+      entity: {
+        type: 'organization',
+        id: 'org_1',
+      },
+      relation: 'owner',
+      subject: {
+        type: 'user',
+        id: 'user_1',
+        relation: '',
+      },
+    });
+
+    const expectation = expect(promise).rejects.toMatchObject({
+      code: 'PERMIFY_TIMEOUT',
+      kind: 'dependency_unavailable',
+      metadata: {
+        operation: 'writeTuples',
+        timeoutMs: 25,
+      },
+      retryable: true,
+    });
+
+    await vi.advanceTimersByTimeAsync(25);
+    await expectation;
+
+    const [, options] = grpc.data.write.mock.calls[0];
+    expect(options.signal.aborted).toBe(true);
+    vi.useRealTimers();
   });
 
   it('rejects invalid resource descriptors with a structured error', async () => {

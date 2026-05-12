@@ -62,6 +62,49 @@ const toPermifyUnavailableError = (
   });
 };
 
+const toPermifyTimeoutError = (
+  operation: string,
+  timeoutMs: number,
+): PermifyError =>
+  new PermifyError({
+    code: 'PERMIFY_TIMEOUT',
+    kind: 'dependency_unavailable',
+    message: 'Permify request timed out',
+    metadata: { operation, timeoutMs },
+    retryable: true,
+    userMessage: 'Authorization service is unavailable.',
+  });
+
+const withPermifyTimeout = async <T>(
+  operation: string,
+  timeoutMs: number,
+  run: (signal: AbortSignal) => Promise<T>,
+): Promise<T> => {
+  const abortController = new AbortController();
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => {
+      abortController.abort();
+      reject(toPermifyTimeoutError(operation, timeoutMs));
+    }, timeoutMs);
+  });
+
+  try {
+    return await Promise.race([run(abortController.signal), timeoutPromise]);
+  } finally {
+    if (timeout !== undefined) {
+      clearTimeout(timeout);
+    }
+  }
+};
+
+const createGrpcCallOptions = (signal: AbortSignal) => ({
+  signal,
+  onHeader: (_header: unknown) => {},
+  onTrailer: (_trailer: unknown) => {},
+});
+
 // Permify v1.6.9 validates attributeFilter on Data/Delete even for tuple-only
 // deletes. Target a non-existent attribute so tuple cleanup requests stay valid
 // without deleting real attribute data.
@@ -106,17 +149,25 @@ export function createPermissionChecker(instance: PermifyInstance) {
       _instance: PermifyInstance = instance,
     ) {
       try {
-        const response = await _instance.grpc.permission.check({
-          tenantId: _instance.tenantId,
-          metadata: {
-            snapToken: '',
-            depth,
-            schemaVersion: _instance.schemaVersion,
-          },
-          entity: getResourceEntity(resource),
-          permission,
-          subject,
-        });
+        const response = await withPermifyTimeout(
+          'checkPermission',
+          _instance.requestTimeoutMs,
+          (signal) =>
+            _instance.grpc.permission.check(
+              {
+                tenantId: _instance.tenantId,
+                metadata: {
+                  snapToken: '',
+                  depth,
+                  schemaVersion: _instance.schemaVersion,
+                },
+                entity: getResourceEntity(resource),
+                permission,
+                subject,
+              },
+              createGrpcCallOptions(signal),
+            ),
+        );
 
         return response.can === CheckResult.CHECK_RESULT_ALLOWED;
       } catch (error) {
@@ -136,21 +187,22 @@ export function createPermissionChecker(instance: PermifyInstance) {
           subject: item.subject,
         }));
 
-        const response = await _instance.grpc.permission.bulkCheck(
-          {
-            tenantId: _instance.tenantId,
-            metadata: {
-              snapToken: '',
-              depth,
-              schemaVersion: _instance.schemaVersion,
-            },
-            items: permifyItems,
-          },
-          {
-            signal: undefined,
-            onHeader: (_header) => {},
-            onTrailer: (_trailer) => {},
-          },
+        const response = await withPermifyTimeout(
+          'bulkCheckPermission',
+          _instance.requestTimeoutMs,
+          (signal) =>
+            _instance.grpc.permission.bulkCheck(
+              {
+                tenantId: _instance.tenantId,
+                metadata: {
+                  snapToken: '',
+                  depth,
+                  schemaVersion: _instance.schemaVersion,
+                },
+                items: permifyItems,
+              },
+              createGrpcCallOptions(signal),
+            ),
         );
 
         return response.results.map((result, i) => ({
@@ -167,19 +219,20 @@ export function createPermissionChecker(instance: PermifyInstance) {
       _instance: PermifyInstance = instance,
     ) {
       try {
-        await _instance.grpc.data.write(
-          {
-            tenantId: _instance.tenantId,
-            metadata: {
-              schemaVersion: _instance.schemaVersion,
-            },
-            tuples: Array.isArray(tuples) ? tuples : [tuples],
-          },
-          {
-            signal: undefined,
-            onHeader: (_header) => {},
-            onTrailer: (_trailer) => {},
-          },
+        await withPermifyTimeout(
+          'writeTuples',
+          _instance.requestTimeoutMs,
+          (signal) =>
+            _instance.grpc.data.write(
+              {
+                tenantId: _instance.tenantId,
+                metadata: {
+                  schemaVersion: _instance.schemaVersion,
+                },
+                tuples: Array.isArray(tuples) ? tuples : [tuples],
+              },
+              createGrpcCallOptions(signal),
+            ),
         );
       } catch (error) {
         throw toPermifyUnavailableError(error, 'writeTuples');
@@ -191,17 +244,18 @@ export function createPermissionChecker(instance: PermifyInstance) {
       _instance: PermifyInstance = instance,
     ) {
       try {
-        await _instance.grpc.data.delete(
-          {
-            tenantId: _instance.tenantId,
-            tupleFilter: input.tupleFilter ?? noopTupleFilter,
-            attributeFilter: input.attributeFilter ?? noopAttributeFilter,
-          },
-          {
-            signal: undefined,
-            onHeader: (_header) => {},
-            onTrailer: (_trailer) => {},
-          },
+        await withPermifyTimeout(
+          'deleteData',
+          _instance.requestTimeoutMs,
+          (signal) =>
+            _instance.grpc.data.delete(
+              {
+                tenantId: _instance.tenantId,
+                tupleFilter: input.tupleFilter ?? noopTupleFilter,
+                attributeFilter: input.attributeFilter ?? noopAttributeFilter,
+              },
+              createGrpcCallOptions(signal),
+            ),
         );
       } catch (error) {
         throw toPermifyUnavailableError(error, 'deleteData');

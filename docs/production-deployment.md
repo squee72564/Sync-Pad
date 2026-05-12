@@ -47,6 +47,7 @@ DATABASE_URL=postgres://syncpad:replace-me@postgres:5432/syncpad-prod
 PERMIFY_HTTP_URL=http://permify:3476
 PERMIFY_GRPC_URL=permify:3478
 PERMIFY_GRPC_INSECURE=true
+PERMIFY_REQUEST_TIMEOUT_MS=5000
 ```
 
 Set `BETTER_AUTH_URL` to the public origin that browsers will use for the app,
@@ -57,6 +58,9 @@ API and websocket env files.
 Compose-managed Permify gRPC service over the private Docker network without
 TLS. Set it to `false` only when connecting to a TLS-enabled Permify gRPC
 endpoint.
+
+`PERMIFY_REQUEST_TIMEOUT_MS` keeps API requests from hanging indefinitely when
+Permify accepts a connection but does not return a response.
 
 ## Build
 

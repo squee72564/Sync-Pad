@@ -80,7 +80,8 @@ describe('api dependency bootstrap', () => {
 
     expect(depsMocks.createPermifyClient).toHaveBeenCalledWith({
       endpoint: new URL(env.PERMIFY_GRPC_URL).host,
-      insecure: env.NODE_ENV !== 'production',
+      insecure: env.PERMIFY_GRPC_INSECURE,
+      requestTimeoutMs: env.PERMIFY_REQUEST_TIMEOUT_MS,
       schemaVersion: env.PERMIFY_SCHEMA_VERSION,
       tenantId: env.PERMIFY_TENANT_ID,
     });

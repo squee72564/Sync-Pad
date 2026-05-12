@@ -37,6 +37,7 @@ export const createApiDeps = (env: Env) => {
     tenantId: env.PERMIFY_TENANT_ID,
     schemaVersion: env.PERMIFY_SCHEMA_VERSION,
     insecure: env.PERMIFY_GRPC_INSECURE,
+    requestTimeoutMs: env.PERMIFY_REQUEST_TIMEOUT_MS,
   });
 
   const permissionChecker = createPermissionChecker(permifyInstance);
