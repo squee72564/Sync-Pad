@@ -20,7 +20,7 @@ export const Route = createFileRoute(
   loader: ({ context, params, deps }) => {
     assertUuidParam('Organization', params.organizationId);
 
-    return context.queryClient.ensureQueryData(
+    return context.queryClient.fetchQuery(
       organizationWorkspacesQuery(params.organizationId, deps),
     );
   },

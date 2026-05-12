@@ -35,6 +35,8 @@ import type {
   OrganizationInvitePreview,
   OrganizationInviteStatus,
 } from '#/features/invites/types';
+import { meQueryKeys } from '#/features/me/queries';
+import { organizationQueryKeys } from '#/features/organizations/queries';
 import { assertUuidParam } from '#/lib/route-params';
 import { cn, formatDate, formatShortDate } from '#/lib/utils';
 
@@ -50,7 +52,7 @@ export const Route = createFileRoute('/invitations/$organizationId/$token')({
     assertUuidParam('OrganizationInvitation', params.organizationId);
 
     const [preview, session] = await Promise.all([
-      context.queryClient.ensureQueryData(
+      context.queryClient.fetchQuery(
         organizationInvitePreviewQuery(params.organizationId, params.token),
       ),
       context.auth.getSession(),
@@ -92,9 +94,23 @@ function InvitationPage() {
     mutationFn: acceptOrganizationInvite,
     onSuccess: async () => {
       toast.success('Invitation accepted');
-      await queryClient.invalidateQueries({
-        queryKey: inviteQueryKeys.preview(organizationId, token),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: inviteQueryKeys.preview(organizationId, token),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: meQueryKeys.invitationLists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: meQueryKeys.organizationLists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: meQueryKeys.workspaceLists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationQueryKeys.detail(organizationId),
+        }),
+      ]);
       await navigate({
         to: '/organizations/$organizationId',
         params: { organizationId },
@@ -111,9 +127,14 @@ function InvitationPage() {
     mutationFn: declineOrganizationInvite,
     onSuccess: async () => {
       toast.success('Invitation declined');
-      await queryClient.invalidateQueries({
-        queryKey: inviteQueryKeys.preview(organizationId, token),
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: inviteQueryKeys.preview(organizationId, token),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: meQueryKeys.invitationLists(),
+        }),
+      ]);
     },
     onError: (error) => {
       const message =

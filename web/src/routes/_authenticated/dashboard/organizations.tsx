@@ -32,7 +32,7 @@ export const Route = createFileRoute('/_authenticated/dashboard/organizations')(
     validateSearch: parseListQuerySearch,
     loaderDeps: ({ search }) => search,
     loader: ({ context, deps }) => {
-      return context.queryClient.ensureQueryData(meOrganizationsQuery(deps));
+      return context.queryClient.fetchQuery(meOrganizationsQuery(deps));
     },
     errorComponent: ({ error }) => (
       <ScopeRouteError

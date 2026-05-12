@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_authenticated/dashboard/workspaces')({
   validateSearch: parseListQuerySearch,
   loaderDeps: ({ search }) => search,
   loader: ({ context, deps }) => {
-    return context.queryClient.ensureQueryData(meWorkspacesQuery(deps));
+    return context.queryClient.fetchQuery(meWorkspacesQuery(deps));
   },
   errorComponent: ({ error }) => (
     <ScopeRouteError

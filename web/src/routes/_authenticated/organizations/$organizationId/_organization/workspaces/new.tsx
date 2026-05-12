@@ -66,7 +66,7 @@ function NewWorkspacePage() {
     onMutate: () => {
       setErrorMessage(null);
     },
-    onSuccess: async ({ workspace }) => {
+    onSuccess: async ({ access, workspace }) => {
       toast.success(`Created ${workspace.name}`);
       await Promise.all([
         queryClient.invalidateQueries({
@@ -76,6 +76,10 @@ function NewWorkspacePage() {
           queryKey: meQueryKeys.workspaceLists(),
         }),
       ]);
+      queryClient.setQueryData(
+        workspaceQueryKeys.detail(organizationId, workspace.id),
+        { access, workspace },
+      );
       await navigate({
         to: '/organizations/$organizationId/workspaces/$workspaceId',
         params: {

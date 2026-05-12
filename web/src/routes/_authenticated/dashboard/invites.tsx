@@ -48,7 +48,7 @@ export const Route = createFileRoute('/_authenticated/dashboard/invites')({
   validateSearch: parseInviteSearch,
   loaderDeps: ({ search }) => search,
   loader: ({ context, deps }) => {
-    return context.queryClient.ensureQueryData(meInvitationsQuery(deps));
+    return context.queryClient.fetchQuery(meInvitationsQuery(deps));
   },
   errorComponent: ({ error }) => (
     <ScopeRouteError

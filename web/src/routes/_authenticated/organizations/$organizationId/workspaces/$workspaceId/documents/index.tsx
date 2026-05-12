@@ -41,7 +41,7 @@ export const Route = createFileRoute(
     assertUuidParam('Organization', params.organizationId);
     assertUuidParam('Workspace', params.workspaceId);
 
-    return context.queryClient.ensureQueryData(
+    return context.queryClient.fetchQuery(
       workspacesDocumentQuery(params.organizationId, params.workspaceId, deps),
     );
   },
