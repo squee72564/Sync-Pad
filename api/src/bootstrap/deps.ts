@@ -16,6 +16,7 @@ import {
 } from '@syncpad/permify';
 import { createAuth } from '../lib/auth.js';
 import type { Env } from '../lib/env.js';
+import { createResendMailer } from '../mail/index.js';
 
 export const createApiDeps = (env: Env) => {
   const { client: db, pool } = createDbClientAndPool(env.DATABASE_URL);
@@ -68,6 +69,8 @@ export const createApiDeps = (env: Env) => {
 
   const auth = createAuth({ db, env });
 
+  const mailService = createResendMailer(env);
+
   return {
     env,
     db,
@@ -80,6 +83,7 @@ export const createApiDeps = (env: Env) => {
     documentRepository,
     permissionChecker,
     auth,
+    mailService,
   };
 };
 

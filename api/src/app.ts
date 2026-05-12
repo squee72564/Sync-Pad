@@ -11,6 +11,10 @@ import {
 } from './middleware/security.js';
 import { createOrganizationWorkspaceDocumentsRoute } from './routes/documents.js';
 import { createHealthRoute } from './routes/health.js';
+import {
+  createInvitationsRoute,
+  createOrganizationInvitationsRoute,
+} from './routes/invite.js';
 import { createMeRoute } from './routes/me.js';
 import { createOrganizationsRoute } from './routes/organizations.js';
 import { createOrganizationWorkspacesRoute } from './routes/workspaces.js';
@@ -24,6 +28,7 @@ export const createApp = (deps: ApiDeps) => {
     permissionChecker,
     auth,
     env,
+    mailService,
   } = deps;
 
   const app = new Hono<{ Variables: AppVariables }>();
@@ -50,6 +55,22 @@ export const createApp = (deps: ApiDeps) => {
   app.route(
     '/api/me',
     createMeRoute({ workspaceService, organizationService, auth }),
+  );
+  app.route(
+    '/api/organizations/:organizationId/invitations',
+    createInvitationsRoute({
+      organizationService,
+      auth,
+    }),
+  );
+  app.route(
+    '/api/organizations/:organizationId/invitations',
+    createOrganizationInvitationsRoute({
+      organizationService,
+      auth,
+      mailService,
+      permissionChecker,
+    }),
   );
   app.route(
     '/api/organizations',

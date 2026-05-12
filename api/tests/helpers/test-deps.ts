@@ -16,6 +16,7 @@ import { createApp } from '../../src/app.js';
 import type { ApiDeps } from '../../src/bootstrap/deps.js';
 import type { Auth } from '../../src/lib/auth.js';
 import type { Env } from '../../src/lib/env.js';
+import type { Mailer } from '../../src/mail/mailer.js';
 import type { AuthSession } from '../../src/types/auth.js';
 
 export const testEnvFixture: Env = {
@@ -29,6 +30,9 @@ export const testEnvFixture: Env = {
   PERMIFY_GRPC_URL: 'localhost:3478',
   PERMIFY_TENANT_ID: 'syncpad-test',
   PERMIFY_SCHEMA_VERSION: 'test',
+  RESEND_API_KEY: 're_test',
+  MAIL_FROM: 'Syncpad <invitations@example.com>',
+  ORGANIZATION_INVITE_TTL_HOURS: 168,
 };
 
 export const createTestAuth = (session: AuthSession | null = null): Auth =>
@@ -76,6 +80,13 @@ export const createTestDeps = (overrides: Partial<ApiDeps> = {}): ApiDeps => {
       updateDocument: vi.fn(),
     } as unknown as DocumentService,
     env: testEnvFixture,
+    mailService: {
+      organizationInvite: {
+        baseUrl: testEnvFixture.BETTER_AUTH_URL,
+        ttlHours: testEnvFixture.ORGANIZATION_INVITE_TTL_HOURS,
+      },
+      sendOrganizationInvite: vi.fn(),
+    } as unknown as Mailer,
     organizationRepository: {
       findById: vi.fn(),
       listMemberships: vi.fn(),
