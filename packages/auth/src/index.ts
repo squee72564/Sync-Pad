@@ -30,7 +30,18 @@ export function createSyncpadAuth({
       enabled: true,
       requireEmailVerification: false,
     },
+    rateLimit: {
+      customRules: {
+        '/get-session': {
+          window: 10,
+          max: 1_000,
+        },
+      },
+    },
     advanced: {
+      ipAddress: {
+        ipAddressHeaders: ['cf-connecting-ip', 'x-forwarded-for', 'x-real-ip'],
+      },
       useSecureCookies: config.nodeEnv === 'production',
       defaultCookieAttributes: {
         httpOnly: true,

@@ -52,11 +52,22 @@ describe('createSyncpadAuth', () => {
       }),
     );
     expect(mocks.betterAuth.mock.calls[0]?.[0].advanced).toEqual({
+      ipAddress: {
+        ipAddressHeaders: ['cf-connecting-ip', 'x-forwarded-for', 'x-real-ip'],
+      },
       useSecureCookies: false,
       defaultCookieAttributes: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
+      },
+    });
+    expect(mocks.betterAuth.mock.calls[0]?.[0].rateLimit).toEqual({
+      customRules: {
+        '/get-session': {
+          window: 10,
+          max: 1000,
+        },
       },
     });
   });
