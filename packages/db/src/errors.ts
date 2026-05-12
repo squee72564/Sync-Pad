@@ -17,6 +17,20 @@ const isPostgresErrorLike = (value: unknown): value is PostgresErrorLike =>
   value instanceof Error &&
   typeof (value as PostgresErrorLike).code === 'string';
 
+const findPostgresErrorLike = (value: unknown): PostgresErrorLike | null => {
+  let current = value;
+
+  while (current instanceof Error) {
+    if (isPostgresErrorLike(current)) {
+      return current;
+    }
+
+    current = current.cause;
+  }
+
+  return null;
+};
+
 const getSqlStateClass = (sqlState: string) => sqlState.slice(0, 2);
 
 export const toDbError = (
@@ -27,21 +41,23 @@ export const toDbError = (
     return error;
   }
 
+  const postgresError = findPostgresErrorLike(error);
+
   const metadata = {
     entity: context.entity,
     operation: context.operation,
-    ...(isPostgresErrorLike(error)
+    ...(postgresError
       ? {
-          column: error.column,
-          constraint: error.constraint,
-          schema: error.schema,
-          sqlState: error.code,
-          table: error.table,
+          column: postgresError.column,
+          constraint: postgresError.constraint,
+          schema: postgresError.schema,
+          sqlState: postgresError.code,
+          table: postgresError.table,
         }
       : {}),
   };
 
-  if (!isPostgresErrorLike(error)) {
+  if (!postgresError) {
     return new DbError({
       cause: error,
       code: 'DATABASE_OPERATION_FAILED',
@@ -51,7 +67,7 @@ export const toDbError = (
     });
   }
 
-  const sqlState = error.code;
+  const sqlState = postgresError.code;
 
   switch (sqlState) {
     case '23505':
