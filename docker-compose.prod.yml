@@ -1,0 +1,99 @@
+services:
+  web-build:
+    image: syncpad-app:prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c 'rm -rf /app/web/dist/* && pnpm --filter @syncpad/web build'
+    volumes:
+      - ./deploy/web-dist:/app/web/dist
+    profiles:
+      - build
+
+  api:
+    image: syncpad-app:prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - api/.env.prod
+    command: pnpm --filter @syncpad/api start
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      permify:
+        condition: service_started
+    ports:
+      - '127.0.0.1:3001:3001'
+
+  embedding:
+    image: syncpad-app:prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - embedding/.env.prod
+    command: pnpm --filter @syncpad/embedding start
+    profiles:
+      - workers
+
+  websocket:
+    image: syncpad-app:prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - websocket/.env.prod
+    command: pnpm --filter @syncpad/websocket start
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      permify:
+        condition: service_started
+    ports:
+      - '127.0.0.1:1234:1234'
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: syncpad-postgres
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT}:5432'
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres-data-prod:/var/lib/postgresql/data
+
+  permify:
+    image: ghcr.io/permify/permify:v1.6.9
+    container_name: syncpad-permify
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:3476:3476'
+      - '127.0.0.1:3478:3478'
+    environment:
+      PERMIFY_LOG_LEVEL: info
+      PERMIFY_LOG_OUTPUT: text
+      PERMIFY_HTTP_ENABLED: 'true'
+      PERMIFY_HTTP_PORT: '3476'
+      PERMIFY_GRPC_PORT: '3478'
+      PERMIFY_DATABASE_ENGINE: postgres
+      PERMIFY_DATABASE_URI: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      PERMIFY_DATABASE_AUTO_MIGRATE: 'true'
+
+volumes:
+  postgres-data-prod:
