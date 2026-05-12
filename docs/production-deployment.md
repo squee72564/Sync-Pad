@@ -26,6 +26,40 @@ The default Compose configuration binds service ports to loopback on the host:
 The web app is static after `vite build`. The `web-build` service writes the
 build output to `deploy/web-dist`.
 
+## Scripted Deployment
+
+The `infra/prod` scripts wrap the Compose commands below and keep the
+production flow repeatable. They assume Bash, Docker Compose, and standard Unix
+tools available on the host.
+
+For a first-time production bootstrap:
+
+```bash
+infra/prod/bootstrap.sh --web-root /path/to/static/web-root
+```
+
+For the common "code was pulled, rebuild and restart" flow:
+
+```bash
+infra/prod/refresh.sh --web-root /path/to/static/web-root
+```
+
+Use `--skip-web` when only API/websocket containers need refreshing. Use
+`--bootstrap` with `refresh.sh` when a deployment includes database migrations
+or Permify schema changes:
+
+```bash
+infra/prod/refresh.sh --bootstrap --web-root /path/to/static/web-root
+```
+
+Both scripts log each step, print final Compose state, and check the API health
+endpoints on `127.0.0.1:3001` when `curl` is available. The `--web-root` flag
+is optional; when omitted, the scripts leave built web assets in
+`deploy/web-dist`.
+
+The scripts do not configure Caddy, Nginx, Traefik, or any other web server.
+The reverse proxy/static server remains a separate host setup step.
+
 ## Environment Files
 
 Create production env files from the examples:
@@ -39,6 +73,12 @@ cp embedding/.env.prod.example embedding/.env.prod
 
 `.env.prod` is for Compose interpolation and infrastructure values. The
 service-specific env files are injected into only their matching service.
+
+The bootstrap script can create missing env files from those examples, but it
+will not overwrite existing env files. It refuses to continue while production
+env files still contain placeholder `replace-me` values, except for
+`PERMIFY_SCHEMA_VERSION` before the Permify bootstrap has run. The embedding
+env file is only required by the scripts when starting the optional worker.
 
 Inside Compose, API and websocket should address infrastructure by service name:
 
@@ -87,6 +127,9 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm api pnpm
 This applies database migrations and writes the Permify authorization schema.
 The Permify bootstrap prints a `PERMIFY_SCHEMA_VERSION=...` value. Set that
 value in both `api/.env.prod` and `websocket/.env.prod`.
+
+`infra/prod/bootstrap.sh` and `infra/prod/refresh.sh --bootstrap` capture that
+printed schema version and update those two env files automatically.
 
 ## Start Services
 
