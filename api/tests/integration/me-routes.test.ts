@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   authenticatedSession,
+  organizationInviteRecord,
   organizationRecord,
   workspaceSummary,
 } from '../helpers/fixtures.js';
@@ -177,6 +178,112 @@ describe('me routes', () => {
     ).toHaveBeenCalledWith({
       actorUserId: 'user_1',
       q: 'acme',
+      pagination: {
+        limit: 10,
+        cursor: 'abc',
+      },
+    });
+  });
+
+  it('returns 401 for unauthenticated invitation list requests', async () => {
+    const response = await createTestApp({
+      auth: createTestAuth(null),
+    }).request('/api/me/invitations');
+
+    expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
+    expect(await response.json()).toMatchObject({
+      code: 'UNAUTHENTICATED',
+      detail: 'Authentication is required.',
+    });
+  });
+
+  it('returns organization invitations for the authenticated user email', async () => {
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(
+      deps.organizationService.listOrganizationInvitesForUserPage,
+    ).mockResolvedValue({
+      organizationInvites: [organizationInviteRecord],
+      pageInfo: {
+        limit: 24,
+        nextCursor: null,
+        hasNextPage: false,
+      },
+    });
+
+    const response = await createTestApp(deps).request('/api/me/invitations');
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(
+      deps.organizationService.listOrganizationInvitesForUserPage,
+    ).toHaveBeenCalledWith({
+      userEmail: 'user@example.com',
+      q: undefined,
+      status: undefined,
+      pagination: {
+        limit: 24,
+        cursor: undefined,
+      },
+    });
+    const responseJson = (await response.json()) as {
+      organizationInvites: Record<string, unknown>[];
+    };
+    expect(responseJson.organizationInvites[0]).not.toHaveProperty('tokenHash');
+    expect(responseJson).toEqual({
+      organizationInvites: [
+        {
+          id: organizationInviteRecord.id,
+          organizationId: organizationInviteRecord.organizationId,
+          email: organizationInviteRecord.email,
+          organizationRole: organizationInviteRecord.organizationRole,
+          status: organizationInviteRecord.status,
+          invitedBy: organizationInviteRecord.invitedBy,
+          acceptedBy: organizationInviteRecord.acceptedBy,
+          expiresAt: organizationInviteRecord.expiresAt.toISOString(),
+          acceptedAt: organizationInviteRecord.acceptedAt,
+          declinedAt: organizationInviteRecord.declinedAt,
+          revokedAt: organizationInviteRecord.revokedAt,
+          lastSentAt: organizationInviteRecord.lastSentAt.toISOString(),
+          createdAt: organizationInviteRecord.createdAt.toISOString(),
+          updatedAt: organizationInviteRecord.updatedAt.toISOString(),
+          isExpired: true,
+        },
+      ],
+      pageInfo: {
+        limit: 24,
+        nextCursor: null,
+        hasNextPage: false,
+      },
+    });
+  });
+
+  it('passes invitation search, status, and pagination query params to the service', async () => {
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(
+      deps.organizationService.listOrganizationInvitesForUserPage,
+    ).mockResolvedValue({
+      organizationInvites: [],
+      pageInfo: {
+        limit: 10,
+        nextCursor: null,
+        hasNextPage: false,
+      },
+    });
+
+    const response = await createTestApp(deps).request(
+      '/api/me/invitations?q=acme&status=pending&limit=10&cursor=abc',
+    );
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(
+      deps.organizationService.listOrganizationInvitesForUserPage,
+    ).toHaveBeenCalledWith({
+      userEmail: 'user@example.com',
+      q: 'acme',
+      status: 'pending',
       pagination: {
         limit: 10,
         cursor: 'abc',

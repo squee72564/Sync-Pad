@@ -5,11 +5,14 @@ import { StatusCodes } from 'http-status-codes';
 import type { Auth } from '../lib/auth.js';
 import { type AppVariables, CURRENT_USER_CONTEXT_KEY } from '../lib/context.js';
 import { ApiError } from '../lib/error.js';
+import { toOrganizationInviteResponse } from '../lib/organization-invite-response.js';
 import { createAuthenticationMiddleware } from '../middleware/authentication.js';
 import { getValidated, validateRequest } from '../middleware/validation.js';
 import {
+  type MeOrganizationInvitesQuery,
   type MeOrganizationsQuery,
   type MeWorkspacesQuery,
+  meOrganizationInvitesQuerySchema,
   meOrganizationsQuerySchema,
   meWorkspacesQuerySchema,
 } from '../schemas/me.js';
@@ -85,6 +88,39 @@ export function createMeRoute({
         });
 
         return context.json(result, StatusCodes.OK);
+      },
+    )
+    .get(
+      '/invitations',
+      requireAuth(),
+      validateRequest({ query: meOrganizationInvitesQuerySchema }),
+      async (context) => {
+        const { query } = getValidated<
+          never,
+          MeOrganizationInvitesQuery,
+          never
+        >(context);
+        const user = getCurrentUser(context);
+        const { organizationInvites, pageInfo } =
+          await organizationService.listOrganizationInvitesForUserPage({
+            pagination: {
+              limit: query.limit,
+              cursor: query.cursor,
+            },
+            q: query.q,
+            status: query.status,
+            userEmail: user.email,
+          });
+
+        return context.json(
+          {
+            organizationInvites: organizationInvites.map(
+              toOrganizationInviteResponse,
+            ),
+            pageInfo,
+          },
+          StatusCodes.OK,
+        );
       },
     );
 }

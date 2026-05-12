@@ -106,6 +106,7 @@ export const createTestDeps = (overrides: Partial<ApiDeps> = {}): ApiDeps => {
         },
       }),
       listMemberships: vi.fn(),
+      listOrganizationInvitesForUserPage: vi.fn(),
       listOrganizationsForUser: vi.fn(),
       listOrganizationsForUserPage: vi.fn(),
       updateMember: vi.fn(),

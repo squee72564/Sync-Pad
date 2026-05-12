@@ -34,6 +34,24 @@ export const workspaceSummary = {
   workspaceRole: 'editor' as const,
 };
 
+export const organizationInviteRecord = {
+  id: 'org_invite_1',
+  organizationId: organizationRecord.id,
+  email: 'user@example.com',
+  tokenHash: 'token_hash_1',
+  organizationRole: 'member' as const,
+  status: 'pending' as const,
+  invitedBy: 'user_2',
+  acceptedBy: null,
+  expiresAt: new Date('2024-02-02T03:04:05.000Z'),
+  acceptedAt: null,
+  declinedAt: null,
+  revokedAt: null,
+  lastSentAt: new Date('2024-01-02T03:04:05.000Z'),
+  createdAt: new Date('2024-01-02T03:04:05.000Z'),
+  updatedAt: new Date('2024-01-03T03:04:05.000Z'),
+};
+
 export const authenticatedSession: AuthSession = {
   session: {
     id: 'sess_1',

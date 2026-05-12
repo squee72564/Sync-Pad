@@ -207,6 +207,8 @@ export type MeWorkspacesResponse = {
   pageInfo: PageInfoDto;
 };
 
+export type MeOrganizationInvitesResponse = OrganizationInvitesResponse;
+
 export type OrganizationMembersDetailedResponse = {
   memberships: OrganizationMembersDetailedDto[];
 };
