@@ -36,7 +36,7 @@ export const createApiDeps = (env: Env) => {
     endpoint: toGrpcEndpoint(env.PERMIFY_GRPC_URL),
     tenantId: env.PERMIFY_TENANT_ID,
     schemaVersion: env.PERMIFY_SCHEMA_VERSION,
-    insecure: env.NODE_ENV !== 'production',
+    insecure: env.PERMIFY_GRPC_INSECURE,
   });
 
   const permissionChecker = createPermissionChecker(permifyInstance);

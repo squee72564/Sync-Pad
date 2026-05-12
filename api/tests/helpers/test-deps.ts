@@ -28,6 +28,7 @@ export const testEnvFixture: Env = {
   BETTER_AUTH_URL: 'http://localhost:3001',
   PERMIFY_HTTP_URL: 'http://localhost:3476',
   PERMIFY_GRPC_URL: 'localhost:3478',
+  PERMIFY_GRPC_INSECURE: true,
   PERMIFY_TENANT_ID: 'syncpad-test',
   PERMIFY_SCHEMA_VERSION: 'test',
   RESEND_API_KEY: 're_test',

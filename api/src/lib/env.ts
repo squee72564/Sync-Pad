@@ -15,6 +15,7 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.url(),
   PERMIFY_HTTP_URL: z.url(),
   PERMIFY_GRPC_URL: z.string().min(1),
+  PERMIFY_GRPC_INSECURE: z.stringbool().default(true),
   PERMIFY_TENANT_ID: z.string().min(1).default('syncpad'),
   PERMIFY_SCHEMA_VERSION: z.string().min(1),
   RESEND_API_KEY: z.string().min(1),

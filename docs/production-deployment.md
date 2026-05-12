@@ -46,11 +46,17 @@ Inside Compose, API and websocket should address infrastructure by service name:
 DATABASE_URL=postgres://syncpad:replace-me@postgres:5432/syncpad-prod
 PERMIFY_HTTP_URL=http://permify:3476
 PERMIFY_GRPC_URL=permify:3478
+PERMIFY_GRPC_INSECURE=true
 ```
 
 Set `BETTER_AUTH_URL` to the public origin that browsers will use for the app,
 for example `https://app.example.com`. Use the same `BETTER_AUTH_SECRET` in the
 API and websocket env files.
+
+`PERMIFY_GRPC_INSECURE=true` is the expected setting when the app talks to the
+Compose-managed Permify gRPC service over the private Docker network without
+TLS. Set it to `false` only when connecting to a TLS-enabled Permify gRPC
+endpoint.
 
 ## Build
 
