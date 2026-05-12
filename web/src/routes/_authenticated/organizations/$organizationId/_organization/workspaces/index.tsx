@@ -4,6 +4,7 @@ import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { SearchQueryInput } from '#/components/search-query-input';
+import { Button } from '#/components/ui/button';
 import { WorkspaceCard } from '#/components/workspace-card';
 import { organizationWorkspacesQuery } from '#/features/workspaces/queries';
 import {
@@ -36,8 +37,18 @@ export const Route = createFileRoute(
 
 function OrganizationWorkspaceListPage() {
   const { workspaces } = Route.useLoaderData();
+  const { organizationId } = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+
+  const navigateToWorkspaceCreationPage = async () => {
+    navigate({
+      to: '/organizations/$organizationId/workspaces/new',
+      params: {
+        organizationId,
+      },
+    });
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -45,6 +56,11 @@ function OrganizationWorkspaceListPage() {
         eyebrow="Workspaces"
         title="Workspaces"
         description="Workspaces within your organization."
+        actions={
+          <Button className="px-auto" onClick={navigateToWorkspaceCreationPage}>
+            Create New Workspace
+          </Button>
+        }
       >
         <SearchQueryInput
           onSearchChange={(q) =>

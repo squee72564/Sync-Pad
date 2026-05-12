@@ -11,6 +11,7 @@ import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
 import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar';
 import { Badge } from '#/components/ui/badge';
+import { Button } from '#/components/ui/button';
 import {
   Card,
   CardAction,
@@ -45,12 +46,21 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const { memberships } = Route.useLoaderData();
-  const activeMemberCount = memberships.filter(
-    (membership) => membership.status === 'active',
-  ).length;
-  const ownerCount = memberships.filter(
-    (membership) => membership.organizationRole === 'owner',
-  ).length;
+  const { organizationId } = Route.useParams();
+  const navigate = Route.useNavigate();
+
+  const navigateToInvitePage = async () => {
+    navigate({
+      to: '/organizations/$organizationId/invite',
+      params: {
+        organizationId,
+      },
+      search: {
+        status: 'pending',
+        cursor: undefined,
+      },
+    });
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -59,10 +69,9 @@ function RouteComponent() {
         title="Organization Members"
         description="Review who has access to this organization and the role assigned to each account."
       >
-        <div className="grid grid-cols-3 gap-2 sm:min-w-80">
+        <div className="grid grid-rows-2 gap-2 sm:min-w-80 items-center">
           <PageHeaderStat label="Total" value={memberships.length} />
-          <PageHeaderStat label="Active" value={activeMemberCount} />
-          <PageHeaderStat label="Owners" value={ownerCount} />
+          <Button onClick={navigateToInvitePage}>Manage Member Invites</Button>
         </div>
       </PageHeader>
 
