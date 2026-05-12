@@ -22,6 +22,7 @@ import { Route as AuthenticatedDashboardWorkspacesRouteImport } from './routes/_
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated/dashboard/settings'
 import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard/profile'
 import { Route as AuthenticatedDashboardOrganizationsRouteImport } from './routes/_authenticated/dashboard/organizations'
+import { Route as AuthenticatedDashboardInvitesRouteImport } from './routes/_authenticated/dashboard/invites'
 import { Route as AuthenticatedOrganizationsOrganizationIdRouteRouteImport } from './routes/_authenticated/organizations/$organizationId/route'
 import { Route as AuthenticatedDashboardOrganizationsNewRouteImport } from './routes/_authenticated/dashboard/organizations_.new'
 import { Route as AuthenticatedOrganizationsOrganizationIdWorkspacesRouteRouteImport } from './routes/_authenticated/organizations/$organizationId/workspaces/route'
@@ -109,6 +110,12 @@ const AuthenticatedDashboardOrganizationsRoute =
   AuthenticatedDashboardOrganizationsRouteImport.update({
     id: '/organizations',
     path: '/organizations',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
+const AuthenticatedDashboardInvitesRoute =
+  AuthenticatedDashboardInvitesRouteImport.update({
+    id: '/invites',
+    path: '/invites',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
   } as any)
 const AuthenticatedOrganizationsOrganizationIdRouteRoute =
@@ -247,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/organizations': typeof AuthenticatedOrganizationsRouteRouteWithChildren
   '/organizations/$organizationId': typeof AuthenticatedOrganizationsOrganizationIdOrganizationRouteRouteWithChildren
+  '/dashboard/invites': typeof AuthenticatedDashboardInvitesRoute
   '/dashboard/organizations': typeof AuthenticatedDashboardOrganizationsRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
@@ -275,6 +283,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/organizations': typeof AuthenticatedOrganizationsRouteRouteWithChildren
   '/organizations/$organizationId': typeof AuthenticatedOrganizationsOrganizationIdOrganizationIndexRoute
+  '/dashboard/invites': typeof AuthenticatedDashboardInvitesRoute
   '/dashboard/organizations': typeof AuthenticatedDashboardOrganizationsRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
@@ -303,6 +312,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/_authenticated/organizations': typeof AuthenticatedOrganizationsRouteRouteWithChildren
   '/_authenticated/organizations/$organizationId': typeof AuthenticatedOrganizationsOrganizationIdRouteRouteWithChildren
+  '/_authenticated/dashboard/invites': typeof AuthenticatedDashboardInvitesRoute
   '/_authenticated/dashboard/organizations': typeof AuthenticatedDashboardOrganizationsRoute
   '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/organizations'
     | '/organizations/$organizationId'
+    | '/dashboard/invites'
     | '/dashboard/organizations'
     | '/dashboard/profile'
     | '/dashboard/settings'
@@ -363,6 +374,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/organizations'
     | '/organizations/$organizationId'
+    | '/dashboard/invites'
     | '/dashboard/organizations'
     | '/dashboard/profile'
     | '/dashboard/settings'
@@ -390,6 +402,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/organizations'
     | '/_authenticated/organizations/$organizationId'
+    | '/_authenticated/dashboard/invites'
     | '/_authenticated/dashboard/organizations'
     | '/_authenticated/dashboard/profile'
     | '/_authenticated/dashboard/settings'
@@ -515,6 +528,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardOrganizationsRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
     }
+    '/_authenticated/dashboard/invites': {
+      id: '/_authenticated/dashboard/invites'
+      path: '/invites'
+      fullPath: '/dashboard/invites'
+      preLoaderRoute: typeof AuthenticatedDashboardInvitesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
     '/_authenticated/organizations/$organizationId': {
       id: '/_authenticated/organizations/$organizationId'
       path: '/$organizationId'
@@ -631,6 +651,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedDashboardRouteRouteChildren {
+  AuthenticatedDashboardInvitesRoute: typeof AuthenticatedDashboardInvitesRoute
   AuthenticatedDashboardOrganizationsRoute: typeof AuthenticatedDashboardOrganizationsRoute
   AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
   AuthenticatedDashboardSettingsRoute: typeof AuthenticatedDashboardSettingsRoute
@@ -641,6 +662,7 @@ interface AuthenticatedDashboardRouteRouteChildren {
 
 const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRouteChildren =
   {
+    AuthenticatedDashboardInvitesRoute: AuthenticatedDashboardInvitesRoute,
     AuthenticatedDashboardOrganizationsRoute:
       AuthenticatedDashboardOrganizationsRoute,
     AuthenticatedDashboardProfileRoute: AuthenticatedDashboardProfileRoute,

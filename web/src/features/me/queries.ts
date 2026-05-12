@@ -1,7 +1,12 @@
 import { queryOptions } from '@tanstack/react-query';
 
-import { getMeOrganizations, getMeUser, getMeWorkspaces } from './api';
-import type { MeListSearch } from './types';
+import {
+  getMeInvitations,
+  getMeOrganizations,
+  getMeUser,
+  getMeWorkspaces,
+} from './api';
+import type { MeInvitationsSearch, MeListSearch } from './types';
 
 export const meQueryKeys = {
   all: ['me'] as const,
@@ -12,6 +17,9 @@ export const meQueryKeys = {
   workspaceLists: () => [...meQueryKeys.all, 'workspaces'] as const,
   workspaces: (search: MeListSearch = {}) =>
     [...meQueryKeys.workspaceLists(), search] as const,
+  invitationLists: () => [...meQueryKeys.all, 'invitations'] as const,
+  invitations: (search: MeInvitationsSearch = {}) =>
+    [...meQueryKeys.invitationLists(), search] as const,
 };
 
 export const meUserQuery = () =>
@@ -32,5 +40,12 @@ export const meWorkspacesQuery = (search: MeListSearch = {}) =>
   queryOptions({
     queryFn: () => getMeWorkspaces(search),
     queryKey: meQueryKeys.workspaces(search),
+    staleTime: 60_000,
+  });
+
+export const meInvitationsQuery = (search: MeInvitationsSearch = {}) =>
+  queryOptions({
+    queryFn: () => getMeInvitations(search),
+    queryKey: meQueryKeys.invitations(search),
     staleTime: 60_000,
   });

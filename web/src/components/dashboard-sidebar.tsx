@@ -3,6 +3,7 @@ import {
   Building2Icon,
   FolderKanbanIcon,
   HomeIcon,
+  MailIcon,
   PlusCircleIcon,
   Settings2Icon,
   UserIcon,
@@ -30,6 +31,7 @@ type PrimaryNavItem = {
   title: string;
   to:
     | '/dashboard'
+    | '/dashboard/invites'
     | '/dashboard/organizations'
     | '/dashboard/organizations/new'
     | '/dashboard/workspaces';
@@ -71,6 +73,11 @@ const browseNavItems: PrimaryNavItem[] = [
     title: 'Workspaces',
     to: '/dashboard/workspaces',
     icon: FolderKanbanIcon,
+  },
+  {
+    title: 'Invites',
+    to: '/dashboard/invites',
+    icon: MailIcon,
   },
 ];
 
