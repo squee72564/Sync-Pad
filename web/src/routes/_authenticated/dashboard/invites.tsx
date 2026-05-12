@@ -20,20 +20,27 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group';
 import { meInvitationsQuery } from '#/features/me/queries';
 import type {
   MeInvitationsSearch,
   MeOrganizationInvite,
   OrganizationInviteStatus,
 } from '#/features/me/types';
-import {
-  parseListQuerySearch,
-  withListQuerySearch,
-} from '#/lib/api/list-query';
+import { parseListQuerySearch } from '#/lib/api/list-query';
 import { cn, formatDate, formatShortDate } from '#/lib/utils';
 
+const inviteStatuses = [
+  'pending',
+  'accepted',
+  'declined',
+  'expired',
+  'revoked',
+] as const satisfies readonly OrganizationInviteStatus[];
+type InviteStatusFilter = OrganizationInviteStatus;
+
 export const Route = createFileRoute('/_authenticated/dashboard/invites')({
-  validateSearch: parseListQuerySearch,
+  validateSearch: parseInviteSearch,
   loaderDeps: ({ search }) => search,
   loader: ({ context, deps }) => {
     return context.queryClient.ensureQueryData(meInvitationsQuery(deps));
@@ -52,6 +59,28 @@ function InvitesPage() {
   const { organizationInvites, pageInfo } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+
+  const updateStatus = (status: InviteStatusFilter) => {
+    navigate({
+      replace: true,
+      search: (current) => ({
+        ...current,
+        status,
+        cursor: undefined,
+      }),
+    });
+  };
+
+  const updateSearchQuery = (q: string) => {
+    navigate({
+      replace: true,
+      search: (current) => ({
+        ...current,
+        q: toOptionalString(q),
+        cursor: undefined,
+      }),
+    });
+  };
 
   const goToNextPage = () => {
     if (!pageInfo.nextCursor) {
@@ -73,16 +102,32 @@ function InvitesPage() {
         title="Invites"
         description="Organization invitations sent to your account email."
       >
-        <SearchQueryInput
-          onSearchChange={(q) =>
-            navigate({
-              replace: true,
-              search: (current) => withListQuerySearch(current, q),
-            })
-          }
-          placeholder="Search invites..."
-          value={search.q}
-        />
+        <div className="flex w-full flex-col gap-3 sm:min-w-[36rem]">
+          <SearchQueryInput
+            className="max-w-none"
+            onSearchChange={updateSearchQuery}
+            placeholder="Search invites..."
+            value={search.q}
+          />
+          <ToggleGroup
+            type="single"
+            value={search.status}
+            onValueChange={(value) => {
+              if (isInviteStatusFilter(value)) {
+                updateStatus(value);
+              }
+            }}
+            variant="outline"
+            size="sm"
+            className="flex-wrap"
+          >
+            {inviteStatuses.map((status) => (
+              <ToggleGroupItem key={status} value={status}>
+                {formatLabel(status)}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
       </PageHeader>
 
       {organizationInvites.length > 0 ? (
@@ -236,16 +281,54 @@ function getStatusBadgeVariant(status: OrganizationInviteStatus) {
   return 'outline';
 }
 
+function parseInviteSearch(
+  search: Record<string, unknown>,
+): MeInvitationsSearch {
+  return {
+    ...parseListQuerySearch(search),
+    status: toInviteStatusFilter(search.status),
+  };
+}
+
+function toOptionalString(value: unknown) {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function toInviteStatusFilter(value: unknown): InviteStatusFilter {
+  return isInviteStatusFilter(value) ? value : 'pending';
+}
+
+function isInviteStatusFilter(value: unknown): value is InviteStatusFilter {
+  return (
+    typeof value === 'string' &&
+    inviteStatuses.some((status) => status === value)
+  );
+}
+
 function getEmptyStateTitle(search: MeInvitationsSearch) {
-  return search.q ? 'No invites found' : 'No invites';
+  if (search.q) {
+    return 'No invites found';
+  }
+
+  return `No ${formatLabel(search.status ?? 'pending').toLowerCase()} invites`;
 }
 
 function getEmptyStateDescription(search: MeInvitationsSearch) {
   if (search.q) {
-    return `No invitations match "${search.q}".`;
+    return `No ${formatLabel(search.status ?? 'pending').toLowerCase()} invitations match "${search.q}".`;
   }
 
-  return 'Organization invitations sent to your account email will appear here.';
+  if (search.status === 'pending') {
+    return 'Organization invitations sent to your account email will appear here.';
+  }
+
+  return `There are no ${formatLabel(search.status ?? 'pending').toLowerCase()} invitations sent to your account email.`;
 }
 
 function formatLabel(value: string) {
