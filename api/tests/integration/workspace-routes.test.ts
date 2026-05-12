@@ -26,6 +26,56 @@ describe('workspace routes', () => {
     expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
   });
 
+  it('returns workspace access when creating a workspace', async () => {
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
+      organizationRecord,
+    );
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    vi.mocked(deps.workspaceService.createWorkspace).mockResolvedValue(
+      workspaceRecord,
+    );
+
+    const response = await createTestApp(deps).request(
+      '/api/organizations/org_1/workspaces',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: 'Docs',
+          description: 'Desc',
+          color: '#80808080',
+        }),
+      },
+    );
+
+    expect(response.status).toBe(StatusCodes.CREATED);
+    await expect(response.json()).resolves.toMatchObject({
+      access: {
+        permissions: {
+          read: true,
+          manage: true,
+          invite: true,
+          write: true,
+          comment: true,
+          run_ai: true,
+        },
+      },
+      workspace: {
+        id: workspaceRecord.id,
+      },
+    });
+    expect(deps.workspaceService.getWorkspaceAccess).toHaveBeenCalledWith({
+      actorUserId: authenticatedSession.user.id,
+      workspaceId: workspaceRecord.id,
+      permissions: ['comment', 'write', 'read', 'manage', 'invite', 'run_ai'],
+    });
+  });
+
   it('returns canonical 503 when workspace creation sync fails', async () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),

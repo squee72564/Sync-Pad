@@ -146,7 +146,13 @@ export function createOrganizationWorkspacesRoute({
         organizationId: params.organizationId,
         input: json,
       });
-      return context.json({ workspace }, StatusCodes.CREATED);
+      const access = await workspaceService.getWorkspaceAccess({
+        actorUserId: user.id,
+        workspaceId: workspace.id,
+        permissions: ['comment', 'write', 'read', 'manage', 'invite', 'run_ai'],
+      });
+
+      return context.json({ workspace, access }, StatusCodes.CREATED);
     },
   );
 
