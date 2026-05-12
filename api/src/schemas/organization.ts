@@ -31,7 +31,7 @@ export const addOrganizationMemberSchema = z.object({
   organizationRole: z.enum(coreSchema.organizationRoleEnum.enumValues),
   status: z
     .enum(coreSchema.organizationMembershipStatusEnum.enumValues)
-    .default('invited'),
+    .default('active'),
 });
 export type AddOrganizationMemberInput = z.infer<
   typeof addOrganizationMemberSchema

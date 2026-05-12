@@ -66,7 +66,6 @@ export const seedOrganizationMembership = async (input: {
   organizationId: string;
   organizationRole?: OrganizationRole;
   status?: OrganizationMembershipStatus;
-  invitedBy?: string | null;
   joinedAt?: Date | null;
 }) => {
   await db.insert(coreSchema.organizationMembership).values({
@@ -74,10 +73,9 @@ export const seedOrganizationMembership = async (input: {
     organizationId: input.organizationId,
     organizationRole: input.organizationRole ?? 'member',
     status: input.status ?? 'active',
-    invitedBy: input.invitedBy ?? input.userId,
     joinedAt:
       input.joinedAt === undefined
-        ? input.status === 'invited'
+        ? input.status === 'suspended'
           ? null
           : FIXED_DATE
         : input.joinedAt,

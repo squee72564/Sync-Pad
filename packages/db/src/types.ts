@@ -13,6 +13,8 @@ export type NewOrganization = InferInsertModel<typeof coreSchema.organization>;
 export type OrganizationRole = InferEnum<
   typeof coreSchema.organizationRoleEnum
 >;
+export type InvitableOrganizationRole =
+  (typeof coreSchema.invitableOrganizationRoleEnum)[number];
 export type OrganizationMembership = InferSelectModel<
   typeof coreSchema.organizationMembership
 >;
@@ -21,6 +23,15 @@ export type NewOrganizationMembership = InferInsertModel<
 >;
 export type OrganizationMembershipStatus = InferEnum<
   typeof coreSchema.organizationMembershipStatusEnum
+>;
+export type OrganizationInvite = InferSelectModel<
+  typeof coreSchema.organizationInvite
+>;
+export type NewOrganizationInvite = InferInsertModel<
+  typeof coreSchema.organizationInvite
+>;
+export type OrganizationInviteStatus = InferEnum<
+  typeof coreSchema.organizationInviteStatusEnum
 >;
 
 export type Workspace = InferSelectModel<typeof coreSchema.workspace>;

@@ -96,7 +96,7 @@ describe('organization service', () => {
     });
   });
 
-  it('syncs active organization memberships but skips invited memberships', async () => {
+  it('syncs active organization memberships but skips suspended memberships', async () => {
     const syncApply = vi.fn().mockResolvedValue(undefined);
     const organizationRepo = {
       listOrganizationsForUser: vi.fn(),
@@ -118,10 +118,10 @@ describe('organization service', () => {
           updatedAt: fixtureDate,
         })
         .mockResolvedValueOnce({
-          userId: 'user_invited',
+          userId: 'user_suspended',
           organizationId: 'org_1',
           organizationRole: 'member',
-          status: 'invited',
+          status: 'suspended',
           invitedBy: 'owner_1',
           joinedAt: null,
           createdAt: fixtureDate,
@@ -152,10 +152,10 @@ describe('organization service', () => {
     await service.addMember({
       actorUserId: 'owner_1',
       organizationId: 'org_1',
-      userId: 'user_invited',
+      userId: 'user_suspended',
       input: {
         organizationRole: 'member',
-        status: 'invited',
+        status: 'suspended',
       },
     });
 
@@ -246,10 +246,10 @@ describe('organization service', () => {
         updatedAt: fixtureDate,
       })
       .mockResolvedValueOnce({
-        userId: 'user_invited',
+        userId: 'user_suspended',
         organizationId: 'org_1',
         organizationRole: 'member',
-        status: 'invited',
+        status: 'suspended',
         invitedBy: 'owner_1',
         joinedAt: null,
         createdAt: fixtureDate,
@@ -274,7 +274,7 @@ describe('organization service', () => {
     });
 
     await service.deleteMember('org_1', 'user_active');
-    await service.deleteMember('org_1', 'user_invited');
+    await service.deleteMember('org_1', 'user_suspended');
 
     expect(syncApply).toHaveBeenCalledTimes(1);
     expect(syncApply).toHaveBeenCalledWith([

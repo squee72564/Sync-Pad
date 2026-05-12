@@ -59,11 +59,6 @@ export const organizationMembershipRelations = relations(
       fields: [organizationMembership.organizationId],
       references: [organization.id],
     }),
-    inviter: one(user, {
-      fields: [organizationMembership.invitedBy],
-      references: [user.id],
-      relationName: 'organization_membership_inviter',
-    }),
   }),
 );
 

@@ -282,7 +282,7 @@ describe('workspace service', () => {
           userId: 'user_2',
           organizationId: 'org_1',
           organizationRole: 'member',
-          status: 'invited',
+          status: 'suspended',
           invitedBy: 'owner_1',
           joinedAt: null,
           createdAt: fixtureDate,

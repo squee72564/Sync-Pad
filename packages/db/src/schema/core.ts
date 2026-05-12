@@ -40,9 +40,15 @@ export const organizationRoleEnum = pgEnum('organization_role', [
   'guest',
 ]);
 
+export const invitableOrganizationRoleEnum = [
+  'admin',
+  'member',
+  'guest',
+] as const;
+
 export const organizationMembershipStatusEnum = pgEnum(
   'organization_membership_status',
-  ['invited', 'active', 'suspended'],
+  ['active', 'suspended'],
 );
 
 export const organizationInviteStatusEnum = pgEnum(
@@ -80,13 +86,7 @@ export const organizationMembership = pgTable(
 
     organizationRole: organizationRoleEnum('organization_role').notNull(),
 
-    // TODO: Remove invited
     status: organizationMembershipStatusEnum('status').notNull(),
-
-    // TODO: Possibly remove and keep in org invite table
-    invitedBy: text('invited_by').references(() => user.id, {
-      onDelete: 'set null',
-    }),
 
     joinedAt: timestamp('joined_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),

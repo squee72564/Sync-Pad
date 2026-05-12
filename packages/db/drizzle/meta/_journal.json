@@ -50,6 +50,13 @@
       "when": 1778447954005,
       "tag": "0006_dry_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1778538190876,
+      "tag": "0007_naive_microbe",
+      "breakpoints": true
     }
   ]
 }

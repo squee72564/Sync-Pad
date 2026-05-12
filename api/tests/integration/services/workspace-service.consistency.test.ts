@@ -251,7 +251,7 @@ describe.sequential('workspace service consistency', () => {
       userId: 'user_actor',
       organizationId: 'org_1',
       organizationRole: 'member',
-      status: 'invited',
+      status: 'suspended',
       joinedAt: null,
     });
     const service = createWorkspaceConsistencyService({
@@ -295,7 +295,7 @@ describe.sequential('workspace service consistency', () => {
       userId: 'user_target',
       organizationId: 'org_1',
       organizationRole: 'member',
-      status: 'invited',
+      status: 'suspended',
       joinedAt: null,
     });
     await seedWorkspace({ id: 'ws_1', organizationId: 'org_1', name: 'Docs' });

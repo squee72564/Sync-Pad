@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, lt, or } from 'drizzle-orm';
+import { and, desc, eq, gte, ilike, lt, lte, or } from 'drizzle-orm';
 import { withDbError } from '../errors.js';
 import type { DbClient } from '../index.js';
 import {
@@ -7,9 +7,20 @@ import {
   type SearchableCursorPaginationInput,
 } from '../pagination.js';
 import { user } from '../schema/auth-schema.js';
-import { organization, organizationMembership } from '../schema/core.js';
+import {
+  organization,
+  organizationInvite,
+  organizationMembership,
+} from '../schema/core.js';
 
-import type { NewOrganization, NewOrganizationMembership } from '../types.js';
+import type {
+  NewOrganization,
+  NewOrganizationMembership,
+  OrganizationInvite,
+  OrganizationInviteStatus,
+  OrganizationRole,
+  User,
+} from '../types.js';
 
 type DatabaseExecutor = Pick<
   DbClient,
@@ -20,22 +31,33 @@ type InsertOrganizationValues = Pick<
   NewOrganization,
   'id' | 'name' | 'description'
 >;
-type UpdateOrganizationValues = Partial<Pick<NewOrganization, 'name'>>;
+type UpdateOrganizationValues = Partial<
+  Pick<NewOrganization, 'name' | 'description'>
+>;
 type InsertOrganizationMembershipValues = Pick<
   NewOrganizationMembership,
-  | 'userId'
-  | 'organizationId'
-  | 'organizationRole'
-  | 'status'
-  | 'invitedBy'
-  | 'joinedAt'
+  'userId' | 'organizationId' | 'organizationRole' | 'status' | 'joinedAt'
 >;
 type UpdateOrganizationMembershipValues = Partial<
-  Pick<
-    NewOrganizationMembership,
-    'organizationRole' | 'status' | 'invitedBy' | 'joinedAt'
-  >
+  Pick<NewOrganizationMembership, 'organizationRole' | 'status' | 'joinedAt'>
 >;
+
+const getOrganizationInviteSearchFilter = (q: string | undefined) =>
+  q ? ilike(organizationInvite.email, `%${q}%`) : undefined;
+
+const getOrganizationInviteCursorFilter = (cursor: string | undefined) => {
+  const decodedCursor = decodeUpdatedAtIdCursor(cursor);
+
+  return decodedCursor
+    ? or(
+        lt(organizationInvite.updatedAt, decodedCursor.updatedAt),
+        and(
+          eq(organizationInvite.updatedAt, decodedCursor.updatedAt),
+          lt(organizationInvite.id, decodedCursor.id),
+        ),
+      )
+    : undefined;
+};
 
 const getOrganizationSearchFilter = (q: string | undefined) =>
   q
@@ -85,6 +107,17 @@ export function createOrganizationRepository(db: DbClient) {
               eq(organizationMembership.userId, userId),
             ),
           }),
+      );
+    },
+
+    findUserByEmail(
+      email: string,
+      database: DatabaseExecutor = db,
+    ): Promise<User | undefined> {
+      return withDbError({ entity: 'user', operation: 'findUserByEmail' }, () =>
+        database.query.user.findFirst({
+          where: eq(user.email, email.trim().toLowerCase()),
+        }),
       );
     },
 
@@ -288,6 +321,471 @@ export function createOrganizationRepository(db: DbClient) {
               limit,
             }),
           };
+        },
+      );
+    },
+
+    async createOrganizationInvitation(
+      input: {
+        id: string;
+        email: string;
+        expiresAt: Date;
+        organizationId: string;
+        organizationRole: OrganizationRole;
+        tokenHash: string;
+        invitedBy: string;
+      },
+      database: DatabaseExecutor = db,
+    ) {
+      const normalizedEmail = input.email.trim().toLowerCase();
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'createOrganizationInvitation',
+        },
+        async () => {
+          const now = new Date();
+          await database
+            .update(organizationInvite)
+            .set({
+              status: 'expired',
+              updatedAt: now,
+            })
+            .where(
+              and(
+                eq(organizationInvite.organizationId, input.organizationId),
+                eq(organizationInvite.email, normalizedEmail),
+                eq(organizationInvite.status, 'pending'),
+                lte(organizationInvite.expiresAt, now),
+              ),
+            );
+
+          const row = await database
+            .insert(organizationInvite)
+            .values({ ...input, email: normalizedEmail })
+            .returning();
+          return row[0] ?? null;
+        },
+      );
+    },
+
+    async listOrganizationInvitesForOrganizationPage(
+      input: {
+        organizationId: string;
+        status?: OrganizationInviteStatus | undefined;
+      } & SearchableCursorPaginationInput,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'listOrganizationInvitesForOrganizationPage',
+        },
+        async () => {
+          const limit = input.pagination.limit;
+          const rows = await database
+            .select()
+            .from(organizationInvite)
+            .where(
+              and(
+                eq(organizationInvite.organizationId, input.organizationId),
+                input.status
+                  ? eq(organizationInvite.status, input.status)
+                  : undefined,
+                getOrganizationInviteSearchFilter(input.q),
+                getOrganizationInviteCursorFilter(input.pagination.cursor),
+              ),
+            )
+            .orderBy(
+              desc(organizationInvite.updatedAt),
+              desc(organizationInvite.id),
+            )
+            .limit(limit + 1);
+
+          const organizationInvites = rows.slice(0, limit);
+
+          return {
+            organizationInvites,
+            pageInfo: createPageInfo({
+              items: organizationInvites,
+              hasNextPage: rows.length > limit,
+              limit,
+            }),
+          };
+        },
+      );
+    },
+
+    async expirePendingOrganizationInvitationsForOrganization(
+      input: { organizationId: string },
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'expirePendingOrganizationInvitationsForOrganization',
+        },
+        async () => {
+          const now = new Date();
+          const rows = await database
+            .update(organizationInvite)
+            .set({
+              status: 'expired',
+              updatedAt: now,
+            })
+            .where(
+              and(
+                lte(organizationInvite.expiresAt, now),
+                eq(organizationInvite.status, 'pending'),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .returning();
+
+          return rows;
+        },
+      );
+    },
+
+    async listOrganizationInvitesForUserPage(
+      input: {
+        userEmail: string;
+        status?: OrganizationInviteStatus | undefined;
+      } & SearchableCursorPaginationInput,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'listOrganizationInvitesForUserPage',
+        },
+        async () => {
+          const normalizedEmail = input.userEmail.trim().toLowerCase();
+          const limit = input.pagination.limit;
+          const rows = await database
+            .select()
+            .from(organizationInvite)
+            .where(
+              and(
+                eq(organizationInvite.email, normalizedEmail),
+                input.status
+                  ? eq(organizationInvite.status, input.status)
+                  : undefined,
+                getOrganizationInviteSearchFilter(input.q),
+                getOrganizationInviteCursorFilter(input.pagination.cursor),
+              ),
+            )
+            .orderBy(
+              desc(organizationInvite.updatedAt),
+              desc(organizationInvite.id),
+            )
+            .limit(limit + 1);
+
+          const organizationInvites = rows.slice(0, limit);
+
+          return {
+            organizationInvites,
+            pageInfo: createPageInfo({
+              items: organizationInvites,
+              hasNextPage: rows.length > limit,
+              limit,
+            }),
+          };
+        },
+      );
+    },
+
+    async expirePendingOrganizationInvitationsForUser(
+      input: { userEmail: string },
+      database: DatabaseExecutor = db,
+    ) {
+      const normalizedEmail = input.userEmail.trim().toLowerCase();
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'expirePendingOrganizationInvitationsForUser',
+        },
+        async () => {
+          const now = new Date();
+          const rows = await database
+            .update(organizationInvite)
+            .set({
+              status: 'expired',
+              updatedAt: now,
+            })
+            .where(
+              and(
+                lte(organizationInvite.expiresAt, now),
+                eq(organizationInvite.status, 'pending'),
+                eq(organizationInvite.email, normalizedEmail),
+              ),
+            )
+            .returning();
+
+          return rows;
+        },
+      );
+    },
+
+    async getOrganizationInvitationByToken(
+      input: {
+        organizationId: string;
+        tokenHash: string;
+      },
+      database: DatabaseExecutor = db,
+    ): Promise<OrganizationInvite | null> {
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'getOrganizationInvitationByToken',
+        },
+        async () => {
+          const row = await database
+            .select()
+            .from(organizationInvite)
+            .where(
+              and(
+                eq(organizationInvite.tokenHash, input.tokenHash),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .limit(1);
+
+          return row[0] ?? null;
+        },
+      );
+    },
+
+    async getOrganizationInvitationById(
+      input: {
+        organizationId: string;
+        organizationInviteId: string;
+      },
+      database: DatabaseExecutor = db,
+    ): Promise<OrganizationInvite | null> {
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'getOrganizationInvitationById',
+        },
+        async () => {
+          const row = await database
+            .select()
+            .from(organizationInvite)
+            .where(
+              and(
+                eq(organizationInvite.id, input.organizationInviteId),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .limit(1);
+
+          return row[0] ?? null;
+        },
+      );
+    },
+
+    async markOrganizationInvitationSent(
+      input: {
+        tokenHash: string;
+        organizationId: string;
+        sentAt: Date;
+      },
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'markOrganizationInvitationSent',
+        },
+        async () => {
+          const row = await database
+            .update(organizationInvite)
+            .set({
+              lastSentAt: input.sentAt,
+              updatedAt: input.sentAt,
+            })
+            .where(
+              and(
+                eq(organizationInvite.status, 'pending'),
+                eq(organizationInvite.tokenHash, input.tokenHash),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .returning();
+
+          return row[0] ?? null;
+        },
+      );
+    },
+
+    async rotateOrganizationInvitationToken(
+      input: {
+        organizationInviteId: string;
+        organizationId: string;
+        tokenHash: string;
+        sentAt: Date;
+      },
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'organization',
+          operation: 'rotateOrganizationInvitationToken',
+        },
+        async () => {
+          const row = await database
+            .update(organizationInvite)
+            .set({
+              tokenHash: input.tokenHash,
+              lastSentAt: input.sentAt,
+              updatedAt: input.sentAt,
+            })
+            .where(
+              and(
+                gte(organizationInvite.expiresAt, input.sentAt),
+                eq(organizationInvite.status, 'pending'),
+                eq(organizationInvite.id, input.organizationInviteId),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .returning();
+
+          return row[0] ?? null;
+        },
+      );
+    },
+
+    async acceptOrganizationInvitation(
+      input: {
+        tokenHash: string;
+        actorUserId: string;
+        organizationId: string;
+      },
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'organization', operation: 'acceptOrganizationInvitation' },
+        async () => {
+          const now = new Date();
+
+          const acceptedOrganizationInvite = await database
+            .update(organizationInvite)
+            .set({
+              status: 'accepted',
+              acceptedBy: input.actorUserId,
+              acceptedAt: now,
+              updatedAt: now,
+            })
+            .where(
+              and(
+                gte(organizationInvite.expiresAt, now),
+                eq(organizationInvite.status, 'pending'),
+                eq(organizationInvite.tokenHash, input.tokenHash),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .returning();
+
+          return acceptedOrganizationInvite[0] ?? null;
+        },
+      );
+    },
+
+    async declineOrganizationInvitation(
+      input: {
+        tokenHash: string;
+        organizationId: string;
+      },
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'organization', operation: 'declineOrganizationInvitation' },
+        async () => {
+          const now = new Date();
+
+          const declinedOrganizationInvite = await database
+            .update(organizationInvite)
+            .set({
+              status: 'declined',
+              declinedAt: now,
+              updatedAt: now,
+            })
+            .where(
+              and(
+                gte(organizationInvite.expiresAt, now),
+                eq(organizationInvite.status, 'pending'),
+                eq(organizationInvite.tokenHash, input.tokenHash),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .returning();
+
+          return declinedOrganizationInvite[0] ?? null;
+        },
+      );
+    },
+
+    async expireOrganizationInvitation(
+      input: {
+        tokenHash: string;
+        organizationId: string;
+      },
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'organization', operation: 'expireOrganizationInvitation' },
+        async () => {
+          const now = new Date();
+          const row = await database
+            .update(organizationInvite)
+            .set({
+              status: 'expired',
+              updatedAt: now,
+            })
+            .where(
+              and(
+                lte(organizationInvite.expiresAt, now),
+                eq(organizationInvite.status, 'pending'),
+                eq(organizationInvite.tokenHash, input.tokenHash),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .returning();
+
+          return row[0] ?? null;
+        },
+      );
+    },
+
+    async revokeOrganizationInvitation(
+      input: {
+        tokenHash: string;
+        organizationId: string;
+      },
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'organization', operation: 'revokeOrganizationInvitation' },
+        async () => {
+          const now = new Date();
+          const row = await database
+            .update(organizationInvite)
+            .set({
+              status: 'revoked',
+              revokedAt: now,
+              updatedAt: now,
+            })
+            .where(
+              and(
+                eq(organizationInvite.status, 'pending'),
+                eq(organizationInvite.tokenHash, input.tokenHash),
+                eq(organizationInvite.organizationId, input.organizationId),
+              ),
+            )
+            .returning();
+
+          return row[0] ?? null;
         },
       );
     },

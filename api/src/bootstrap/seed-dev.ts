@@ -329,10 +329,6 @@ const seedDomainData = async (seedUsers: Record<SeedAccountKey, User>) => {
         seedOrganization.memberships,
       ) as [SeedAccountKey, OrganizationRole][]) {
         const userId = getSeedUserId(seedUsers, seedUserKey);
-        const invitedBy = getSeedUserId(
-          seedUsers,
-          seedUserKey === 'primary' ? 'mockCollaborator' : 'primary',
-        );
         const [createdOrganizationMembership] = await tx
           .insert(coreSchema.organizationMembership)
           .values({
@@ -340,7 +336,6 @@ const seedDomainData = async (seedUsers: Record<SeedAccountKey, User>) => {
             organizationId: seedOrganization.id,
             organizationRole,
             status: 'active',
-            invitedBy,
             joinedAt: now,
           })
           .onConflictDoUpdate({
@@ -351,7 +346,6 @@ const seedDomainData = async (seedUsers: Record<SeedAccountKey, User>) => {
             set: {
               organizationRole,
               status: 'active',
-              invitedBy,
               joinedAt: now,
               updatedAt: now,
             },

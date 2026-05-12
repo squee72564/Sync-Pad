@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import {
   CheckCircle2Icon,
-  Clock3Icon,
   MailIcon,
   ShieldCheckIcon,
   UsersIcon,
@@ -147,12 +146,7 @@ function StatusBadge({
 }: {
   status: OrganizationMembersDetailedDto['status'];
 }) {
-  const Icon =
-    status === 'active'
-      ? CheckCircle2Icon
-      : status === 'invited'
-        ? Clock3Icon
-        : XCircleIcon;
+  const Icon = status === 'active' ? CheckCircle2Icon : XCircleIcon;
   const variant = status === 'active' ? 'secondary' : 'outline';
 
   return (

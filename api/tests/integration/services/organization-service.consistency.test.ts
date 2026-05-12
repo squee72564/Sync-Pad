@@ -104,7 +104,7 @@ describe.sequential('organization service consistency', () => {
     ).toBeUndefined();
   });
 
-  it('persists invited member inserts without sync', async () => {
+  it('persists suspended member inserts without sync', async () => {
     const syncApply = vi.fn().mockResolvedValue(undefined);
     await seedUser({ id: 'user_actor' });
     await seedUser({ id: 'user_target' });
@@ -117,10 +117,10 @@ describe.sequential('organization service consistency', () => {
       actorUserId: 'user_actor',
       organizationId: 'org_1',
       userId: 'user_target',
-      input: { organizationRole: 'guest', status: 'invited' },
+      input: { organizationRole: 'guest', status: 'suspended' },
     });
 
-    expect(membership.status).toBe('invited');
+    expect(membership.status).toBe('suspended');
     expect(syncApply).not.toHaveBeenCalled();
     expect(
       await db.query.organizationMembership.findFirst({
@@ -130,7 +130,7 @@ describe.sequential('organization service consistency', () => {
         ),
       }),
     ).toMatchObject({
-      status: 'invited',
+      status: 'suspended',
       organizationRole: 'guest',
       joinedAt: null,
     });
@@ -176,15 +176,14 @@ describe.sequential('organization service consistency', () => {
     });
   });
 
-  it('rolls back invited-to-active membership updates when Permify sync fails', async () => {
+  it('rolls back suspended-to-active membership updates when Permify sync fails', async () => {
     await seedUser({ id: 'user_target' });
     await seedOrganization({ id: 'org_1' });
     await seedOrganizationMembership({
       userId: 'user_target',
       organizationId: 'org_1',
       organizationRole: 'guest',
-      status: 'invited',
-      invitedBy: null,
+      status: 'suspended',
       joinedAt: null,
     });
     const service = createOrganizationConsistencyService({
@@ -212,7 +211,7 @@ describe.sequential('organization service consistency', () => {
       }),
     ).toMatchObject({
       organizationRole: 'guest',
-      status: 'invited',
+      status: 'suspended',
       joinedAt: null,
     });
   });
