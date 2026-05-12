@@ -51,7 +51,7 @@ type OrganizationNavItem = {
     | '/organizations/$organizationId/members'
     | '/organizations/$organizationId/workspaces/new'
     | '/organizations/$organizationId/workspaces'
-    | '/organizations/$organizationId/members/new';
+    | '/organizations/$organizationId/invite';
 };
 
 type OrganizationManagementItem = {
@@ -92,7 +92,7 @@ const organizationNavItems: OrganizationNavItem[] = [
     title: 'Invite member',
     icon: UserRoundPlusIcon,
     requiredPermission: 'manage',
-    to: '/organizations/$organizationId/members/new',
+    to: '/organizations/$organizationId/invite',
   },
   {
     title: 'Workspaces',

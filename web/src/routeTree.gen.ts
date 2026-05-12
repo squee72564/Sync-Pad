@@ -28,13 +28,13 @@ import { Route as AuthenticatedOrganizationsOrganizationIdOrganizationRouteRoute
 import { Route as AuthenticatedOrganizationsOrganizationIdOrganizationIndexRouteImport } from './routes/_authenticated/organizations/$organizationId/_organization/index'
 import { Route as AuthenticatedOrganizationsOrganizationIdOrganizationSettingsRouteImport } from './routes/_authenticated/organizations/$organizationId/_organization/settings'
 import { Route as AuthenticatedOrganizationsOrganizationIdOrganizationMembersRouteImport } from './routes/_authenticated/organizations/$organizationId/_organization/members'
+import { Route as AuthenticatedOrganizationsOrganizationIdOrganizationInviteRouteImport } from './routes/_authenticated/organizations/$organizationId/_organization/invite'
 import { Route as AuthenticatedOrganizationsOrganizationIdOrganizationBillingRouteImport } from './routes/_authenticated/organizations/$organizationId/_organization/billing'
 import { Route as AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdRouteRouteImport } from './routes/_authenticated/organizations/$organizationId/workspaces/$workspaceId/route'
 import { Route as AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdIndexRouteImport } from './routes/_authenticated/organizations/$organizationId/workspaces/$workspaceId/index'
 import { Route as AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesIndexRouteImport } from './routes/_authenticated/organizations/$organizationId/_organization/workspaces/index'
 import { Route as AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdMembersRouteImport } from './routes/_authenticated/organizations/$organizationId/workspaces/$workspaceId/members'
 import { Route as AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRouteImport } from './routes/_authenticated/organizations/$organizationId/_organization/workspaces/new'
-import { Route as AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRouteImport } from './routes/_authenticated/organizations/$organizationId/_organization/members_.new'
 import { Route as AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdDocumentsIndexRouteImport } from './routes/_authenticated/organizations/$organizationId/workspaces/$workspaceId/documents/index'
 import { Route as AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdDocumentsDocumentIdRouteImport } from './routes/_authenticated/organizations/$organizationId/workspaces/$workspaceId/documents/$documentId'
 
@@ -152,6 +152,13 @@ const AuthenticatedOrganizationsOrganizationIdOrganizationMembersRoute =
         AuthenticatedOrganizationsOrganizationIdOrganizationRouteRoute,
     } as any,
   )
+const AuthenticatedOrganizationsOrganizationIdOrganizationInviteRoute =
+  AuthenticatedOrganizationsOrganizationIdOrganizationInviteRouteImport.update({
+    id: '/invite',
+    path: '/invite',
+    getParentRoute: () =>
+      AuthenticatedOrganizationsOrganizationIdOrganizationRouteRoute,
+  } as any)
 const AuthenticatedOrganizationsOrganizationIdOrganizationBillingRoute =
   AuthenticatedOrganizationsOrganizationIdOrganizationBillingRouteImport.update(
     {
@@ -206,15 +213,6 @@ const AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRoute =
         AuthenticatedOrganizationsOrganizationIdOrganizationRouteRoute,
     } as any,
   )
-const AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRoute =
-  AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRouteImport.update(
-    {
-      id: '/members_/new',
-      path: '/members/new',
-      getParentRoute: () =>
-        AuthenticatedOrganizationsOrganizationIdOrganizationRouteRoute,
-    } as any,
-  )
 const AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdDocumentsIndexRoute =
   AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdDocumentsIndexRouteImport.update(
     {
@@ -251,10 +249,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/organizations/new': typeof AuthenticatedDashboardOrganizationsNewRoute
   '/organizations/$organizationId/workspaces/$workspaceId': typeof AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdRouteRouteWithChildren
   '/organizations/$organizationId/billing': typeof AuthenticatedOrganizationsOrganizationIdOrganizationBillingRoute
+  '/organizations/$organizationId/invite': typeof AuthenticatedOrganizationsOrganizationIdOrganizationInviteRoute
   '/organizations/$organizationId/members': typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersRoute
   '/organizations/$organizationId/settings': typeof AuthenticatedOrganizationsOrganizationIdOrganizationSettingsRoute
   '/organizations/$organizationId/': typeof AuthenticatedOrganizationsOrganizationIdOrganizationIndexRoute
-  '/organizations/$organizationId/members/new': typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRoute
   '/organizations/$organizationId/workspaces/new': typeof AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRoute
   '/organizations/$organizationId/workspaces/$workspaceId/members': typeof AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdMembersRoute
   '/organizations/$organizationId/workspaces/': typeof AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesIndexRoute
@@ -277,9 +275,9 @@ export interface FileRoutesByTo {
   '/organizations/$organizationId/workspaces': typeof AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesIndexRoute
   '/dashboard/organizations/new': typeof AuthenticatedDashboardOrganizationsNewRoute
   '/organizations/$organizationId/billing': typeof AuthenticatedOrganizationsOrganizationIdOrganizationBillingRoute
+  '/organizations/$organizationId/invite': typeof AuthenticatedOrganizationsOrganizationIdOrganizationInviteRoute
   '/organizations/$organizationId/members': typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersRoute
   '/organizations/$organizationId/settings': typeof AuthenticatedOrganizationsOrganizationIdOrganizationSettingsRoute
-  '/organizations/$organizationId/members/new': typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRoute
   '/organizations/$organizationId/workspaces/new': typeof AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRoute
   '/organizations/$organizationId/workspaces/$workspaceId/members': typeof AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdMembersRoute
   '/organizations/$organizationId/workspaces/$workspaceId': typeof AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdIndexRoute
@@ -306,10 +304,10 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/organizations_/new': typeof AuthenticatedDashboardOrganizationsNewRoute
   '/_authenticated/organizations/$organizationId/workspaces/$workspaceId': typeof AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdRouteRouteWithChildren
   '/_authenticated/organizations/$organizationId/_organization/billing': typeof AuthenticatedOrganizationsOrganizationIdOrganizationBillingRoute
+  '/_authenticated/organizations/$organizationId/_organization/invite': typeof AuthenticatedOrganizationsOrganizationIdOrganizationInviteRoute
   '/_authenticated/organizations/$organizationId/_organization/members': typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersRoute
   '/_authenticated/organizations/$organizationId/_organization/settings': typeof AuthenticatedOrganizationsOrganizationIdOrganizationSettingsRoute
   '/_authenticated/organizations/$organizationId/_organization/': typeof AuthenticatedOrganizationsOrganizationIdOrganizationIndexRoute
-  '/_authenticated/organizations/$organizationId/_organization/members_/new': typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRoute
   '/_authenticated/organizations/$organizationId/_organization/workspaces/new': typeof AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRoute
   '/_authenticated/organizations/$organizationId/workspaces/$workspaceId/members': typeof AuthenticatedOrganizationsOrganizationIdWorkspacesWorkspaceIdMembersRoute
   '/_authenticated/organizations/$organizationId/_organization/workspaces/': typeof AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesIndexRoute
@@ -336,10 +334,10 @@ export interface FileRouteTypes {
     | '/dashboard/organizations/new'
     | '/organizations/$organizationId/workspaces/$workspaceId'
     | '/organizations/$organizationId/billing'
+    | '/organizations/$organizationId/invite'
     | '/organizations/$organizationId/members'
     | '/organizations/$organizationId/settings'
     | '/organizations/$organizationId/'
-    | '/organizations/$organizationId/members/new'
     | '/organizations/$organizationId/workspaces/new'
     | '/organizations/$organizationId/workspaces/$workspaceId/members'
     | '/organizations/$organizationId/workspaces/'
@@ -362,9 +360,9 @@ export interface FileRouteTypes {
     | '/organizations/$organizationId/workspaces'
     | '/dashboard/organizations/new'
     | '/organizations/$organizationId/billing'
+    | '/organizations/$organizationId/invite'
     | '/organizations/$organizationId/members'
     | '/organizations/$organizationId/settings'
-    | '/organizations/$organizationId/members/new'
     | '/organizations/$organizationId/workspaces/new'
     | '/organizations/$organizationId/workspaces/$workspaceId/members'
     | '/organizations/$organizationId/workspaces/$workspaceId'
@@ -390,10 +388,10 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/organizations_/new'
     | '/_authenticated/organizations/$organizationId/workspaces/$workspaceId'
     | '/_authenticated/organizations/$organizationId/_organization/billing'
+    | '/_authenticated/organizations/$organizationId/_organization/invite'
     | '/_authenticated/organizations/$organizationId/_organization/members'
     | '/_authenticated/organizations/$organizationId/_organization/settings'
     | '/_authenticated/organizations/$organizationId/_organization/'
-    | '/_authenticated/organizations/$organizationId/_organization/members_/new'
     | '/_authenticated/organizations/$organizationId/_organization/workspaces/new'
     | '/_authenticated/organizations/$organizationId/workspaces/$workspaceId/members'
     | '/_authenticated/organizations/$organizationId/_organization/workspaces/'
@@ -545,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersRouteImport
       parentRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationRouteRoute
     }
+    '/_authenticated/organizations/$organizationId/_organization/invite': {
+      id: '/_authenticated/organizations/$organizationId/_organization/invite'
+      path: '/invite'
+      fullPath: '/organizations/$organizationId/invite'
+      preLoaderRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationInviteRouteImport
+      parentRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationRouteRoute
+    }
     '/_authenticated/organizations/$organizationId/_organization/billing': {
       id: '/_authenticated/organizations/$organizationId/_organization/billing'
       path: '/billing'
@@ -585,13 +590,6 @@ declare module '@tanstack/react-router' {
       path: '/workspaces/new'
       fullPath: '/organizations/$organizationId/workspaces/new'
       preLoaderRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRouteImport
-      parentRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationRouteRoute
-    }
-    '/_authenticated/organizations/$organizationId/_organization/members_/new': {
-      id: '/_authenticated/organizations/$organizationId/_organization/members_/new'
-      path: '/members/new'
-      fullPath: '/organizations/$organizationId/members/new'
-      preLoaderRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRouteImport
       parentRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationRouteRoute
     }
     '/_authenticated/organizations/$organizationId/workspaces/$workspaceId/documents/': {
@@ -640,10 +638,10 @@ const AuthenticatedDashboardRouteRouteWithChildren =
 
 interface AuthenticatedOrganizationsOrganizationIdOrganizationRouteRouteChildren {
   AuthenticatedOrganizationsOrganizationIdOrganizationBillingRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationBillingRoute
+  AuthenticatedOrganizationsOrganizationIdOrganizationInviteRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationInviteRoute
   AuthenticatedOrganizationsOrganizationIdOrganizationMembersRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersRoute
   AuthenticatedOrganizationsOrganizationIdOrganizationSettingsRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationSettingsRoute
   AuthenticatedOrganizationsOrganizationIdOrganizationIndexRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationIndexRoute
-  AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRoute
   AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRoute
   AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesIndexRoute: typeof AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesIndexRoute
 }
@@ -652,14 +650,14 @@ const AuthenticatedOrganizationsOrganizationIdOrganizationRouteRouteChildren: Au
   {
     AuthenticatedOrganizationsOrganizationIdOrganizationBillingRoute:
       AuthenticatedOrganizationsOrganizationIdOrganizationBillingRoute,
+    AuthenticatedOrganizationsOrganizationIdOrganizationInviteRoute:
+      AuthenticatedOrganizationsOrganizationIdOrganizationInviteRoute,
     AuthenticatedOrganizationsOrganizationIdOrganizationMembersRoute:
       AuthenticatedOrganizationsOrganizationIdOrganizationMembersRoute,
     AuthenticatedOrganizationsOrganizationIdOrganizationSettingsRoute:
       AuthenticatedOrganizationsOrganizationIdOrganizationSettingsRoute,
     AuthenticatedOrganizationsOrganizationIdOrganizationIndexRoute:
       AuthenticatedOrganizationsOrganizationIdOrganizationIndexRoute,
-    AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRoute:
-      AuthenticatedOrganizationsOrganizationIdOrganizationMembersNewRoute,
     AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRoute:
       AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesNewRoute,
     AuthenticatedOrganizationsOrganizationIdOrganizationWorkspacesIndexRoute:
