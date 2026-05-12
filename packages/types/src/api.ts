@@ -6,10 +6,13 @@ import type {
 } from './authz.js';
 import type {
   Document,
+  InvitableOrganizationRole,
   NewDocument,
   NewOrganization,
   NewWorkspace,
   Organization,
+  OrganizationInvite,
+  OrganizationInviteStatus,
   OrganizationMembership,
   OrganizationRole,
   User,
@@ -20,13 +23,34 @@ import type {
 import type { Jsonify } from './json.js';
 import type { PickAndRenameStrict } from './utils.js';
 
-export type { OrganizationRole, WorkspaceRole };
+export type {
+  InvitableOrganizationRole,
+  OrganizationInviteStatus,
+  OrganizationRole,
+  WorkspaceRole,
+};
 export type UserDto = Jsonify<User>;
 export type OrganizationDto = Jsonify<Organization>;
 export type WorkspaceDto = Jsonify<Workspace>;
 export type DocumentDto = Jsonify<Document>;
 export type OrganizationMembershipDto = Jsonify<OrganizationMembership>;
 export type WorkspaceMembershipDto = Jsonify<WorkspaceMembership>;
+export type OrganizationInviteDto = Jsonify<
+  Omit<OrganizationInvite, 'tokenHash'>
+> & {
+  isExpired: boolean;
+};
+
+export type OrganizationInvitePreviewDto = Pick<
+  OrganizationInviteDto,
+  | 'id'
+  | 'organizationId'
+  | 'email'
+  | 'organizationRole'
+  | 'status'
+  | 'expiresAt'
+  | 'isExpired'
+>;
 
 export type MeOrganizationDto = OrganizationDto;
 export type MeWorkspaceDto = WorkspaceDto & {
@@ -44,6 +68,10 @@ export type SearchablePageParamsDto = {
   q?: string;
   limit?: number;
   cursor?: string;
+};
+
+export type OrganizationInviteQueryDto = SearchablePageParamsDto & {
+  status?: OrganizationInviteStatus;
 };
 
 export type OrganizationAccessDto = {
@@ -87,6 +115,10 @@ export type CreateDocumentInput = Required<
   Pick<NewDocument, 'title' | 'color'>
 >;
 export type UpdateDocumentInput = Partial<Pick<NewDocument, 'title' | 'color'>>;
+export type CreateOrganizationInviteInput = {
+  email: string;
+  organizationRole: InvitableOrganizationRole;
+};
 
 export type OrganizationResponse = {
   organization: OrganizationDto;
@@ -101,6 +133,36 @@ export type CreateOrganizationResponse = OrganizationResponse;
 
 export type OrganizationMembershipsResponse = {
   memberships: OrganizationMembershipDto[];
+};
+
+export type OrganizationInvitePreviewResponse = {
+  organizationInvitation: OrganizationInvitePreviewDto;
+};
+
+export type AcceptOrganizationInviteResponse = {
+  membership: OrganizationMembershipDto;
+  acceptedOrganizationInvitation: OrganizationInviteDto;
+};
+
+export type DeclineOrganizationInviteResponse = {
+  declinedOrganizationInvitation: OrganizationInviteDto;
+};
+
+export type OrganizationInvitesResponse = {
+  organizationInvites: OrganizationInviteDto[];
+  pageInfo: PageInfoDto;
+};
+
+export type CreateOrganizationInviteResponse = {
+  organizationInvite: OrganizationInviteDto;
+};
+
+export type ResendOrganizationInviteResponse = {
+  resentOrganizationInvite: OrganizationInviteDto;
+};
+
+export type RevokeOrganizationInviteResponse = {
+  revokedOrganizationInvite: OrganizationInviteDto;
 };
 
 export type WorkspaceResponse = {
