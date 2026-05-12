@@ -17,6 +17,10 @@ const envSchema = z.object({
   PERMIFY_GRPC_URL: z.string().min(1),
   PERMIFY_TENANT_ID: z.string().min(1).default('syncpad'),
   PERMIFY_SCHEMA_VERSION: z.string().min(1),
+  RESEND_API_KEY: z.string().min(1),
+  MAIL_FROM: z.string().min(1),
+  MAIL_REPLY_TO: z.string().min(1).optional(),
+  ORGANIZATION_INVITE_TTL_HOURS: z.coerce.number().int().positive(),
 });
 
 export type Env = z.infer<typeof envSchema>;
