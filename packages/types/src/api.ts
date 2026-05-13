@@ -114,6 +114,9 @@ export type CreateOrganizationInput = Pick<
   NewOrganization,
   'name' | 'description'
 >;
+export type UpdateOrganizationInput = Partial<
+  Pick<NewOrganization, 'name' | 'description'>
+>;
 export type CreateWorkspaceInput = Required<
   Pick<NewWorkspace, 'name' | 'description' | 'color'>
 >;
@@ -139,6 +142,14 @@ export type OrganizationsResponse = {
 };
 
 export type CreateOrganizationResponse = OrganizationResponse;
+
+export type UpdateOrganizationResponse = {
+  organization: OrganizationDto;
+};
+
+export type DeleteOrganizationResponse = {
+  organization: OrganizationDto | null;
+};
 
 export type OrganizationMembershipsResponse = {
   memberships: OrganizationMembershipDto[];

@@ -1,12 +1,20 @@
-import { apiGet, apiPost } from '#/lib/api/client';
+import { apiDelete, apiGet, apiPatch, apiPost } from '#/lib/api/client';
 import type {
   CreateOrganizationInput,
   CreateOrganizationResponse,
+  DeleteOrganizationResponse,
   OrganizationAccessDto,
   OrganizationMembersDetailedResponse,
   OrganizationResponse,
   OrganizationsResponse,
+  UpdateOrganizationInput,
+  UpdateOrganizationResponse,
 } from './types';
+
+type UpdateOrganizationVariables = {
+  input: UpdateOrganizationInput;
+  organizationId: string;
+};
 
 export function getOrganizations() {
   return apiGet<OrganizationsResponse>('/api/organizations');
@@ -20,6 +28,22 @@ export function createOrganization(input: CreateOrganizationInput) {
   return apiPost<CreateOrganizationResponse, CreateOrganizationInput>(
     '/api/organizations',
     input,
+  );
+}
+
+export function updateOrganization({
+  input,
+  organizationId,
+}: UpdateOrganizationVariables) {
+  return apiPatch<UpdateOrganizationResponse, UpdateOrganizationInput>(
+    `/api/organizations/${organizationId}`,
+    input,
+  );
+}
+
+export function deleteOrganization(organizationId: string) {
+  return apiDelete<DeleteOrganizationResponse>(
+    `/api/organizations/${organizationId}`,
   );
 }
 
