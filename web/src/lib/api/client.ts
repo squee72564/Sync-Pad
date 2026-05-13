@@ -55,6 +55,19 @@ export function apiPost<TResponse, TBody>(
   });
 }
 
+export function apiPatch<TResponse, TBody>(
+  path: string,
+  body: TBody,
+): Promise<TResponse> {
+  return apiRequest<TResponse>(path, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 export function apiDelete<TResponse>(path: string): Promise<TResponse> {
   return apiRequest<TResponse>(path, {
     method: 'DELETE',

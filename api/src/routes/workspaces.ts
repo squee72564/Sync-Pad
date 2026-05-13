@@ -211,7 +211,23 @@ export function createOrganizationWorkspacesRoute({
         workspaceId: params.workspaceId,
         data: json,
       });
-      return context.json({ workspace }, StatusCodes.OK);
+      if (!workspace) {
+        throw new ApiError({
+          code: 'WORKSPACE_NOT_FOUND',
+          expose: true,
+          message: `Workspace ${params.workspaceId} was not found during update`,
+          status: StatusCodes.NOT_FOUND,
+          userMessage: 'Workspace not found.',
+        });
+      }
+      const user = getCurrentUser(context);
+      const access = await workspaceService.getWorkspaceAccess({
+        actorUserId: user.id,
+        workspaceId: params.workspaceId,
+        permissions: ['comment', 'write', 'read', 'manage', 'invite', 'run_ai'],
+      });
+
+      return context.json({ workspace, access }, StatusCodes.OK);
     },
   );
 

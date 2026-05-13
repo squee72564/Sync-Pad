@@ -26,7 +26,7 @@ type InsertWorkspaceValues = Pick<
   'id' | 'name' | 'description' | 'color' | 'organizationId'
 >;
 type UpdateWorkspaceValues = Partial<
-  Pick<NewWorkspace, 'name' | 'organizationId'>
+  Pick<NewWorkspace, 'name' | 'description' | 'color' | 'organizationId'>
 >;
 type InsertWorkspaceMembershipValues = Pick<
   NewWorkspaceMembership,

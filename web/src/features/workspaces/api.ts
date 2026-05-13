@@ -1,9 +1,12 @@
-import { apiGet, apiPost } from '#/lib/api/client';
+import { apiDelete, apiGet, apiPatch, apiPost } from '#/lib/api/client';
 import { type ListQuerySearch, toListQueryString } from '#/lib/api/list-query';
 import type {
   CreateWorkspaceInput,
   CreateWorkspaceResponse,
+  DeleteWorkspaceResponse,
   OrganizationWorkspacesResponse,
+  UpdateWorkspaceInput,
+  UpdateWorkspaceResponse,
   WorkspaceAccessDto,
   WorkspaceMembersDetailedResponse,
   WorkspaceResponse,
@@ -17,6 +20,10 @@ type CreateWorkspaceVariables = {
 type GetWorkspaceVariables = {
   organizationId: string;
   workspaceId: string;
+};
+
+type UpdateWorkspaceVariables = GetWorkspaceVariables & {
+  input: UpdateWorkspaceInput;
 };
 
 export function getOrganizationWorkspaces(
@@ -53,6 +60,26 @@ export function createWorkspace({
   return apiPost<CreateWorkspaceResponse, CreateWorkspaceInput>(
     `/api/organizations/${organizationId}/workspaces`,
     input,
+  );
+}
+
+export function updateWorkspace({
+  input,
+  organizationId,
+  workspaceId,
+}: UpdateWorkspaceVariables) {
+  return apiPatch<UpdateWorkspaceResponse, UpdateWorkspaceInput>(
+    `/api/organizations/${organizationId}/workspaces/${workspaceId}`,
+    input,
+  );
+}
+
+export function deleteWorkspace({
+  organizationId,
+  workspaceId,
+}: GetWorkspaceVariables) {
+  return apiDelete<DeleteWorkspaceResponse>(
+    `/api/organizations/${organizationId}/workspaces/${workspaceId}`,
   );
 }
 

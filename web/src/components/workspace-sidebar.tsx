@@ -35,7 +35,8 @@ type WorkspaceRouteItem = {
   icon: LucideIcon;
   to:
     | '/organizations/$organizationId/workspaces/$workspaceId'
-    | '/organizations/$organizationId/workspaces/$workspaceId/members';
+    | '/organizations/$organizationId/workspaces/$workspaceId/members'
+    | '/organizations/$organizationId/workspaces/$workspaceId/settings';
 };
 
 type OrganizationWorkspaceRouteItem = {
@@ -54,6 +55,7 @@ type WorkspaceManagementItems = {
   title: string;
   icon: LucideIcon;
   requiredPermission: WorkspacePermission;
+  to: '/organizations/$organizationId/workspaces/$workspaceId/settings';
 };
 
 type WorkspaceSidebarProps = {
@@ -110,6 +112,7 @@ const workspaceManagementItems: WorkspaceManagementItems[] = [
     title: 'Workspace settings',
     icon: Settings2Icon,
     requiredPermission: 'manage',
+    to: '/organizations/$organizationId/workspaces/$workspaceId/settings',
   },
 ];
 
@@ -249,9 +252,16 @@ export function WorkspaceSidebar({
               <SidebarMenu>
                 {visibleWorkspaceManagementItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton tooltip={item.title} disabled>
-                      <item.icon />
-                      <span>{item.title}</span>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <Link
+                        to={item.to}
+                        params={{ organizationId, workspaceId }}
+                        activeOptions={{ exact: true }}
+                        activeProps={{ 'data-active': true }}
+                      >
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

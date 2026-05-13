@@ -251,6 +251,8 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       workspaceId: string;
       data: {
         name?: string;
+        description?: string;
+        color?: string;
       };
     }) {
       return workspaceRepo.updateWorkspace(input.workspaceId, input.data);

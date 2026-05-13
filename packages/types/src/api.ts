@@ -117,6 +117,9 @@ export type CreateOrganizationInput = Pick<
 export type CreateWorkspaceInput = Required<
   Pick<NewWorkspace, 'name' | 'description' | 'color'>
 >;
+export type UpdateWorkspaceInput = Partial<
+  Pick<NewWorkspace, 'name' | 'description' | 'color'>
+>;
 export type CreateDocumentInput = Required<
   Pick<NewDocument, 'title' | 'color'>
 >;
@@ -186,6 +189,12 @@ export type OrganizationWorkspacesResponse = {
 };
 
 export type CreateWorkspaceResponse = WorkspaceResponse;
+
+export type UpdateWorkspaceResponse = WorkspaceResponse;
+
+export type DeleteWorkspaceResponse = {
+  workspace: WorkspaceDto | null;
+};
 
 export type DocumentResponse = {
   document: DocumentDto;
