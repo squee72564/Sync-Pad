@@ -307,8 +307,26 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
       });
     },
 
-    updateOrganization({ organizationId, input }: UpdateOrganizationInput) {
-      return organizationRepo.updateOrganization(organizationId, input);
+    async updateOrganization({
+      organizationId,
+      input,
+    }: UpdateOrganizationInput) {
+      const updated = await organizationRepo.updateOrganization(
+        organizationId,
+        input,
+      );
+
+      if (!updated) {
+        throw new CoreError({
+          code: 'ORGANIZATION_NOT_FOUND',
+          expose: true,
+          kind: 'not_found',
+          message: `Organization ${organizationId} was not found during update`,
+          userMessage: 'Organization not found.',
+        });
+      }
+
+      return updated;
     },
 
     deleteOrganization(organizationId: string) {

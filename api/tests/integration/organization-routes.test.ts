@@ -46,6 +46,23 @@ describe('organization routes', () => {
     });
   });
 
+  it('returns 400 for empty organization update request bodies', async () => {
+    const response = await createTestApp({
+      auth: createTestAuth(authenticatedSession),
+    }).request('/api/organizations/org_1', {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+
+    expect(response.status).toBe(StatusCodes.BAD_REQUEST);
+    expect(await response.json()).toMatchObject({
+      code: 'VALIDATION_FAILED',
+    });
+  });
+
   it('returns 403 for authenticated but unauthorized organization access', async () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),
@@ -133,6 +150,74 @@ describe('organization routes', () => {
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       },
+    });
+  });
+
+  it('trims organization update request bodies', async () => {
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
+      organizationRecord,
+    );
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    vi.mocked(deps.organizationService.updateOrganization).mockResolvedValue({
+      ...organizationRecord,
+      name: 'Acme Updated',
+    });
+
+    const response = await createTestApp(deps).request(
+      '/api/organizations/org_1',
+      {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ name: '  Acme Updated  ' }),
+      },
+    );
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(deps.organizationService.updateOrganization).toHaveBeenCalledWith({
+      organizationId: 'org_1',
+      input: { name: 'Acme Updated' },
+    });
+  });
+
+  it('returns 404 when an organization disappears during update', async () => {
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
+      organizationRecord,
+    );
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    vi.mocked(deps.organizationService.updateOrganization).mockRejectedValue(
+      new ApiError({
+        code: 'ORGANIZATION_NOT_FOUND',
+        expose: true,
+        message: 'missing organization',
+        status: StatusCodes.NOT_FOUND,
+        userMessage: 'Organization not found.',
+      }),
+    );
+
+    const response = await createTestApp(deps).request(
+      '/api/organizations/org_1',
+      {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ name: 'Acme Updated' }),
+      },
+    );
+
+    expect(response.status).toBe(StatusCodes.NOT_FOUND);
+    expect(await response.json()).toMatchObject({
+      code: 'ORGANIZATION_NOT_FOUND',
+      detail: 'Organization not found.',
+      status: StatusCodes.NOT_FOUND,
     });
   });
 

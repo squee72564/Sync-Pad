@@ -30,6 +30,72 @@ const createOrganizationService = (
   });
 
 describe('organization service', () => {
+  it('returns updated organizations', async () => {
+    const service = createOrganizationService({
+      accessGraphSync: { apply: vi.fn() },
+      organizationRepo: {
+        listOrganizationsForUser: vi.fn(),
+        insertOrganization: vi.fn(),
+        updateOrganization: vi.fn().mockResolvedValue({
+          id: 'org_1',
+          name: 'Acme Updated',
+          description: '',
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+        findMembership: vi.fn(),
+        listMemberships: vi.fn(),
+        deleteMembership: vi.fn(),
+        updateMembership: vi.fn(),
+        insertMembership: vi.fn(),
+      } as never,
+      workspaceRepo: {
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
+    });
+
+    await expect(
+      service.updateOrganization({
+        organizationId: 'org_1',
+        input: { name: 'Acme Updated' },
+      }),
+    ).resolves.toMatchObject({
+      id: 'org_1',
+      name: 'Acme Updated',
+    });
+  });
+
+  it('throws not-found when an organization disappears during update', async () => {
+    const service = createOrganizationService({
+      accessGraphSync: { apply: vi.fn() },
+      organizationRepo: {
+        listOrganizationsForUser: vi.fn(),
+        insertOrganization: vi.fn(),
+        updateOrganization: vi.fn().mockResolvedValue(null),
+        findMembership: vi.fn(),
+        listMemberships: vi.fn(),
+        deleteMembership: vi.fn(),
+        updateMembership: vi.fn(),
+        insertMembership: vi.fn(),
+      } as never,
+      workspaceRepo: {
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
+    });
+
+    await expect(
+      service.updateOrganization({
+        organizationId: 'org_1',
+        input: { name: 'Acme Updated' },
+      }),
+    ).rejects.toMatchObject({
+      code: 'ORGANIZATION_NOT_FOUND',
+      kind: 'not_found',
+    });
+  });
+
   it('bubbles repository insert errors unchanged', async () => {
     const repoError = new Error('insert failed');
     const service = createOrganizationService({

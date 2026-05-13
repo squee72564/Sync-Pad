@@ -12,10 +12,18 @@ export const createOrganizationSchema = z.object({
 });
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 
-export const updateOrganizationSchema = z.object({
-  name: z.string().trim().min(1).max(200).optional(),
-  description: z.string().trim().max(512).optional(),
-});
+export const updateOrganizationSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200).optional(),
+    description: z.string().trim().max(512).optional(),
+  })
+  .refine(
+    (value) => value.name !== undefined || value.description !== undefined,
+    {
+      message: 'At least one organization field must be provided.',
+      path: [],
+    },
+  );
 export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
 
 export const organizationMembershipParamsSchema = z.object({
