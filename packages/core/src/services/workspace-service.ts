@@ -1,5 +1,7 @@
 import type {
   DbClient,
+  Document,
+  DocumentRepository,
   NewWorkspace,
   OrganizationRepository,
   SearchableCursorPaginationInput,
@@ -15,6 +17,7 @@ import {
   type ResourceAccess,
   resources,
   subjects,
+  toDocumentParentTuple,
   toWorkspaceMembershipTuple,
   toWorkspaceParentTuple,
   type WorkspacePermission,
@@ -25,12 +28,14 @@ import { syncOrThrow } from '../utils/index.js';
 export type WorkspaceServiceDeps = {
   organizationRepo: OrganizationRepository;
   workspaceRepo: WorkspaceRepository;
+  documentRepo: DocumentRepository;
   accessGraphSync: AccessGraphSync;
   permissionChecker: PermissionChecker;
   db: DbClient;
 };
 
 type WorkspaceMembershipCleanupRecord = WorkspaceMembership;
+type DocumentCleanupRecord = Document;
 type CreateWorkspaceInput = Pick<
   NewWorkspace,
   'name' | 'description' | 'color'
@@ -40,6 +45,7 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
   const {
     organizationRepo,
     workspaceRepo,
+    documentRepo,
     accessGraphSync,
     permissionChecker,
     db,
@@ -75,6 +81,14 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
     memberships.map((membership) => ({
       type: 'delete',
       tuples: toWorkspaceMembershipTuple(membership),
+    }));
+
+  const deleteDocumentParentTuples = (
+    documents: DocumentCleanupRecord[],
+  ): AccessGraphOperation[] =>
+    documents.map((document) => ({
+      type: 'delete',
+      tuples: toDocumentParentTuple(document),
     }));
 
   return {
@@ -261,6 +275,11 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
     async deleteWorkspace(workspaceId: string) {
       return db.transaction(async (tx) => {
         const existing = await workspaceRepo.findById(workspaceId, tx);
+        const existingDocuments = await documentRepo.listByWorkspace(
+          workspaceId,
+          { includeDeleted: true },
+          tx,
+        );
         const existingMemberships = await workspaceRepo.listMemberships(
           workspaceId,
           tx,
@@ -279,6 +298,7 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
 
         if (existing) {
           await syncOrThrow(accessGraphSync, [
+            ...deleteDocumentParentTuples(existingDocuments),
             {
               type: 'delete',
               tuples: toWorkspaceParentTuple(existing),

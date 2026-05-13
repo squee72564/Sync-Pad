@@ -55,6 +55,7 @@ export const createWebsocketDeps = (env: Env) => {
   const workspaceService = createWorkspaceService({
     permissionChecker,
     accessGraphSync,
+    documentRepo: documentRepository,
     organizationRepo: organizationRepository,
     workspaceRepo: workspaceRepository,
     db,

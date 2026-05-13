@@ -14,12 +14,20 @@ const permissionChecker = {
 type WorkspaceServiceDeps = Parameters<typeof createCoreWorkspaceService>[0];
 
 const createWorkspaceService = (
-  deps: Omit<WorkspaceServiceDeps, 'db' | 'permissionChecker'> &
-    Partial<Pick<WorkspaceServiceDeps, 'permissionChecker'>>,
+  deps: Omit<
+    WorkspaceServiceDeps,
+    'db' | 'documentRepo' | 'permissionChecker'
+  > &
+    Partial<Pick<WorkspaceServiceDeps, 'documentRepo' | 'permissionChecker'>>,
 ) =>
   createCoreWorkspaceService({
     ...deps,
     db,
+    documentRepo:
+      deps.documentRepo ??
+      ({
+        listByWorkspace: vi.fn().mockResolvedValue([]),
+      } as never),
     permissionChecker: deps.permissionChecker ?? permissionChecker,
   });
 
