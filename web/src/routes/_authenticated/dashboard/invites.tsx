@@ -101,7 +101,7 @@ function InvitesPage() {
         title="Invites"
         description="Organization invitations sent to your account email."
       >
-        <div className="flex w-full flex-col gap-3 sm:min-w-[36rem]">
+        <div className="flex w-full min-w-0 max-w-xl flex-col gap-3">
           <SearchQueryInput
             className="max-w-none"
             onSearchChange={updateSearchQuery}
