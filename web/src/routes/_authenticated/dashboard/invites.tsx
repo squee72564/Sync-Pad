@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   Building2Icon,
@@ -10,6 +10,7 @@ import {
   UserRoundIcon,
   XCircleIcon,
 } from 'lucide-react';
+import { Suspense, startTransition } from 'react';
 import { toast } from 'sonner';
 import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader } from '#/components/page-header';
@@ -44,11 +45,14 @@ const inviteStatuses = [
 ] as const satisfies readonly OrganizationInviteStatus[];
 type InviteStatusFilter = OrganizationInviteStatus;
 
+const inviteSkeletonCards = ['invite-card-1', 'invite-card-2', 'invite-card-3'];
+const inviteSkeletonItem = ['invite-item-1', 'invite-item-2', 'invite-item-3'];
+
 export const Route = createFileRoute('/_authenticated/dashboard/invites')({
   validateSearch: parseInviteSearch,
   loaderDeps: ({ search }) => search,
   loader: ({ context, deps }) => {
-    return context.queryClient.fetchQuery(meInvitationsQuery(deps));
+    context.queryClient.prefetchQuery(meInvitationsQuery(deps));
   },
   errorComponent: ({ error }) => (
     <ScopeRouteError
@@ -61,42 +65,32 @@ export const Route = createFileRoute('/_authenticated/dashboard/invites')({
 });
 
 function InvitesPage() {
-  const { organizationInvites, pageInfo } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
 
   const updateStatus = (status: InviteStatusFilter) => {
-    navigate({
-      replace: true,
-      search: (current) => ({
-        ...current,
-        status,
-        cursor: undefined,
-      }),
+    startTransition(() => {
+      navigate({
+        replace: true,
+        search: (current) => ({
+          ...current,
+          status,
+          cursor: undefined,
+        }),
+      });
     });
   };
 
   const updateSearchQuery = (q: string) => {
-    navigate({
-      replace: true,
-      search: (current) => ({
-        ...current,
-        q: toOptionalString(q),
-        cursor: undefined,
-      }),
-    });
-  };
-
-  const goToNextPage = () => {
-    if (!pageInfo.nextCursor) {
-      return;
-    }
-
-    navigate({
-      search: (current) => ({
-        ...current,
-        cursor: pageInfo.nextCursor ?? undefined,
-      }),
+    startTransition(() => {
+      navigate({
+        replace: true,
+        search: (current) => ({
+          ...current,
+          q: toOptionalString(q),
+          cursor: undefined,
+        }),
+      });
     });
   };
 
@@ -134,7 +128,38 @@ function InvitesPage() {
           </ToggleGroup>
         </div>
       </PageHeader>
+      <Suspense fallback={<InvitesGridSkeleton />}>
+        <InvitesContent />
+      </Suspense>
+    </div>
+  );
+}
 
+function InvitesContent() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+
+  const { data } = useSuspenseQuery(meInvitationsQuery(search));
+
+  const { organizationInvites, pageInfo } = data;
+
+  const goToNextPage = () => {
+    if (!pageInfo.nextCursor) {
+      return;
+    }
+
+    startTransition(() => {
+      navigate({
+        search: (current) => ({
+          ...current,
+          cursor: pageInfo.nextCursor ?? undefined,
+        }),
+      });
+    });
+  };
+
+  return (
+    <>
       {organizationInvites.length > 0 ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -162,6 +187,48 @@ function InvitesPage() {
           description={getEmptyStateDescription(search)}
         />
       )}
+    </>
+  );
+}
+
+function InvitesGridSkeleton() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {inviteSkeletonCards.map((card) => (
+        <Card key={card} className="border-border/70 overflow-hidden">
+          <CardHeader className="gap-4">
+            <div className="flex items-start gap-3">
+              <div className="size-11 shrink-0 rounded-lg bg-muted animate-pulse" />
+
+              <div className="min-w-0 flex-1 space-y-3">
+                <div className="h-4 w-40 rounded bg-muted animate-pulse" />
+                <div className="flex gap-2">
+                  <div className="h-5 w-20 rounded-md bg-muted animate-pulse" />
+                  <div className="h-5 w-16 rounded-md bg-muted animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="grid gap-3 border-t border-border/70 pt-4">
+            {inviteSkeletonItem.map((card) => (
+              <div
+                key={card}
+                className="flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="size-3.5 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-20 rounded bg-muted animate-pulse" />
+                </div>
+
+                <div className="h-3 w-28 rounded bg-muted animate-pulse" />
+              </div>
+            ))}
+
+            <div className="mt-1 h-8 w-full rounded-md bg-muted animate-pulse" />
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

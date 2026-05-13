@@ -1,3 +1,4 @@
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   ArrowRightIcon,
@@ -6,6 +7,7 @@ import {
   PlusCircleIcon,
   RefreshCwIcon,
 } from 'lucide-react';
+import { Suspense, startTransition } from 'react';
 import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
@@ -19,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
+import { Skeleton } from '#/components/ui/skeleton';
 import { meOrganizationsQuery } from '#/features/me/queries';
 import type { MeOrganization } from '#/features/me/types';
 import {
@@ -27,12 +30,20 @@ import {
 } from '#/lib/api/list-query';
 import { formatShortDate } from '#/lib/utils';
 
+const organizationSkeletonCards = [
+  'organization-card-1',
+  'organization-card-2',
+  'organization-card-3',
+];
+
+const organizationSkeletonMetaRows = ['created', 'updated'];
+
 export const Route = createFileRoute('/_authenticated/dashboard/organizations')(
   {
     validateSearch: parseListQuerySearch,
     loaderDeps: ({ search }) => search,
     loader: ({ context, deps }) => {
-      return context.queryClient.fetchQuery(meOrganizationsQuery(deps));
+      context.queryClient.prefetchQuery(meOrganizationsQuery(deps));
     },
     errorComponent: ({ error }) => (
       <ScopeRouteError
@@ -46,9 +57,17 @@ export const Route = createFileRoute('/_authenticated/dashboard/organizations')(
 );
 
 function OrganizationsPage() {
-  const { organizations } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+
+  const handleSearchChange = (q: string) => {
+    startTransition(() => {
+      navigate({
+        replace: true,
+        search: (current) => withListQuerySearch(current, q),
+      });
+    });
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
@@ -58,17 +77,38 @@ function OrganizationsPage() {
         description="Organizations you belong to across Syncpad."
       >
         <SearchQueryInput
-          onSearchChange={(q) =>
-            navigate({
-              replace: true,
-              search: (current) => withListQuerySearch(current, q),
-            })
-          }
+          onSearchChange={(q) => handleSearchChange(q)}
           placeholder="Search organizations..."
           value={search.q}
         />
       </PageHeader>
 
+      <Suspense fallback={<OrganizationsGridSkeleton />}>
+        <OrganizationsContent />
+      </Suspense>
+    </div>
+  );
+}
+
+function OrganizationsGridSkeleton() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {organizationSkeletonCards.map((card) => (
+        <OrganizationCardSkeleton key={card} />
+      ))}
+    </div>
+  );
+}
+
+function OrganizationsContent() {
+  const search = Route.useSearch();
+
+  const { data } = useSuspenseQuery(meOrganizationsQuery(search));
+
+  const { organizations } = data;
+
+  return (
+    <>
       {organizations.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {organizations.map((organization) => (
@@ -93,7 +133,41 @@ function OrganizationsPage() {
           }
         />
       )}
-    </div>
+    </>
+  );
+}
+
+function OrganizationCardSkeleton() {
+  return (
+    <Card className="h-full border-border/70">
+      <CardHeader className="gap-4">
+        <div className="flex items-start gap-3">
+          <Skeleton className="size-11 shrink-0 rounded-lg" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-5 w-40" />
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+        </div>
+        <CardAction>
+          <Skeleton className="size-8 rounded-md" />
+        </CardAction>
+      </CardHeader>
+
+      <CardContent className="mt-auto grid gap-2 border-t border-border/70 pt-4">
+        {organizationSkeletonMetaRows.map((row) => (
+          <div key={row} className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="size-3.5" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <Skeleton className="h-3 w-24" />
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 

@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
+import { Skeleton } from '#/components/ui/skeleton';
 import { formatShortDate } from '#/lib/utils';
 
 type WorkspaceCardWorkspace = {
@@ -30,6 +31,8 @@ type WorkspaceCardWorkspace = {
 type WorkspaceCardProps = {
   workspace: WorkspaceCardWorkspace;
 };
+
+const workspaceCardSkeletonMetaRows = ['organization', 'created', 'role'];
 
 export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
   const description =
@@ -93,6 +96,40 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
         </CardContent>
       </Card>
     </Link>
+  );
+}
+
+export function WorkspaceCardSkeleton() {
+  return (
+    <Card className="h-full border-border/70">
+      <CardHeader className="gap-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <Skeleton className="size-11 shrink-0 rounded-lg" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-5 w-36" />
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+        </div>
+        <CardAction>
+          <Skeleton className="size-8 rounded-md" />
+        </CardAction>
+      </CardHeader>
+
+      <CardContent className="mt-auto grid gap-2 border-t border-border/70 pt-4">
+        {workspaceCardSkeletonMetaRows.map((row) => (
+          <div key={row} className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="size-3.5 shrink-0" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <Skeleton className="h-3 w-24" />
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
