@@ -69,6 +69,7 @@ export const createTestDeps = (overrides: Partial<ApiDeps> = {}): ApiDeps => {
     documentRepository: {
       findById: vi.fn(),
       findInWorkspace: vi.fn(),
+      listByOrganization: vi.fn(),
       listByWorkspaceReadableToUser: vi.fn(),
       listByWorkspaceReadableToUserPage: vi.fn(),
     } as unknown as DocumentRepository,
@@ -97,6 +98,7 @@ export const createTestDeps = (overrides: Partial<ApiDeps> = {}): ApiDeps => {
       addMember: vi.fn(),
       createOrganization: vi.fn(),
       deleteMember: vi.fn(),
+      deleteOrganization: vi.fn(),
       findById: vi.fn(),
       getOrganizationAccess: vi.fn().mockResolvedValue({
         permissions: {
@@ -126,7 +128,9 @@ export const createTestDeps = (overrides: Partial<ApiDeps> = {}): ApiDeps => {
     } as unknown as DbPool,
     workspaceRepository: {
       findById: vi.fn(),
+      listByOrganization: vi.fn(),
       listMemberships: vi.fn(),
+      listMembershipsByOrganization: vi.fn(),
     } as unknown as WorkspaceRepository,
     workspaceService: {
       addMember: vi.fn(),

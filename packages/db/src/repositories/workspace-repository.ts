@@ -190,6 +190,19 @@ export function createWorkspaceRepository(db: DbClient) {
       );
     },
 
+    listByOrganization(
+      organizationId: string,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'workspace', operation: 'listByOrganization' },
+        () =>
+          database.query.workspace.findMany({
+            where: eq(workspace.organizationId, organizationId),
+          }),
+      );
+    },
+
     async listReadableToUser(userId: string, database: DatabaseExecutor = db) {
       return withDbError(
         { entity: 'workspace', operation: 'listReadableToUser' },
@@ -332,6 +345,22 @@ export function createWorkspaceRepository(db: DbClient) {
             .from(workspaceMembership)
             .innerJoin(user, eq(workspaceMembership.userId, user.id))
             .where(eq(workspaceMembership.workspaceId, workspaceId)),
+      );
+    },
+
+    listMembershipsByOrganization(
+      organizationId: string,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        {
+          entity: 'workspaceMembership',
+          operation: 'listMembershipsByOrganization',
+        },
+        () =>
+          database.query.workspaceMembership.findMany({
+            where: eq(workspaceMembership.organizationId, organizationId),
+          }),
       );
     },
 

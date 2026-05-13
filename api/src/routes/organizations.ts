@@ -153,6 +153,23 @@ export function createOrganizationsRoute({
     },
   );
 
+  organizationsRoute.delete(
+    '/:organizationId',
+    requireAuth(),
+    validateRequest({ params: organizationParamsSchema }),
+    loadOrganizationResource<OrganizationParams>(
+      ({ params }) => params.organizationId,
+    ),
+    requireOrganizationPermission('manage'),
+    async (context) => {
+      const { params } = getValidated<OrganizationParams>(context);
+      const organization = await organizationService.deleteOrganization(
+        params.organizationId,
+      );
+      return context.json({ organization }, StatusCodes.OK);
+    },
+  );
+
   organizationsRoute.get(
     '/:organizationId/access',
     requireAuth(),

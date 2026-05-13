@@ -48,6 +48,7 @@ export const createApiDeps = (env: Env) => {
   const organizationService = createOrganizationService({
     accessGraphSync,
     permissionChecker,
+    documentRepo: documentRepository,
     organizationRepo: organizationRepository,
     workspaceRepo: workspaceRepository,
     db,

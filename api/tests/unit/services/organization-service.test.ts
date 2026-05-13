@@ -14,9 +14,16 @@ type OrganizationServiceDeps = Parameters<
 >[0];
 
 const createOrganizationService = (
-  deps: Omit<OrganizationServiceDeps, 'db' | 'permissionChecker'>,
+  deps: Omit<
+    OrganizationServiceDeps,
+    'db' | 'documentRepo' | 'permissionChecker'
+  > &
+    Partial<Pick<OrganizationServiceDeps, 'documentRepo'>>,
 ) =>
   createCoreOrganizationService({
+    documentRepo: {
+      listByOrganization: vi.fn().mockResolvedValue([]),
+    } as never,
     permissionChecker,
     ...deps,
     db,
@@ -432,5 +439,180 @@ describe('organization service', () => {
         }),
       },
     ]);
+  });
+
+  it('removes organization, workspace, and document tuples when deleting an organization', async () => {
+    const syncApply = vi.fn().mockResolvedValue(undefined);
+    const service = createOrganizationService({
+      accessGraphSync: { apply: syncApply },
+      documentRepo: {
+        listByOrganization: vi.fn().mockResolvedValue([
+          {
+            id: 'doc_1',
+            workspaceId: 'ws_1',
+            title: 'Planning',
+            color: '#336699FF',
+            deletedAt: null,
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+          {
+            id: 'doc_deleted',
+            workspaceId: 'ws_1',
+            title: 'Deleted',
+            color: '#336699FF',
+            deletedAt: fixtureDate,
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+        ]),
+      } as never,
+      organizationRepo: {
+        listOrganizationsForUser: vi.fn(),
+        insertOrganization: vi.fn(),
+        updateOrganization: vi.fn(),
+        insertMembership: vi.fn(),
+        findMembership: vi.fn(),
+        updateMembership: vi.fn(),
+        deleteMembership: vi.fn(),
+        findById: vi.fn().mockResolvedValue({
+          id: 'org_1',
+          name: 'Acme',
+          description: '',
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+        listMemberships: vi.fn().mockResolvedValue([
+          {
+            userId: 'owner_1',
+            organizationId: 'org_1',
+            organizationRole: 'owner',
+            status: 'active',
+            joinedAt: fixtureDate,
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+          {
+            userId: 'suspended_1',
+            organizationId: 'org_1',
+            organizationRole: 'member',
+            status: 'suspended',
+            joinedAt: null,
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+        ]),
+        deleteOrganization: vi.fn().mockResolvedValue({
+          id: 'org_1',
+          name: 'Acme',
+          description: '',
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+      } as never,
+      workspaceRepo: {
+        listByOrganization: vi.fn().mockResolvedValue([
+          {
+            id: 'ws_1',
+            organizationId: 'org_1',
+            name: 'Docs',
+            description: '',
+            color: '#808080FF',
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+        ]),
+        listMembershipsByOrganization: vi.fn().mockResolvedValue([
+          {
+            userId: 'editor_1',
+            workspaceId: 'ws_1',
+            organizationId: 'org_1',
+            workspaceRole: 'editor',
+            createdAt: fixtureDate,
+            updatedAt: fixtureDate,
+          },
+        ]),
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
+    });
+
+    await service.deleteOrganization('org_1');
+
+    expect(syncApply).toHaveBeenCalledWith([
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          entity: { type: 'organization', id: 'org_1' },
+          relation: 'owner',
+        }),
+      },
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          entity: { type: 'workspace', id: 'ws_1' },
+          relation: 'parent',
+        }),
+      },
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          entity: { type: 'workspace', id: 'ws_1' },
+          relation: 'editor',
+        }),
+      },
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          entity: { type: 'document', id: 'doc_1' },
+          relation: 'parent',
+        }),
+      },
+      {
+        type: 'delete',
+        tuples: expect.objectContaining({
+          entity: { type: 'document', id: 'doc_deleted' },
+          relation: 'parent',
+        }),
+      },
+    ]);
+  });
+
+  it('throws not-found when a preloaded organization disappears during delete', async () => {
+    const service = createOrganizationService({
+      accessGraphSync: { apply: vi.fn() },
+      documentRepo: {
+        listByOrganization: vi.fn().mockResolvedValue([]),
+      } as never,
+      organizationRepo: {
+        listOrganizationsForUser: vi.fn(),
+        insertOrganization: vi.fn(),
+        updateOrganization: vi.fn(),
+        insertMembership: vi.fn(),
+        findMembership: vi.fn(),
+        updateMembership: vi.fn(),
+        deleteMembership: vi.fn(),
+        findById: vi.fn().mockResolvedValue({
+          id: 'org_1',
+          name: 'Acme',
+          description: '',
+          createdAt: fixtureDate,
+          updatedAt: fixtureDate,
+        }),
+        listMemberships: vi.fn().mockResolvedValue([]),
+        deleteOrganization: vi.fn().mockResolvedValue(null),
+      } as never,
+      workspaceRepo: {
+        listByOrganization: vi.fn().mockResolvedValue([]),
+        listMembershipsByOrganization: vi.fn().mockResolvedValue([]),
+        listMembershipsByOrganizationAndUser: vi.fn(),
+        deleteMembershipsByOrganizationAndUser: vi.fn(),
+      } as never,
+    });
+
+    await expect(service.deleteOrganization('org_1')).rejects.toMatchObject({
+      code: 'ORGANIZATION_NOT_FOUND',
+      kind: 'not_found',
+    });
   });
 });

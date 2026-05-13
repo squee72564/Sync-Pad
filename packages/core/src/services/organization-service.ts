@@ -1,5 +1,7 @@
 import type {
   DbClient,
+  Document,
+  DocumentRepository,
   InvitableOrganizationRole,
   NewOrganization,
   OrganizationInvite,
@@ -8,6 +10,7 @@ import type {
   OrganizationRepository,
   OrganizationRole,
   SearchableCursorPaginationInput,
+  Workspace,
   WorkspaceRepository,
 } from '@syncpad/db';
 import { CoreError, isDbError } from '@syncpad/errors';
@@ -20,14 +23,17 @@ import {
   type ResourceAccess,
   resources,
   subjects,
+  toDocumentParentTuple,
   toOrganizationMembershipTuple,
   toWorkspaceMembershipTuple,
+  toWorkspaceParentTuple,
 } from '@syncpad/permify';
 import { syncOrThrow } from '../utils/index.js';
 
 export type OrganizationServiceDeps = {
   organizationRepo: OrganizationRepository;
   workspaceRepo: WorkspaceRepository;
+  documentRepo: DocumentRepository;
   accessGraphSync: AccessGraphSync;
   permissionChecker: PermissionChecker;
   db: DbClient;
@@ -67,6 +73,7 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
   const {
     organizationRepo,
     workspaceRepo,
+    documentRepo,
     accessGraphSync,
     permissionChecker,
     db,
@@ -80,6 +87,22 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
     memberships.map((membership) => ({
       type: 'delete',
       tuples: toWorkspaceMembershipTuple(membership),
+    }));
+
+  const buildWorkspaceParentDeleteOperations = (
+    workspaces: Workspace[],
+  ): AccessGraphOperation[] =>
+    workspaces.map((workspace) => ({
+      type: 'delete',
+      tuples: toWorkspaceParentTuple(workspace),
+    }));
+
+  const buildDocumentParentDeleteOperations = (
+    documents: Document[],
+  ): AccessGraphOperation[] =>
+    documents.map((document) => ({
+      type: 'delete',
+      tuples: toDocumentParentTuple(document),
     }));
 
   const throwInvitationInvalidStatus = ({
@@ -286,6 +309,67 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
 
     updateOrganization({ organizationId, input }: UpdateOrganizationInput) {
       return organizationRepo.updateOrganization(organizationId, input);
+    },
+
+    deleteOrganization(organizationId: string) {
+      return db.transaction(async (tx) => {
+        const existing = await organizationRepo.findById(organizationId, tx);
+
+        if (!existing) {
+          return null;
+        }
+
+        const existingMemberships = await organizationRepo.listMemberships(
+          organizationId,
+          tx,
+        );
+        const existingWorkspaces = await workspaceRepo.listByOrganization(
+          organizationId,
+          tx,
+        );
+        const existingWorkspaceMemberships =
+          await workspaceRepo.listMembershipsByOrganization(organizationId, tx);
+        const existingDocuments = await documentRepo.listByOrganization(
+          organizationId,
+          { includeDeleted: true },
+          tx,
+        );
+
+        const deleted = await organizationRepo.deleteOrganization(
+          organizationId,
+          tx,
+        );
+
+        if (!deleted) {
+          throw new CoreError({
+            code: 'ORGANIZATION_NOT_FOUND',
+            expose: true,
+            kind: 'not_found',
+            message: `Organization ${organizationId} disappeared during delete`,
+            userMessage: 'Organization not found.',
+          });
+        }
+
+        const operations: AccessGraphOperation[] = [
+          ...existingMemberships
+            .filter((membership) => membership.status === 'active')
+            .map((membership) => ({
+              type: 'delete' as const,
+              tuples: toOrganizationMembershipTuple(membership),
+            })),
+          ...buildWorkspaceParentDeleteOperations(existingWorkspaces),
+          ...buildWorkspaceMembershipDeleteOperations(
+            existingWorkspaceMemberships,
+          ),
+          ...buildDocumentParentDeleteOperations(existingDocuments),
+        ];
+
+        if (operations.length > 0) {
+          await syncOrThrow(accessGraphSync, operations);
+        }
+
+        return deleted;
+      });
     },
 
     addMember({

@@ -160,6 +160,30 @@ export function createDocumentRepository(db: DbClient) {
       );
     },
 
+    async listByOrganization(
+      organizationId: string,
+      options?: ListDocumentsOptions,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'document', operation: 'listByOrganization' },
+        async () => {
+          const rows = await database
+            .select({ document })
+            .from(document)
+            .innerJoin(workspace, eq(document.workspaceId, workspace.id))
+            .where(
+              and(
+                eq(workspace.organizationId, organizationId),
+                maybeExcludeDeleted(options?.includeDeleted),
+              ),
+            );
+
+          return rows.map((row) => row.document);
+        },
+      );
+    },
+
     async listByWorkspaceReadableToUserPage(
       input: {
         workspaceId: string;

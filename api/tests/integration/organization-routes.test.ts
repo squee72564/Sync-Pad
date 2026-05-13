@@ -97,6 +97,77 @@ describe('organization routes', () => {
     });
   });
 
+  it('returns 200 for authorized organization update requests', async () => {
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
+      organizationRecord,
+    );
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    vi.mocked(deps.organizationService.updateOrganization).mockResolvedValue({
+      ...organizationRecord,
+      name: 'Acme Updated',
+    });
+
+    const response = await createTestApp(deps).request(
+      '/api/organizations/org_1',
+      {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ name: 'Acme Updated' }),
+      },
+    );
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(deps.organizationService.updateOrganization).toHaveBeenCalledWith({
+      organizationId: 'org_1',
+      input: { name: 'Acme Updated' },
+    });
+    expect(await response.json()).toEqual({
+      organization: {
+        ...organizationRecord,
+        name: 'Acme Updated',
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      },
+    });
+  });
+
+  it('returns 200 for authorized organization delete requests', async () => {
+    const deps = createTestDeps({
+      auth: createTestAuth(authenticatedSession),
+    });
+    vi.mocked(deps.organizationService.findById).mockResolvedValue(
+      organizationRecord,
+    );
+    vi.mocked(deps.permissionChecker.checkPermission).mockResolvedValue(true);
+    vi.mocked(deps.organizationService.deleteOrganization).mockResolvedValue(
+      organizationRecord,
+    );
+
+    const response = await createTestApp(deps).request(
+      '/api/organizations/org_1',
+      {
+        method: 'DELETE',
+      },
+    );
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(deps.organizationService.deleteOrganization).toHaveBeenCalledWith(
+      'org_1',
+    );
+    expect(await response.json()).toEqual({
+      organization: {
+        ...organizationRecord,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      },
+    });
+  });
+
   it('returns canonical 503 when organization creation sync fails', async () => {
     const deps = createTestDeps({
       auth: createTestAuth(authenticatedSession),

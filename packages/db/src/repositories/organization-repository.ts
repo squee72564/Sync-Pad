@@ -216,6 +216,22 @@ export function createOrganizationRepository(db: DbClient) {
       );
     },
 
+    async deleteOrganization(
+      organizationId: string,
+      database: DatabaseExecutor = db,
+    ) {
+      return withDbError(
+        { entity: 'organization', operation: 'deleteOrganization' },
+        async () => {
+          const [deleted] = await database
+            .delete(organization)
+            .where(eq(organization.id, organizationId))
+            .returning();
+          return deleted ?? null;
+        },
+      );
+    },
+
     async insertMembership(
       values: InsertOrganizationMembershipValues,
       database: DatabaseExecutor = db,

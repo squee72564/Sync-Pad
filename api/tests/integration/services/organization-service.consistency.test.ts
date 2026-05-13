@@ -19,10 +19,14 @@ const db = deps.db;
 
 const createOrganizationConsistencyService = ({
   accessGraphSync,
+  documentRepo = deps.documentRepository,
   organizationRepo = deps.organizationRepository,
   workspaceRepo = deps.workspaceRepository,
 }: {
   accessGraphSync: AccessGraphSync;
+  documentRepo?: Parameters<
+    typeof createOrganizationService
+  >[0]['documentRepo'];
   organizationRepo?: Parameters<
     typeof createOrganizationService
   >[0]['organizationRepo'];
@@ -33,6 +37,7 @@ const createOrganizationConsistencyService = ({
   createOrganizationService({
     accessGraphSync,
     db: deps.db,
+    documentRepo,
     organizationRepo,
     permissionChecker: deps.permissionChecker,
     workspaceRepo,

@@ -140,6 +140,7 @@ describe('api dependency bootstrap', () => {
     expect(depsMocks.createOrganizationService).toHaveBeenCalledWith({
       accessGraphSync: depsMocks.accessGraphSync,
       db: depsMocks.db,
+      documentRepo: depsMocks.documentRepository,
       organizationRepo: depsMocks.organizationRepository,
       permissionChecker: depsMocks.permissionChecker,
       workspaceRepo: depsMocks.workspaceRepository,
