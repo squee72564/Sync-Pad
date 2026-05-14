@@ -1,4 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { createFileRoute, useLoaderData } from '@tanstack/react-router';
 import {
   CheckCircle2Icon,
   MailIcon,
@@ -6,6 +7,7 @@ import {
   UsersIcon,
   XCircleIcon,
 } from 'lucide-react';
+import { Suspense } from 'react';
 import { EmptyStateCard } from '#/components/empty-state-card';
 import { PageHeader, PageHeaderStat } from '#/components/page-header';
 import { ScopeRouteError } from '#/components/scope-route-error';
@@ -20,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card';
+import { Skeleton } from '#/components/ui/skeleton';
 import { organizationMembersQuery } from '#/features/organizations/queries';
 import type { OrganizationMembersDetailedDto } from '#/features/organizations/types';
 import { assertUuidParam } from '#/lib/route-params';
@@ -30,7 +33,7 @@ export const Route = createFileRoute(
 )({
   loader: ({ context, params }) => {
     assertUuidParam('OrganizationMemberships', params.organizationId);
-    return context.queryClient.ensureQueryData(
+    context.queryClient.prefetchQuery(
       organizationMembersQuery(params.organizationId),
     );
   },
@@ -45,7 +48,10 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  const { memberships, access } = Route.useLoaderData();
+  const access = useLoaderData({
+    from: '/_authenticated/organizations/$organizationId/_organization',
+    select: (data) => data.access,
+  });
   const { organizationId } = Route.useParams();
   const navigate = Route.useNavigate();
 
@@ -69,32 +75,109 @@ function RouteComponent() {
         title="Organization Members"
         description="Review who has access to this organization and the role assigned to each account."
         actions={
-          access.permissions.invite ?? (
+          access.permissions.invite ? (
             <Button onClick={navigateToInvitePage}>
               Manage Member Invites
             </Button>
-          )
+          ) : null
         }
       >
-        <div className="grid grid-rows-2 gap-2 sm:min-w-80 items-center">
-          <PageHeaderStat label="Total" value={memberships.length} />
-        </div>
+        <Suspense fallback={<MembersHeaderStatsSkeleton />}>
+          <MembersHeaderStats />
+        </Suspense>
       </PageHeader>
 
-      {memberships.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {memberships.map((membership) => (
-            <MemberCard key={membership.userId} membership={membership} />
-          ))}
-        </div>
-      ) : (
-        <EmptyStateCard
-          icon={UsersIcon}
-          title="No members yet"
-          description="Members invited to this organization will appear here with their role and access status."
-        />
-      )}
+      <Suspense fallback={<MembersGridSkeleton />}>
+        <MembersContent />
+      </Suspense>
     </div>
+  );
+}
+
+function MembersHeaderStats() {
+  const { organizationId } = Route.useParams();
+  const { data } = useSuspenseQuery(organizationMembersQuery(organizationId));
+
+  return (
+    <div className="grid grid-rows-2 items-center gap-2 sm:min-w-80">
+      <PageHeaderStat label="Total" value={data.memberships.length} />
+    </div>
+  );
+}
+
+function MembersHeaderStatsSkeleton() {
+  return (
+    <div className="grid grid-rows-2 items-center gap-2 sm:min-w-80">
+      <div className="rounded-lg border border-border/70 bg-card px-3 py-2">
+        <Skeleton className="h-5 w-10" />
+        <Skeleton className="mt-1 h-3 w-12" />
+      </div>
+    </div>
+  );
+}
+
+function MembersContent() {
+  const { organizationId } = Route.useParams();
+  const { data } = useSuspenseQuery(organizationMembersQuery(organizationId));
+  const { memberships } = data;
+
+  return memberships.length > 0 ? (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {memberships.map((membership) => (
+        <MemberCard key={membership.userId} membership={membership} />
+      ))}
+    </div>
+  ) : (
+    <EmptyStateCard
+      icon={UsersIcon}
+      title="No members yet"
+      description="Members invited to this organization will appear here with their role and access status."
+    />
+  );
+}
+
+const memberSkeletonCards = [
+  'organization-member-1',
+  'organization-member-2',
+  'organization-member-3',
+];
+
+function MembersGridSkeleton() {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {memberSkeletonCards.map((card) => (
+        <MemberCardSkeleton key={card} />
+      ))}
+    </div>
+  );
+}
+
+function MemberCardSkeleton() {
+  return (
+    <Card className="border-border/70">
+      <CardHeader className="gap-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <Skeleton className="size-11 shrink-0 rounded-full" />
+
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-5 w-32" />
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="size-3.5 shrink-0" />
+              <Skeleton className="h-4 w-44" />
+            </div>
+          </div>
+        </div>
+
+        <CardAction>
+          <Skeleton className="h-6 w-20" />
+        </CardAction>
+      </CardHeader>
+
+      <CardContent className="flex items-center justify-between gap-3 border-t border-border/70 pt-4">
+        <Skeleton className="h-6 w-20" />
+        <Skeleton className="h-3 w-24" />
+      </CardContent>
+    </Card>
   );
 }
 

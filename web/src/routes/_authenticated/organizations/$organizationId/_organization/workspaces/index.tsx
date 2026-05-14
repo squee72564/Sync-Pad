@@ -57,14 +57,14 @@ function OrganizationWorkspaceListPage() {
         title="Workspaces"
         description="Workspaces within your organization."
         actions={
-          access.permissions.create_workspace ?? (
+          access.permissions.create_workspace ? (
             <Button
               className="px-auto"
               onClick={navigateToWorkspaceCreationPage}
             >
               Create New Workspace
             </Button>
-          )
+          ) : null
         }
       >
         <SearchQueryInput
