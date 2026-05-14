@@ -36,7 +36,7 @@ export const Route = createFileRoute(
 });
 
 function OrganizationWorkspaceListPage() {
-  const { workspaces } = Route.useLoaderData();
+  const { workspaces, access } = Route.useLoaderData();
   const { organizationId } = Route.useParams();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -57,9 +57,14 @@ function OrganizationWorkspaceListPage() {
         title="Workspaces"
         description="Workspaces within your organization."
         actions={
-          <Button className="px-auto" onClick={navigateToWorkspaceCreationPage}>
-            Create New Workspace
-          </Button>
+          access.permissions.create_workspace ?? (
+            <Button
+              className="px-auto"
+              onClick={navigateToWorkspaceCreationPage}
+            >
+              Create New Workspace
+            </Button>
+          )
         }
       >
         <SearchQueryInput

@@ -196,6 +196,7 @@ export type WorkspaceResponse = {
 
 export type OrganizationWorkspacesResponse = {
   workspaces: WorkspaceDto[];
+  access: OrganizationAccessDto;
   pageInfo: PageInfoDto;
 };
 
@@ -244,6 +245,7 @@ export type MeOrganizationInvitesResponse = {
 
 export type OrganizationMembersDetailedResponse = {
   memberships: OrganizationMembersDetailedDto[];
+  access: OrganizationAccessDto;
 };
 export type WorkspaceMembersDetailedResponse = {
   memberships: WorkspaceMembershipDetailedDto[];

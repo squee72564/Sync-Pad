@@ -45,7 +45,7 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  const { memberships } = Route.useLoaderData();
+  const { memberships, access } = Route.useLoaderData();
   const { organizationId } = Route.useParams();
   const navigate = Route.useNavigate();
 
@@ -68,10 +68,16 @@ function RouteComponent() {
         eyebrow="Members"
         title="Organization Members"
         description="Review who has access to this organization and the role assigned to each account."
+        actions={
+          access.permissions.invite ?? (
+            <Button onClick={navigateToInvitePage}>
+              Manage Member Invites
+            </Button>
+          )
+        }
       >
         <div className="grid grid-rows-2 gap-2 sm:min-w-80 items-center">
           <PageHeaderStat label="Total" value={memberships.length} />
-          <Button onClick={navigateToInvitePage}>Manage Member Invites</Button>
         </div>
       </PageHeader>
 

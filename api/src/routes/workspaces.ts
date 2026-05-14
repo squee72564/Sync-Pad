@@ -119,7 +119,14 @@ export function createOrganizationWorkspacesRoute({
             limit: query.limit,
           },
         });
-      return context.json({ workspaces, pageInfo }, StatusCodes.OK);
+
+      const access = await organizationService.getOrganizationAccess({
+        actorUserId: user.id,
+        organizationId: params.organizationId,
+        permissions: ['read', 'manage', 'invite', 'run_ai', 'create_workspace'],
+      });
+
+      return context.json({ workspaces, pageInfo, access }, StatusCodes.OK);
     },
   );
 
