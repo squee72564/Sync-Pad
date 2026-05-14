@@ -121,8 +121,8 @@ export function createOrganizationWorkspaceDocumentsRoute({
         OrganizationWorkspaceParams,
         OrganizationWorkspaceDocumentQuery
       >(context);
-      const { documents, pageInfo } =
-        await documentService.listByWorkspaceReadableToUserPage({
+      const [{ documents, pageInfo }, access] = await Promise.all([
+        documentService.listByWorkspaceReadableToUserPage({
           actorUserId: user.id,
           workspaceId: params.workspaceId,
           q: query.q,
@@ -130,13 +130,20 @@ export function createOrganizationWorkspaceDocumentsRoute({
             limit: query.limit,
             cursor: query.cursor,
           },
-        });
-
-      const access = await workspaceService.getWorkspaceAccess({
-        actorUserId: user.id,
-        workspaceId: params.workspaceId,
-        permissions: ['comment', 'write', 'read', 'manage', 'invite', 'run_ai'],
-      });
+        }),
+        workspaceService.getWorkspaceAccess({
+          actorUserId: user.id,
+          workspaceId: params.workspaceId,
+          permissions: [
+            'comment',
+            'write',
+            'read',
+            'manage',
+            'invite',
+            'run_ai',
+          ],
+        }),
+      ]);
 
       return context.json({ documents, pageInfo, access }, StatusCodes.OK);
     },

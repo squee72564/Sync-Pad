@@ -198,15 +198,22 @@ export function createOrganizationsRoute({
     async (context) => {
       const user = getCurrentUser(context);
       const { params } = getValidated<OrganizationParams>(context);
-      const memberships =
-        await organizationService.listMembershipsWithUserProfiles(
+      const [memberships, access] = await Promise.all([
+        organizationService.listMembershipsWithUserProfiles(
           params.organizationId,
-        );
-      const access = await organizationService.getOrganizationAccess({
-        actorUserId: user.id,
-        organizationId: params.organizationId,
-        permissions: ['read', 'manage', 'invite', 'run_ai', 'create_workspace'],
-      });
+        ),
+        organizationService.getOrganizationAccess({
+          actorUserId: user.id,
+          organizationId: params.organizationId,
+          permissions: [
+            'read',
+            'manage',
+            'invite',
+            'run_ai',
+            'create_workspace',
+          ],
+        }),
+      ]);
       return context.json({ memberships, access }, StatusCodes.OK);
     },
   );
